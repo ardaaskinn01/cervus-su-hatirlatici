@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "832274027170",
+    "project_id": "su-hatirlatici-455b2",
+    "storage_bucket": "su-hatirlatici-455b2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:832274027170:android:20e9608722e5cb69003dfb",
+        "android_client_info": {
+          "package_name": "com.cervus.suhatirlatici.suhatirlatici"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYTNdzbm3kXfwOr4k7skFOIV7xP9YirP4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
