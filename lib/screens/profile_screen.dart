@@ -291,7 +291,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (result) {
-      context.read<WaterProvider>().recalculateGoal(weight);
+      context.read<WaterProvider>().recalculateGoal();
       setState(() => _isEditing = false);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profil başarıyla güncellendi!', style: TextStyle(color: Colors.white)), backgroundColor: Color(0xFF10B981)));
     }

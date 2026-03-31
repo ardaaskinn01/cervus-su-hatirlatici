@@ -50,12 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _openSupportURL() async {
-    final Uri url = Uri.parse('mailto:support@suhatirlatici.com');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -112,15 +107,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: 'Bizi Değerlendir',
                     subtitle: 'Uygulamayı mağazada puanla',
                     onTap: _rateApp,
-                    trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFFCBD5E1)),
-                  ),
-                  const Divider(height: 1, color: Color(0xFFF1F5F9), indent: 72),
-                  _buildSettingRow(
-                    icon: Icons.mail_rounded,
-                    iconColor: accentColor,
-                    title: 'Bize Ulaşın',
-                    subtitle: 'Geri bildirim ve destek için tıkla',
-                    onTap: _openSupportURL,
                     trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFFCBD5E1)),
                   ),
                 ],

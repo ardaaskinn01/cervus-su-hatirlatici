@@ -6,15 +6,19 @@ import '../services/notification_service.dart';
 
 /// Tek bir su içme kaydını temsil eder.
 class SuKaydi {
+  final String uid; // Benzersizlik için
   final String saat;
   final int miktar;
 
-  SuKaydi({required this.saat, required this.miktar});
+  SuKaydi({required this.uid, required this.saat, required this.miktar});
 
-  Map<String, dynamic> toMap() => {'saat': saat, 'miktar': miktar};
+  Map<String, dynamic> toMap() => {'uid': uid, 'saat': saat, 'miktar': miktar};
 
-  factory SuKaydi.fromMap(Map<String, dynamic> map) =>
-      SuKaydi(saat: map['saat'] ?? '', miktar: (map['miktar'] as num).toInt());
+  factory SuKaydi.fromMap(Map<String, dynamic> map) => SuKaydi(
+        uid: map['uid'] ?? "${map['saat']}_${map['miktar']}",
+        saat: map['saat'] ?? '',
+        miktar: (map['miktar'] as num? ?? 0).toInt(),
+      );
 }
 
 class WaterProvider extends ChangeNotifier {
@@ -118,9 +122,15 @@ class WaterProvider extends ChangeNotifier {
         final data = snap.data()!;
         _currentIntake = (data['gunlukMiktar'] as num?)?.toInt() ?? 0;
         final rawList = data['suIcildi'] as List<dynamic>? ?? [];
-        _todayRecords = rawList
-            .map((e) => SuKaydi.fromMap(Map<String, dynamic>.from(e)))
-            .toList();
+        _todayRecords = [];
+        for (int i = 0; i < rawList.length; i++) {
+          final map = Map<String, dynamic>.from(rawList[i]);
+          // Eğer UID yoksa (eski veri), index ile benzersiz ve stabil hale getiriyoruz.
+          if (map['uid'] == null) {
+            map['uid'] = "old_${map['saat']}_${map['miktar']}_$i";
+          }
+          _todayRecords.add(SuKaydi.fromMap(map));
+        }
       } else {
         _currentIntake = 0;
         _todayRecords = [];
@@ -152,7 +162,8 @@ class WaterProvider extends ChangeNotifier {
         .collection('gunler')
         .doc(dateKey);
 
-    final yeniKaydi = SuKaydi(saat: saat, miktar: amount);
+    final uid = DateTime.now().millisecondsSinceEpoch.toString();
+    final yeniKaydi = SuKaydi(uid: uid, saat: saat, miktar: amount);
 
     await docRef.set({
       'gunlukMiktar': FieldValue.increment(amount),

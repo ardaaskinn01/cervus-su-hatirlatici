@@ -54,8 +54,8 @@ class NotificationService {
     final user = userBox.get('currentUser');
     if (user == null) return;
 
-    // 1 saat sonraki vakit
-    DateTime scheduledTime = DateTime.now().add(const Duration(hours: 1));
+    // TEST İÇİN: 2 dakika sonraki vakit
+    DateTime scheduledTime = DateTime.now().add(const Duration(minutes: 2));
 
     // Uyku kontrolü (Gece bildirim gelmez)
     if (_isUserSleeping(scheduledTime, user.wakeUpTime, user.sleepTime)) {
@@ -93,12 +93,12 @@ class NotificationService {
           id: 1,
           channelKey: 'water_reminders',
           title: 'Su Vakti! 🌊',
-          body: 'Vücudunun hidrasyonunu korumak için bir bardak su içmelisin.',
+          body: 'Vücudunun su dengesini korumak için bir bardak su içmelisin.',
           notificationLayout: NotificationLayout.Default,
         ),
         actionButtons: [
-          NotificationActionButton(key: 'ADD_100', label: '+100 ml Ekle', actionType: ActionType.KeepOnTop),
-          NotificationActionButton(key: 'ADD_200', label: '+200 ml Ekle', actionType: ActionType.KeepOnTop),
+          NotificationActionButton(key: 'ADD_100', label: '+100 ml İçtim', actionType: ActionType.KeepOnTop),
+          NotificationActionButton(key: 'ADD_200', label: '+200 ml İçtim', actionType: ActionType.KeepOnTop),
         ],
         schedule: NotificationCalendar.fromDate(date: scheduledTime, preciseAlarm: true, allowWhileIdle: true),
       );

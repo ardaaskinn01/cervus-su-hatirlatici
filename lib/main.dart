@@ -47,7 +47,11 @@ Future<void> onActionReceivedMethod(ReceivedAction receivedAction) async {
 
     await docRef.set({
       'gunlukMiktar': FieldValue.increment(amount),
-      'suIcildi': FieldValue.arrayUnion([{'saat': saat, 'miktar': amount}]),
+      'suIcildi': FieldValue.arrayUnion([{
+        'uid': DateTime.now().millisecondsSinceEpoch.toString(),
+        'saat': saat, 
+        'miktar': amount
+      }]),
     }, SetOptions(merge: true));
 
     // Yeni bildirimi kur (Tekrar döngüsünü başlat)

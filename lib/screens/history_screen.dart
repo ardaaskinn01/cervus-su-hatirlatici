@@ -4,8 +4,15 @@ import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../widgets/app_drawer.dart';
 
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
+
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  bool _showChart = false;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +41,20 @@ class HistoryScreen extends StatelessWidget {
         elevation: 0,
         iconTheme: const IconThemeData(color: primaryText),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(
+              _showChart ? Icons.list_alt_rounded : Icons.bar_chart_rounded,
+              color: accentColor,
+              size: 28,
+            ),
+            onPressed: () {
+              setState(() {
+                _showChart = !_showChart;
+              });
+            },
+          )
+        ],
       ),
       drawer: const AppDrawer(),
       body: StreamBuilder<QuerySnapshot>(
@@ -69,9 +90,13 @@ class HistoryScreen extends StatelessWidget {
 
           final docs = snapshot.data!.docs;
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(24),
-            physics: const BouncingScrollPhysics(),
+          return Column(
+            children: [
+              if (_showChart) _buildChartView(docs, accentColor, successColor, primaryText, secondaryText),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(24),
+                  physics: const BouncingScrollPhysics(),
             itemCount: docs.length,
             itemBuilder: (context, index) {
               final data = docs[index].data() as Map<String, dynamic>;
@@ -182,8 +207,123 @@ class HistoryScreen extends StatelessWidget {
                 ),
               );
             },
+                ),
+              ),
+            ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildChartView(List<QueryDocumentSnapshot> docs, Color accentColor, Color successColor, Color primaryText, Color secondaryText) {
+    if (docs.isEmpty) return const SizedBox.shrink();
+
+    // Veri en yeniden eskiye sıralı. Grafikte soldan sağa = eskiden yeniye yapmak için listeyi tersine çevirelim.
+    final reversedDocs = docs.reversed.toList();
+
+    // Yükseklik hesaplaması için maksimum miktarı bulalım
+    int maxIntake = 2000;
+    for (var doc in reversedDocs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final intake = (data['gunlukMiktar'] as num?)?.toInt() ?? 0;
+      if (intake > maxIntake) maxIntake = intake;
+    }
+
+    return Container(
+      height: 240,
+      width: double.infinity,
+      color: Colors.white,
+      padding: const EdgeInsets.only(top: 24, bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text('Günlük Tüketim Grafiği', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: primaryText, letterSpacing: -0.5)),
+          ),
+          const SizedBox(height: 24),
+          Expanded(
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: reversedDocs.length,
+              // Son elemana kaydırılmış başlamak için (en yeni gün sağda)
+              // Normal padding ve physics yetecektir. İleride scrollController eklenebilir.
+              itemBuilder: (context, index) {
+                final data = reversedDocs[index].data() as Map<String, dynamic>;
+                final dateString = data['tarih'] as String? ?? '';
+                final intake = (data['gunlukMiktar'] as num?)?.toInt() ?? 0;
+                final goal = (data['hedef'] as num?)?.toInt() ?? 2000;
+                final isHit = intake >= goal;
+
+                DateTime? date;
+                try { date = DateTime.parse(dateString); } catch (_) {}
+                String dayFormat = date != null ? "${date.day}/${date.month}" : "";
+
+                // Oran hesabı (max yüksekliğe göre 0.0 - 1.0 arası)
+                double ratio = maxIntake > 0 ? (intake / maxIntake).clamp(0.0, 1.0) : 0.0;
+                
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        '$intake',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: isHit ? successColor : accentColor,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Bar (Çubuk) Kısmı
+                      Container(
+                        height: 100, // Bar'ın alabileceği maksimum sabit yükseklik
+                        width: 40,
+                        alignment: Alignment.bottomCenter,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: FractionallySizedBox(
+                          heightFactor: ratio,
+                          child: Container(
+                            width: 40,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: isHit 
+                                  ? [successColor, successColor.withOpacity(0.7)]
+                                  : [accentColor, accentColor.withOpacity(0.7)],
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (isHit ? successColor : accentColor).withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                )
+                              ]
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        dayFormat,
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: secondaryText),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

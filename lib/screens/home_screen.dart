@@ -63,13 +63,13 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 10),
                 // ─── Karşılama ───────────────────────────────────
                 Text(
-                  'Merhaba,\n$displayName',
+                  'Merhaba, $displayName',
                   style: const TextStyle(fontSize: 32, height: 1.1, fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5),
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Bugünkü su hedefine ulaşmak için içmeye devam et 💧',
-                  style: TextStyle(fontSize: 15, color: secondaryText, fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500),
                 ),
 
                 const SizedBox(height: 48),
@@ -145,7 +145,7 @@ class HomeScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Muazzam İrade!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: -0.5)),
+                              Text('Muazzam!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: -0.5)),
                               SizedBox(height: 4),
                               Text('Günlük hedefine başarıyla ulaştın.', style: TextStyle(color: Colors.white70, fontSize: 14)),
                             ],
@@ -159,9 +159,9 @@ class HomeScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildWaterCard(context, icon: Icons.local_drink_outlined, label: 'Yarım', amount: 100, onTap: () => context.read<WaterProvider>().addWater(100)),
-                    _buildWaterCard(context, icon: Icons.local_drink_rounded, label: 'Tam Bardak', amount: 200, isFeatured: true, onTap: () => context.read<WaterProvider>().addWater(200)),
-                    _buildWaterCard(context, icon: Icons.add_circle_outline_rounded, label: 'Özel', amount: null, onTap: () => _showCustomAmountDialog(context)),
+                    _buildWaterCard(context, icon: Icons.water_drop_rounded, label: 'Küçük', amount: 100, onTap: () => context.read<WaterProvider>().addWater(100)),
+                    _buildWaterCard(context, icon: Icons.water_drop_rounded, label: 'Orta', amount: 200, onTap: () => context.read<WaterProvider>().addWater(200)),
+                    _buildWaterCard(context, icon: Icons.add_rounded, label: 'Diğer', amount: null, isFeatured: true, onTap: () => _showCustomAmountDialog(context)),
                   ],
                 ),
 
@@ -189,7 +189,7 @@ class HomeScreen extends StatelessWidget {
         const Text('Son İşlemler', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0F172A), letterSpacing: -0.5)),
         const SizedBox(height: 16),
         ...records.map((kaydi) => Dismissible(
-          key: Key('${kaydi.saat}-${kaydi.miktar}'),
+          key: Key(kaydi.uid),
           direction: DismissDirection.endToStart,
           background: Container(
             alignment: Alignment.centerRight,
@@ -238,38 +238,75 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildWaterCard(BuildContext context, {required IconData icon, required String label, required int? amount, bool isFeatured = false, required VoidCallback onTap}) {
-    Color bgColor = isFeatured ? const Color(0xFF0EA5E9) : Colors.white;
-    Color iconColor = isFeatured ? Colors.white : const Color(0xFF0EA5E9);
-    Color textColor = isFeatured ? Colors.white : const Color(0xFF0F172A);
-    Color subTextColor = isFeatured ? Colors.white.withOpacity(0.8) : const Color(0xFF64748B);
+    const accentColor = Color(0xFF0EA5E9);
+    const primaryText = Color(0xFF0F172A);
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(28),
-        splashColor: const Color(0xFF0EA5E9).withOpacity(0.1),
-        highlightColor: Colors.transparent,
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.26,
-          padding: const EdgeInsets.symmetric(vertical: 24),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: isFeatured ? Colors.transparent : const Color(0xFFE2E8F0), width: 1.5),
-            boxShadow: isFeatured 
-              ? [BoxShadow(color: const Color(0xFF0EA5E9).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))] 
-              : [const BoxShadow(color: Color(0x33E2E8F0), blurRadius: 15, offset: Offset(0, 8))],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 36, color: iconColor),
-              const SizedBox(height: 12),
-              Text(amount != null ? '+$amount ml' : 'Özel İşlem', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: textColor, letterSpacing: -0.5)),
-              const SizedBox(height: 4),
-              Text(label, style: TextStyle(fontSize: 12, color: subTextColor, fontWeight: FontWeight.w600)),
-            ],
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(32),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              decoration: BoxDecoration(
+                color: isFeatured ? accentColor : Colors.white,
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(
+                  color: isFeatured ? accentColor : const Color(0xFFE2E8F0),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isFeatured 
+                        ? accentColor.withOpacity(0.25) 
+                        : const Color(0xFFE2E8F0).withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  )
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: isFeatured 
+                          ? Colors.white.withOpacity(0.2) 
+                          : accentColor.withOpacity(0.08),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      icon, 
+                      size: 24, 
+                      color: isFeatured ? Colors.white : accentColor
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    amount != null ? '$amount' : 'Özel',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900, 
+                      fontSize: 18, 
+                      color: isFeatured ? Colors.white : primaryText,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  Text(
+                    'ML',
+                    style: TextStyle(
+                      fontSize: 10, 
+                      fontWeight: FontWeight.w800, 
+                      color: isFeatured ? Colors.white70 : const Color(0xFF94A3B8),
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
