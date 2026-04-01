@@ -31,7 +31,7 @@ void main() async {
   await Hive.openBox('dailyData');
   await Hive.openBox('history');
   
-  await NotificationService().initialize();
+  /* await NotificationService().initialize(); */
 
   runApp(const MyApp());
 }

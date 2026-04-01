@@ -95,7 +95,7 @@ class WaterProvider extends ChangeNotifier {
     final uid = DateTime.now().millisecondsSinceEpoch.toString();
     final yeniKaydi = SuKaydi(uid: uid, saat: saat, miktar: amount);
 
-    NotificationService().scheduleNextReminder();
+    // NotificationService().scheduleNextReminder();
 
     try {
       await docRef.set({
@@ -155,8 +155,8 @@ class WaterProvider extends ChangeNotifier {
 
   Future<void> toggleNotifications(bool value) async {
     await Hive.box('settings').put('notificationsEnabled', value);
-    if (!value) await NotificationService().cancelAllReminders();
-    else await NotificationService().scheduleNextReminder();
+    /* if (!value) await NotificationService().cancelAllReminders();
+    else await NotificationService().scheduleNextReminder(); */
     notifyListeners();
   }
 }
