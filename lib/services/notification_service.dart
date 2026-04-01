@@ -108,7 +108,7 @@ class NotificationService {
     final user = userBox.get('currentUser');
     if (user == null) return;
 
-    DateTime scheduledTime = DateTime.now().add(const Duration(hours: 2));
+    DateTime scheduledTime = DateTime.now().add(const Duration(minutes: 2));
 
     if (_isUserSleeping(scheduledTime, user.wakeUpTime, user.sleepTime)) {
       DateTime now = DateTime.now();
