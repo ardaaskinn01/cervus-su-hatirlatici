@@ -165,19 +165,21 @@ class WaterProvider extends ChangeNotifier {
     final uid = DateTime.now().millisecondsSinceEpoch.toString();
     final yeniKaydi = SuKaydi(uid: uid, saat: saat, miktar: amount);
 
-    await docRef.set({
-      'gunlukMiktar': FieldValue.increment(amount),
-      'hedef': _dailyGoal,
-      'tarih': dateKey,
-      'suIcildi': FieldValue.arrayUnion([yeniKaydi.toMap()]),
-    }, SetOptions(merge: true));
+    NotificationService().scheduleNextReminder();
+
+    try {
+      await docRef.set({
+        'gunlukMiktar': FieldValue.increment(amount),
+        'hedef': _dailyGoal,
+        'tarih': dateKey,
+        'suIcildi': FieldValue.arrayUnion([yeniKaydi.toMap()]),
+      }, SetOptions(merge: true)).timeout(const Duration(seconds: 3));
+    } catch (_) {}
 
     // Streak kontrolü
     _checkStreak();
-
-    // Bildirim saatini sıfırla
-    NotificationService().scheduleNextReminder();
   }
+
 
   // ─── SU SİL ────────────────────────────────────────────────────
   Future<void> deleteWaterRecord(SuKaydi kaydi, [String? dateKey]) async {

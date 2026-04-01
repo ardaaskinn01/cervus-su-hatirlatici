@@ -1,0 +1,20 @@
+﻿8c368ac fix: restore iOS 15.0 target for firestore compatibility
+d8cd086 switch to inexact notifications for Android compatibility
+cbe934c add exact alarm and notification permissions for Android 12+
+e153337 enable Android core library desugaring for notification support
+f9f5c0c fix errors in notification service and integrate properly with firebase
+a5daaa9 complete migration to flutter_local_notifications, lower iOS target to 13.0, and cleanup old configs
+4ccc145 advanced resilient Podfile for Codemagic & Xcode 16
+c56f440 add podfile with build_library_for_distribution=NO fix
+218dc43 fix pbxproj settings for xcode 26 compatibility
+0c57bd1 remove bridging header from all build configs - Xcode 26 fix
+9feebf0 remove Podfile from git, let Flutter generate it
+711c4c1 remove Podfile from git, let Flutter generate it
+9c4d988 remove Podfile from git, let Flutter generate it
+03010d2 remove Podfile from git, let Flutter generate it
+0867f26 remove podfile from git, add to gitignore for clean codemagic builds
+d0c6395 remove Podfile from git, let Flutter generate it
+97f00ec remove Podfile from git, let Flutter generate it
+7ace1d6 last updates
+5666ec2 restore standard podfile format with xcode16 fix
+d091075 last updates
