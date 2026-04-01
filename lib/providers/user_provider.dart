@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
-import 'dart:async';
 import '../models/user_model.dart';
-import '../services/notification_service.dart';
 
 class UserProvider extends ChangeNotifier {
   UserModel? _currentUser;
@@ -20,6 +18,29 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
+  // Bu fonksiyon Firebase'de benzersiz bir döküman adı bulana kadar döngüye girer!
+  Future<String> _getUniqueFirebaseId(String baseName) async {
+    // İsimden boşlukları silip küçük harfe çevirelim "Arda Askin" -> "ardaaskin"
+    final cleanName = baseName.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '');
+    String currentId = cleanName;
+    int counter = 1;
+    bool exists = true;
+
+    while (exists) {
+      // Firebase'den bu isimde biri var mı kontrol ediyoruz?
+      var doc = await FirebaseFirestore.instance.collection('users').doc(currentId).get();
+      if (!doc.exists) {
+        exists = false;   // Yoksa, bu ID'yi kullanabiliriz.
+        return currentId;
+      } else {
+        // Varsa yanına rakam ekleyip tekrar dene (arda1, arda2...)
+        currentId = '$cleanName$counter';
+        counter++;
+      }
+    }
+    return currentId; 
+  }
+
   Future<bool> registerUser({
     required String name,
     required int age,
@@ -31,11 +52,10 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // 1. İsimden temiz bir ID üret (İnterneti beklemeyelim)
-      final String cleanId = name.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '');
-      // Başına milisaniye ekleyelim ki "tamamen" benzersiz olsun (İnternet yokken kontrol edemeyiz)
-      final String uniqueId = "${cleanId}_${DateTime.now().millisecondsSinceEpoch % 10000}";
+      // 1. Firebase Unique ID'yi bul (örn: "arda" veya "arda3")
+      String uniqueId = await _getUniqueFirebaseId(name);
 
+      // 2. Modeli oluştur. Ekranda saf ismi, Firebase arkaplanında benzersiz ID'yi tutuyoruz.
       UserModel newUser = UserModel(
         displayName: name,
         firebaseId: uniqueId,
@@ -45,33 +65,23 @@ class UserProvider extends ChangeNotifier {
         sleepTime: sleepTime,
       );
 
-      // 2. ÖNCE LOKALE (HIVE) KAYDET! (En garantisi budur)
+      // 3. Firebase'e kaydet (Unique ID doc name olarak)
+      await FirebaseFirestore.instance.collection('users').doc(uniqueId).set(newUser.toMap());
+
+      // 4. Lokale de (Hive) bu veriyi kaydet!
       var box = Hive.box<UserModel>('userBox');
       await box.put('currentUser', newUser);
+
       _currentUser = newUser;
 
-      // 3. Bildirimi hemen planla (Kayıt biter bitmez gelsin)
-      NotificationService().scheduleNextReminder();
-
-      // 4. FIREBASE'E ARKA PLANDA GÖNDERMEYİ DENE (Beklemeden - unawaited mantığı)
-      // İnternet yoksa Firebase bunu 'offline' olarak kuyruğa alır
-      unawaited(
-        FirebaseFirestore.instance
-            .collection('users')
-            .doc(uniqueId)
-            .set(newUser.toMap())
-            .timeout(const Duration(seconds: 3))
-            .catchError((e) => debugPrint("Firestore offline registration queue: $e"))
-      );
-
       _isLoading = false;
       notifyListeners();
-      return true; // Kullanıcı artık "Kayıtlı" sayılır
+      return true; // Başarılı
     } catch (e) {
-      print("Kayıt Hatası (Kritik): $e");
+      print("Firebase veya Hive Kayıt Hatası: $e");
       _isLoading = false;
       notifyListeners();
-      return false;
+      return false; // Başarısız
     }
   }
 
@@ -86,8 +96,9 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // 1. Yeni verilerle modeli kopyala (Immutable update)
       UserModel updatedUser = UserModel(
-        displayName: _currentUser!.displayName,
+        displayName: _currentUser!.displayName, // İsim değişmez (Unique ID ile bağlı)
         firebaseId: _currentUser!.firebaseId,
         age: age,
         weight: weight,
@@ -95,27 +106,26 @@ class UserProvider extends ChangeNotifier {
         sleepTime: sleepTime,
       );
 
+      // 2. Firestore'u güncelle
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_currentUser!.firebaseId)
+          .update(updatedUser.toMap());
+
+      // 3. Hive'ı güncelle
       var box = Hive.box<UserModel>('userBox');
       await box.put('currentUser', updatedUser);
+
       _currentUser = updatedUser;
-
-      unawaited(
-        FirebaseFirestore.instance
-            .collection('users')
-            .doc(_currentUser!.firebaseId)
-            .update(updatedUser.toMap())
-            .timeout(const Duration(seconds: 3))
-            .catchError((e) => debugPrint("Update sync deferred: $e"))
-      );
-
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      print("Güncelleme Hatası: $e");
+      print("Profil Güncelleme Hatası: $e");
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
+
 }
