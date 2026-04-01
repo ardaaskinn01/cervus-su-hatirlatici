@@ -3,7 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  flutter_timezone
+  awesome_notifications
   url_launcher_linux
 )
 
