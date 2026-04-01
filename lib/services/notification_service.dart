@@ -17,6 +17,8 @@ class NotificationService {
 
   Future<void> initialize() async {
     tz.initializeTimeZones();
+    // Yerel zaman dilimini otomatik ayarla
+    // tz.setLocalLocation(tz.getLocation('Europe/Istanbul')); // Gerekirse manuel set edilebilir
 
     const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     
@@ -58,6 +60,7 @@ class NotificationService {
   }
 
   static Future<void> _handleNotificationAction(String actionKey) async {
+    print("Notification Action Received: $actionKey");
     if (actionKey == 'ADD_100' || actionKey == 'ADD_200') {
       final amount = actionKey == 'ADD_100' ? 100 : 200;
       await _saveWaterToFirebase(amount);
@@ -65,46 +68,56 @@ class NotificationService {
   }
 
   static Future<void> _saveWaterToFirebase(int amount) async {
-    // Isolate ortamında Firebase ve Hive kontrolü
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    try {
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      }
+      
+      if (!Hive.isBoxOpen('userBox')) {
+        await Hive.openBox<UserModel>('userBox');
+      }
+
+      final userBox = Hive.box<UserModel>('userBox');
+      final user = userBox.get('currentUser');
+      if (user == null) return;
+
+      final now = DateTime.now();
+      final dateKey = "${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+      final saat = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
+
+      final docRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.firebaseId)
+          .collection('gunler')
+          .doc(dateKey);
+
+      // Timeout ve hata yakalama ekledik ki internet yoksa bildirim kurma işlemi takılmasın
+      await docRef.set({
+        'gunlukMiktar': FieldValue.increment(amount),
+        'suIcildi': FieldValue.arrayUnion([{
+          'uid': DateTime.now().millisecondsSinceEpoch.toString(),
+          'saat': saat, 
+          'miktar': amount
+        }]),
+      }, SetOptions(merge: true)).timeout(const Duration(seconds: 5));
+      
+      print("Firebase Save Successful");
+    } catch (e) {
+      print("Firebase Save Error (Internet?): $e");
+    } finally {
+      // İnternet olmasa bile bildirimi kur!
+      NotificationService().scheduleNextReminder();
     }
-    
-    if (!Hive.isBoxOpen('userBox')) {
-      await Hive.openBox<UserModel>('userBox');
-    }
-
-    final userBox = Hive.box<UserModel>('userBox');
-    final user = userBox.get('currentUser');
-    if (user == null) return;
-
-    final now = DateTime.now();
-    final dateKey = "${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
-    final saat = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
-
-    final docRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.firebaseId)
-        .collection('gunler')
-        .doc(dateKey);
-
-    await docRef.set({
-      'gunlukMiktar': FieldValue.increment(amount),
-      'suIcildi': FieldValue.arrayUnion([{
-        'uid': DateTime.now().millisecondsSinceEpoch.toString(),
-        'saat': saat, 
-        'miktar': amount
-      }]),
-    }, SetOptions(merge: true));
-
-    // Bir sonraki bildirimi planla
-    NotificationService().scheduleNextReminder();
   }
 
   Future<void> scheduleNextReminder() async {
+    print("Scheduling next reminder...");
     if (!Hive.isBoxOpen('settings')) await Hive.openBox('settings');
     bool isEnabled = Hive.box('settings').get('notificationsEnabled', defaultValue: true);
-    if (!isEnabled) return;
+    if (!isEnabled) {
+      print("Notifications are disabled in settings.");
+      return;
+    }
 
     await cancelAllReminders();
 
@@ -115,13 +128,14 @@ class NotificationService {
     final user = userBox.get('currentUser');
     if (user == null) return;
 
-    DateTime scheduledTime = DateTime.now().add(const Duration(minutes: 2));
+    // Test için 1 dakika sonraya kuruyoruz
+    DateTime scheduledTimeBase = DateTime.now().add(const Duration(minutes: 1));
 
-    if (_isUserSleeping(scheduledTime, user.wakeUpTime, user.sleepTime)) {
+    if (_isUserSleeping(scheduledTimeBase, user.wakeUpTime, user.sleepTime)) {
       DateTime now = DateTime.now();
       List<String> wakeParts = user.wakeUpTime.split(':');
       DateTime wakeTimeToday = DateTime(now.year, now.month, now.day, int.parse(wakeParts[0]), int.parse(wakeParts[1]));
-      scheduledTime = now.isAfter(wakeTimeToday) ? wakeTimeToday.add(const Duration(days: 1)) : wakeTimeToday;
+      scheduledTimeBase = now.isAfter(wakeTimeToday) ? wakeTimeToday.add(const Duration(days: 1)) : wakeTimeToday;
     }
 
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
@@ -145,17 +159,21 @@ class NotificationService {
       iOS: iosDetails,
     );
 
+    // tz.local yerine daha güvenli olan UTC + Offset mantığını veya direkt TZDateTime'ı kullanıyoruz
+    final tz.TZDateTime scheduledTZTime = tz.TZDateTime.from(scheduledTimeBase, tz.local);
+
     await _notificationsPlugin.zonedSchedule(
       1,
       'Su Vakti! 🌊',
       'Vücudunun su dengesini korumak için bir bardak su içmelisin.',
-      tz.TZDateTime.from(scheduledTime, tz.local),
+      scheduledTZTime,
       platformDetails,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       payload: 'WATER_REMINDER',
     );
-
+    
+    print("Notification scheduled for: ${scheduledTZTime.toString()}");
   }
 
   Future<void> cancelAllReminders() async {
