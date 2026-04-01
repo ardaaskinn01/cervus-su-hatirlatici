@@ -151,10 +151,11 @@ class NotificationService {
       'Vücudunun su dengesini korumak için bir bardak su içmelisin.',
       tz.TZDateTime.from(scheduledTime, tz.local),
       platformDetails,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       payload: 'WATER_REMINDER',
     );
+
   }
 
   Future<void> cancelAllReminders() async {
