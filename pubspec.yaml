@@ -42,7 +42,7 @@ dependencies:
   hive_flutter: ^1.1.0
   flutter_local_notifications: ^18.0.1
   timezone: ^0.9.4
-  flutter_timezone: ^2.1.1
+  flutter_timezone: ^5.0.2
   provider: ^6.1.5+1
   lottie: ^3.3.1
   cloud_firestore: ^6.2.0
