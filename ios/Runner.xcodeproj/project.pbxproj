@@ -370,7 +370,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.cervus.suhatirlatici;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				BUILD_LIBRARIES_FOR_DISTRIBUTION = NO;
 				DEFINES_MODULE = NO;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
@@ -552,7 +551,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.cervus.suhatirlatici;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				BUILD_LIBRARIES_FOR_DISTRIBUTION = NO;
 				DEFINES_MODULE = NO;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
@@ -578,7 +576,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.cervus.suhatirlatici;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				BUILD_LIBRARIES_FOR_DISTRIBUTION = NO;
 				DEFINES_MODULE = NO;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
