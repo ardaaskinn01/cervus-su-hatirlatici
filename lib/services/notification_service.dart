@@ -1,10 +1,12 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive/hive.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import '../models/user_model.dart';
+import '../firebase_options.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -50,54 +52,75 @@ class NotificationService {
     );
   }
 
-  // Background action handler
   @pragma('vm:entry-point')
   static void notificationTapBackground(NotificationResponse notificationResponse) {
     _handleNotificationAction(notificationResponse.payload ?? notificationResponse.actionId ?? '');
   }
 
-  static void _handleNotificationAction(String actionKey) {
-    print("Notification Action: $actionKey");
+  static Future<void> _handleNotificationAction(String actionKey) async {
     if (actionKey == 'ADD_100' || actionKey == 'ADD_200') {
-      // Burada Hive'a su ekleme mantığını tetikleyebiliriz
-      // Ancak UI açık değilse direkt Hive üzerinden işlem yapılır
       final amount = actionKey == 'ADD_100' ? 100 : 200;
-      _saveWaterToHive(amount);
+      await _saveWaterToFirebase(amount);
     }
   }
 
-  static void _saveWaterToHive(int amount) {
-    if (!Hive.isBoxOpen('userBox')) return;
+  static Future<void> _saveWaterToFirebase(int amount) async {
+    // Isolate ortamında Firebase ve Hive kontrolü
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    }
+    
+    if (!Hive.isBoxOpen('userBox')) {
+      await Hive.openBox<UserModel>('userBox');
+    }
+
     final userBox = Hive.box<UserModel>('userBox');
     final user = userBox.get('currentUser');
-    if (user != null) {
-      user.currentWater += amount;
-      user.save();
-      print("Water added from notification: $amount ml");
-    }
+    if (user == null) return;
+
+    final now = DateTime.now();
+    final dateKey = "${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    final saat = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
+
+    final docRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.firebaseId)
+        .collection('gunler')
+        .doc(dateKey);
+
+    await docRef.set({
+      'gunlukMiktar': FieldValue.increment(amount),
+      'suIcildi': FieldValue.arrayUnion([{
+        'uid': DateTime.now().millisecondsSinceEpoch.toString(),
+        'saat': saat, 
+        'miktar': amount
+      }]),
+    }, SetOptions(merge: true));
+
+    // Bir sonraki bildirimi planla
+    NotificationService().scheduleNextReminder();
   }
 
   Future<void> scheduleNextReminder() async {
+    if (!Hive.isBoxOpen('settings')) await Hive.openBox('settings');
     bool isEnabled = Hive.box('settings').get('notificationsEnabled', defaultValue: true);
     if (!isEnabled) return;
 
     await cancelAllReminders();
 
+    if (!Hive.isBoxOpen('userBox')) await Hive.openBox<UserModel>('userBox');
     final userBox = Hive.box<UserModel>('userBox');
     if (userBox.isEmpty) return;
 
     final user = userBox.get('currentUser');
     if (user == null) return;
 
-    // 2 dakika sonra hatırla (Test amaçlı, normalde 2 saat olabilir)
     DateTime scheduledTime = DateTime.now().add(const Duration(minutes: 2));
 
     if (_isUserSleeping(scheduledTime, user.wakeUpTime, user.sleepTime)) {
-      // Uyuyorsa bir sonraki uyanış saatine ertele
       DateTime now = DateTime.now();
       List<String> wakeParts = user.wakeUpTime.split(':');
       DateTime wakeTimeToday = DateTime(now.year, now.month, now.day, int.parse(wakeParts[0]), int.parse(wakeParts[1]));
-      
       scheduledTime = now.isAfter(wakeTimeToday) ? wakeTimeToday.add(const Duration(days: 1)) : wakeTimeToday;
     }
 
