@@ -45,6 +45,4 @@ app.*.map.json
 /android/app/release
 
 # iOS - Let Flutter/Codemagic generate these fresh each build
-ios/Podfile
-ios/Flutter/Generated.xcconfig
 
