@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:awesome_notifications/awesome_notifications.dart';
+// import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 
 import 'models/user_model.dart';
@@ -15,8 +15,9 @@ import 'screens/home_screen.dart';
 import 'services/notification_service.dart';
 
 // ─── BİLDİRİM EYLEM DİNLEYİCİSİ (TOP-LEVEL) ───────────────────────────
+/*
 @pragma("vm:entry-point")
-Future<void> onActionReceivedMethod(ReceivedAction receivedAction) async {
+Future<void> onActionReceivedMethod(dynamic receivedAction) async {
   // Sadece su ekleme butonlarına basıldıysa devreye gir
   if (receivedAction.buttonKeyPressed == 'ADD_100' || receivedAction.buttonKeyPressed == 'ADD_200') {
     
@@ -58,6 +59,7 @@ Future<void> onActionReceivedMethod(ReceivedAction receivedAction) async {
     await NotificationService().scheduleNextReminder();
   }
 }
+*/
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -81,9 +83,11 @@ void main() async {
   await NotificationService().initialize();
 
   // Dinleyiciyi üst seviye fonksiyona bağla
+  /*
   AwesomeNotifications().setListeners(
     onActionReceivedMethod: onActionReceivedMethod,
   );
+  */
 
   runApp(const MyApp());
 }
