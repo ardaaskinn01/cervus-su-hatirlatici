@@ -92,7 +92,7 @@ class NotificationService {
           .collection('gunler')
           .doc(dateKey);
 
-      NotificationService().scheduleNextReminder();
+      await NotificationService().scheduleNextReminder();
 
       await docRef.set({
         'gunlukMiktar': FieldValue.increment(amount),
@@ -107,28 +107,40 @@ class NotificationService {
 
   Future<void> scheduleNextReminder() async {
     try {
+      print("🔔 Notification scheduling started...");
       if (!Hive.isBoxOpen('settings')) await Hive.openBox('settings');
       bool isEnabled = Hive.box('settings').get('notificationsEnabled', defaultValue: true);
-      if (!isEnabled) return;
+      if (!isEnabled) {
+        print("🔔 Notifications are DISABLED in settings.");
+        return;
+      }
 
       await cancelAllReminders();
 
       if (!Hive.isBoxOpen('userBox')) await Hive.openBox<UserModel>('userBox');
       final userBox = Hive.box<UserModel>('userBox');
-      if (userBox.isEmpty) return;
+      if (userBox.isEmpty) {
+        print("🔔 UserBox is empty, cannot schedule.");
+        return;
+      }
 
       final user = userBox.get('currentUser');
-      if (user == null) return;
+      if (user == null) {
+        print("🔔 CurrentUser is null, cannot schedule.");
+        return;
+      }
 
-      // Su hatırlatması için varsayılan olarak 2 saat (test için genelde sen kısaltırsın)
-      DateTime scheduledTime = DateTime.now().add(const Duration(minutes: 120));
+      // TEST: 1 Dakika Sonraya Kuruyoruz (2 saat beklemeyelim diye)
+      DateTime scheduledTime = DateTime.now().add(const Duration(minutes: 1));
 
+      /* Uyku kontrolü testi engellemesin diye geçici olarak kapalı tutabilirsin 
       if (_isUserSleeping(scheduledTime, user.wakeUpTime, user.sleepTime)) {
         DateTime now = DateTime.now();
         List<String> wakeParts = user.wakeUpTime.split(':');
         DateTime wakeTimeToday = DateTime(now.year, now.month, now.day, int.parse(wakeParts[0]), int.parse(wakeParts[1]));
         scheduledTime = now.isAfter(wakeTimeToday) ? wakeTimeToday.add(const Duration(days: 1)) : wakeTimeToday;
       }
+      */
 
       const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
         'water_reminders',
@@ -157,10 +169,13 @@ class NotificationService {
         'Vücudunun su dengesini korumak için bir bardak su içmelisin.',
         scheduledTZTime,
         platformDetails,
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle, // Android'de çökmesin diye inexact
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
-    } catch (_) {}
+      print("🔔 SUCCESS: Notification scheduled for $scheduledTZTime");
+    } catch (e) {
+      print("🔔 ERROR scheduling notification: $e");
+    }
   }
 
   Future<void> cancelAllReminders() async {
