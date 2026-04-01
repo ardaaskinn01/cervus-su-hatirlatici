@@ -1,5 +1,5 @@
-# Podfile for Cervus Water Reminder
-platform :ios, '15.0'
+# Podfile for Cervus Water Reminder (Lightweight Edition)
+platform :ios, '13.0'
 
 ENV['COCOAPODS_DISABLE_STATS'] = '1'
 
@@ -9,20 +9,15 @@ project 'Runner', {
   'Profile' => :profile,
 }
 
-# Flutter SDK yolunu bulmak için daha esnek bir yöntem
 def flutter_root
   generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
-  
-  # Dosya yoksa hemen hata verme, önce bir bak bakalım içerde ne var
   if File.exist?(generated_xcode_build_settings_path)
     File.foreach(generated_xcode_build_settings_path) do |line|
       matches = line.match(/\AFLUTTER_ROOT=(.*)\z/)
       return matches[1].strip if matches
     end
   end
-  
-  # Eğer bulunamazsa veya dosya yoksa, ortam değişkenini dene (CI için)
-  ENV['FLUTTER_ROOT'] || (raise "FLUTTER_ROOT not found. Run 'flutter pub get' first.")
+  ENV['FLUTTER_ROOT']
 end
 
 require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper.rb'), flutter_root)
@@ -32,21 +27,15 @@ target 'Runner' do
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-  target 'RunnerTests' do
-    inherit! :search_paths
-  end
 end
 
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
     
+    # Modern Xcode support - Minimalist approach
     target.build_configurations.each do |config|
-      # --- KESİN ÇÖZÜM: XCODE 16 / 26 MODÜL FIX ---
-      config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'NO'
-      config.build_settings['SWIFT_INSTALL_OBJC_HEADER'] = 'YES'
-      config.build_settings['GCC_PRECOMPILE_PREFIX_HEADER'] = 'NO'
-      # ---------------------------------------------
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
     end
   end
 end

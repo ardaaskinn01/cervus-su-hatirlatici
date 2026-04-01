@@ -1,6 +1,9 @@
-import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:io';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive/hive.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 import '../models/user_model.dart';
 
 class NotificationService {
@@ -8,44 +11,76 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
+  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+
   Future<void> initialize() async {
-    await AwesomeNotifications().initialize(
-      null,
-      [
-        NotificationChannel(
-          channelGroupKey: 'water_reminders_group',
-          channelKey: 'water_reminders',
-          channelName: 'Su Hatırlatıcı Bildirimleri',
-          channelDescription: 'Su içmen gerektiğini hatırlatan bildirimler',
-          defaultColor: const Color(0xFF29B6F6),
-          ledColor: Colors.white,
-          importance: NotificationImportance.High,
-          channelShowBadge: true,
-          onlyAlertOnce: true,
-          playSound: true,
-          criticalAlerts: true,
-        )
+    tz.initializeTimeZones();
+
+    const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    
+    final DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+      notificationCategories: [
+        DarwinNotificationCategory(
+          'water_reminder_category',
+          actions: [
+            DarwinNotificationAction.plain('ADD_100', '+100 ml Ekle'),
+            DarwinNotificationAction.plain('ADD_200', '+200 ml Ekle'),
+          ],
+          options: {
+            DarwinNotificationCategoryOption.hiddenPreviewShowTitle,
+          },
+        ),
       ],
-      channelGroups: [
-        NotificationChannelGroup(channelGroupKey: 'water_reminders_group', channelGroupName: 'Buzdolabı Grubu')
-      ],
-      debug: true,
     );
 
-    // İzin kontrolü
-    await AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
-      if (!isAllowed) {
-        AwesomeNotifications().requestPermissionToSendNotifications();
-      }
-    });
+    final InitializationSettings settings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+
+    await _notificationsPlugin.initialize(
+      settings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        _handleNotificationAction(response.payload ?? response.actionId ?? '');
+      },
+      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+    );
+  }
+
+  // Background action handler
+  @pragma('vm:entry-point')
+  static void notificationTapBackground(NotificationResponse notificationResponse) {
+    _handleNotificationAction(notificationResponse.payload ?? notificationResponse.actionId ?? '');
+  }
+
+  static void _handleNotificationAction(String actionKey) {
+    print("Notification Action: $actionKey");
+    if (actionKey == 'ADD_100' || actionKey == 'ADD_200') {
+      // Burada Hive'a su ekleme mantığını tetikleyebiliriz
+      // Ancak UI açık değilse direkt Hive üzerinden işlem yapılır
+      final amount = actionKey == 'ADD_100' ? 100 : 200;
+      _saveWaterToHive(amount);
+    }
+  }
+
+  static void _saveWaterToHive(int amount) {
+    if (!Hive.isBoxOpen('userBox')) return;
+    final userBox = Hive.box<UserModel>('userBox');
+    final user = userBox.get('currentUser');
+    if (user != null) {
+      user.currentWater += amount;
+      user.save();
+      print("Water added from notification: $amount ml");
+    }
   }
 
   Future<void> scheduleNextReminder() async {
-    // 1. KULLANICI AYARINI KONTROL ET (Notifications Toggle)
     bool isEnabled = Hive.box('settings').get('notificationsEnabled', defaultValue: true);
-    if (!isEnabled) return; // Kapalıysa kurma
+    if (!isEnabled) return;
 
-    // 2. Mevcut planlanmış bildirimleri iptal et
     await cancelAllReminders();
 
     final userBox = Hive.box<UserModel>('userBox');
@@ -54,59 +89,53 @@ class NotificationService {
     final user = userBox.get('currentUser');
     if (user == null) return;
 
-    // TEST İÇİN: 2 dakika sonraki vakit
+    // 2 dakika sonra hatırla (Test amaçlı, normalde 2 saat olabilir)
     DateTime scheduledTime = DateTime.now().add(const Duration(minutes: 2));
 
-    // Uyku kontrolü (Gece bildirim gelmez)
     if (_isUserSleeping(scheduledTime, user.wakeUpTime, user.sleepTime)) {
-      // Eğer uyuyor olacaksa, bildirimi bir sonraki uyanış saatine erteleyelim
+      // Uyuyorsa bir sonraki uyanış saatine ertele
       DateTime now = DateTime.now();
       List<String> wakeParts = user.wakeUpTime.split(':');
       DateTime wakeTimeToday = DateTime(now.year, now.month, now.day, int.parse(wakeParts[0]), int.parse(wakeParts[1]));
       
-      // Eğer uyanış saati çoktan geçildiyse yarına kur
-      if (now.isAfter(wakeTimeToday)) {
-        scheduledTime = wakeTimeToday.add(const Duration(days: 1));
-      } else {
-        scheduledTime = wakeTimeToday;
-      }
-
-      await AwesomeNotifications().createNotification(
-        content: NotificationContent(
-          id: 1,
-          channelKey: 'water_reminders',
-          title: 'Günaydın! 💧',
-          body: 'Güne taze bir bardak su ile başlamaya ne dersin?',
-          notificationLayout: NotificationLayout.Default,
-        ),
-        actionButtons: [
-          NotificationActionButton(key: 'ADD_100', label: '+100 ml (Başla)', actionType: ActionType.KeepOnTop),
-          NotificationActionButton(key: 'ADD_200', label: '+200 ml (Tam)', actionType: ActionType.KeepOnTop),
-        ],
-        schedule: NotificationCalendar.fromDate(date: scheduledTime, preciseAlarm: true, allowWhileIdle: true),
-      );
-
-    } else {
-      // Normal 2 saatlik hatırlatıcı
-      await AwesomeNotifications().createNotification(
-        content: NotificationContent(
-          id: 1,
-          channelKey: 'water_reminders',
-          title: 'Su Vakti! 🌊',
-          body: 'Vücudunun su dengesini korumak için bir bardak su içmelisin.',
-          notificationLayout: NotificationLayout.Default,
-        ),
-        actionButtons: [
-          NotificationActionButton(key: 'ADD_100', label: '+100 ml İçtim', actionType: ActionType.KeepOnTop),
-          NotificationActionButton(key: 'ADD_200', label: '+200 ml İçtim', actionType: ActionType.KeepOnTop),
-        ],
-        schedule: NotificationCalendar.fromDate(date: scheduledTime, preciseAlarm: true, allowWhileIdle: true),
-      );
+      scheduledTime = now.isAfter(wakeTimeToday) ? wakeTimeToday.add(const Duration(days: 1)) : wakeTimeToday;
     }
+
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'water_reminders',
+      'Su Hatırlatıcı Bildirimleri',
+      channelDescription: 'Su içmen gerektiğini hatırlatan bildirimler',
+      importance: Importance.max,
+      priority: Priority.high,
+      actions: <AndroidNotificationAction>[
+        AndroidNotificationAction('ADD_100', '+100 ml İçtim'),
+        AndroidNotificationAction('ADD_200', '+200 ml İçtim'),
+      ],
+    );
+
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      categoryIdentifier: 'water_reminder_category',
+    );
+
+    const NotificationDetails platformDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notificationsPlugin.zonedSchedule(
+      1,
+      'Su Vakti! 🌊',
+      'Vücudunun su dengesini korumak için bir bardak su içmelisin.',
+      tz.TZDateTime.from(scheduledTime, tz.local),
+      platformDetails,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      payload: 'WATER_REMINDER',
+    );
   }
 
   Future<void> cancelAllReminders() async {
-    await AwesomeNotifications().cancelAllSchedules();
+    await _notificationsPlugin.cancelAll();
   }
 
   bool _isUserSleeping(DateTime time, String wakeUp, String sleep) {
