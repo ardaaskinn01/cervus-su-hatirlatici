@@ -1,4 +1,4 @@
-import 'package:awesome_notifications/awesome_notifications.dart';
+// import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../models/user_model.dart';
@@ -9,6 +9,7 @@ class NotificationService {
   NotificationService._internal();
 
   Future<void> initialize() async {
+    /*
     await AwesomeNotifications().initialize(
       null,
       [
@@ -38,9 +39,11 @@ class NotificationService {
         AwesomeNotifications().requestPermissionToSendNotifications();
       }
     });
+    */
   }
 
   Future<void> scheduleNextReminder() async {
+    /*
     // 1. KULLANICI AYARINI KONTROL ET (Notifications Toggle)
     bool isEnabled = Hive.box('settings').get('notificationsEnabled', defaultValue: true);
     if (!isEnabled) return; // Kapalıysa kurma
@@ -103,10 +106,11 @@ class NotificationService {
         schedule: NotificationCalendar.fromDate(date: scheduledTime, preciseAlarm: true, allowWhileIdle: true),
       );
     }
+    */
   }
 
   Future<void> cancelAllReminders() async {
-    await AwesomeNotifications().cancelAllSchedules();
+    // await AwesomeNotifications().cancelAllSchedules();
   }
 
   bool _isUserSleeping(DateTime time, String wakeUp, String sleep) {
