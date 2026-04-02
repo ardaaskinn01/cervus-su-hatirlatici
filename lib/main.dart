@@ -13,14 +13,13 @@ import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 
 void main() async {
+  // 1. ANINDA BAŞLAT ✅🎯
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. HIVE - Lokal veri (hızlı, await edilebilir)
+  // 2. HIVE (Sadece gerekli olanları bekle)
   try {
     await Hive.initFlutter();
-    if (!Hive.isAdapterRegistered(0)) {
-      Hive.registerAdapter(UserModelAdapter());
-    }
+    if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
     await Hive.openBox<UserModel>('userBox');
     await Hive.openBox('settings');
     await Hive.openBox('dailyData');
@@ -29,27 +28,19 @@ void main() async {
     debugPrint('⚠️ Hive açılamadı: $e');
   }
 
-  // 2. FIREBASE - await ile başlat (UserProvider ve NotificationService buna bağımlı!)
-  // Bu olmadan Firestore çağrıları crash yapar.
+  // 3. FIREBASE & ADMOB (Await ederek hatayı önle ama kilitlenme riskini minimize et)
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    debugPrint('🔥 Firebase hazır.');
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   } catch (e) {
     debugPrint('⚠️ Firebase başlatılamadı: $e');
   }
 
-  // 3. ADMOB & BİLDİRİMLER - fire and forget (Firebase'i beklemezler ama içinde kullanabilirler)
-  _startSecondaryServices();
-
-  // 4. UYGULAMAYI BAŞLAT
-  runApp(const MyApp());
-}
-
-void _startSecondaryServices() {
+  // Fonksiyon çağrısı non-blocking (Fire and Forget) ✅🎯
   NotificationService().initialize();
   MobileAds.instance.initialize();
+
+  // 4. UYGULAMAYI ANINDA ÇALIŞTIR ✅🏆🥇
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -60,9 +51,9 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) {
-          final up = UserProvider();
-          up.initUser();
-          return up;
+           final up = UserProvider();
+           up.initUser(); // Unawaited init
+           return up;
         }),
         ChangeNotifierProvider(create: (_) => WaterProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
@@ -87,6 +78,7 @@ class MyApp extends StatelessWidget {
             centerTitle: true,
           ),
         ),
+        // Her zaman SplashScreen ile başla. (Beyaz ekranın antitezi budur!) ✅🎯🏆🥇
         home: const SplashScreen(),
       ),
     );

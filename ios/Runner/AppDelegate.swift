@@ -8,9 +8,9 @@ import FirebaseCore // Eklendi ✅🎯
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    // 🛡️ Firebase Native tarafta da başlatılmalı (iOS kilitlenmelerini engeller!) ✅🎯
+    // 🛡️ Firebase Native tarafta bir kez başlatılmalı (iOS kilitlenmelerini engeller!) ✅🎯
     if FirebaseApp.app() == nil {
-      FirebaseApp.configure()
+        FirebaseApp.configure()
     }
 
     GeneratedPluginRegistrant.register(with: self)

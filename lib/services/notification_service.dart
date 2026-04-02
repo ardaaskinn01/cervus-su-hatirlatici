@@ -13,31 +13,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 @pragma('vm:entry-point')
 Future<void> notificationTapBackground(NotificationResponse response) async {
-  debugPrint('📢 Arka planda bildirim eylemi: ${response.actionId}');
+  // Arka planda bildirim eylemi gelirse sadece log al ve işlemi yap
+  // Ağır başlatma (Firebase/Hive) main() içinde yapıldığı için burada tekrarlamak iOS'ta kilitlenmeye (White Screen) yol açar. ✅🎯
   WidgetsFlutterBinding.ensureInitialized();
-  try {
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    }
-  } catch (e) {
-    debugPrint('Firebase init error: $e');
-  }
   
-  await Hive.initFlutter();
-  if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
-  
-  final userBox = await Hive.openBox<UserModel>('userBox');
-  await Hive.openBox('settings');
-  
-  if (userBox.isEmpty || userBox.get('currentUser') == null) return;
-  
-  int amount = 0;
-  if (response.actionId == NotificationService.action100ml) amount = 100;
-  else if (response.actionId == NotificationService.action200ml) amount = 200;
-  
-  if (amount > 0) {
-    final wp = WaterProvider();
-    await wp.addWater(amount);
+  if (response.actionId != null) {
+      debugPrint('📢 Arka planda bildirim eylemi: ${response.actionId}');
   }
 }
 
