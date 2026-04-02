@@ -13,12 +13,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 @pragma('vm:entry-point')
 Future<void> notificationTapBackground(NotificationResponse response) async {
-  // Arka planda bildirim eylemi gelirse sadece log al ve işlemi yap
-  // Ağır başlatma (Firebase/Hive) main() içinde yapıldığı için burada tekrarlamak iOS'ta kilitlenmeye (White Screen) yol açar. ✅🎯
+  // Arka planda bildirimden su ekleme butonuna basıldığında tetiklenir.
   WidgetsFlutterBinding.ensureInitialized();
   
-  if (response.actionId != null) {
-      debugPrint('📢 Arka planda bildirim eylemi: ${response.actionId}');
+  if (response.actionId == NotificationService.action100ml || 
+      response.actionId == NotificationService.action200ml) {
+    
+    // Tüm sistemi (Firebase/FirebaseCore) başlatmak yerine sadece Hive'ı açıyoruz.
+    // Bu, ana uygulama açılırken dosya kilitlenme (Deadlock) riskini azaltır.
+    await Hive.initFlutter();
+    if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
+    
+    final dailyBox = await Hive.openBox('dailyData');
+    int currentAmount = dailyBox.get(DateTime.now().toString().split(' ')[0]) ?? 0;
+    
+    int addAmount = (response.actionId == NotificationService.action100ml) ? 100 : 200;
+    await dailyBox.put(DateTime.now().toString().split(' ')[0], currentAmount + addAmount);
+    
+    debugPrint('📢 Bildirimden $addAmount ml su arka planda eklendi.');
   }
 }
 
