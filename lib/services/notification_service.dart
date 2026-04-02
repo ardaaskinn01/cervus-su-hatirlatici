@@ -4,8 +4,41 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import '../firebase_options.dart';
 import '../models/user_model.dart';
 import '../providers/water_provider.dart';
+
+@pragma('vm:entry-point')
+Future<void> notificationTapBackground(NotificationResponse response) async {
+  debugPrint('📢 Arka planda bildirim eylemi: ${response.actionId}');
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    }
+  } catch (e) {
+    debugPrint('Firebase init error: $e');
+  }
+  
+  await Hive.initFlutter();
+  if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
+  
+  final userBox = await Hive.openBox<UserModel>('userBox');
+  await Hive.openBox('settings');
+  
+  if (userBox.isEmpty || userBox.get('currentUser') == null) return;
+  
+  int amount = 0;
+  if (response.actionId == NotificationService.action100ml) amount = 100;
+  else if (response.actionId == NotificationService.action200ml) amount = 200;
+  
+  if (amount > 0) {
+    final wp = WaterProvider();
+    await wp.addWater(amount);
+  }
+}
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -60,6 +93,7 @@ class NotificationService {
           _handleDrinkAction(200);
         }
       },
+      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
 
     await _setupFirebaseMessaging();
@@ -146,7 +180,7 @@ class NotificationService {
     await _notifications.zonedSchedule(
       1,
       'Su Vakti! 🌊',
-      'Vücudunun su dengesini korumak için bir bardak su içmelisin.',
+      'Vücudunun su dengesini korumak için bir bardak su içmelisin.\n(Seçenekler için basılı tutun)',
       tz.TZDateTime.from(scheduledTime, tz.local),
       const NotificationDetails(
         android: AndroidNotificationDetails(

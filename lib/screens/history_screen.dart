@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
-import '../widgets/app_drawer.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -28,7 +27,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     if (user == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Geçmiş', style: TextStyle(color: primaryText))),
-        drawer: const AppDrawer(),
         body: const Center(child: Text('Kullanıcı bulunamadı.')),
       );
     }
@@ -56,7 +54,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
           )
         ],
       ),
-      drawer: const AppDrawer(),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')

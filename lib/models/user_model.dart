@@ -1,13 +1,13 @@
 import 'package:hive/hive.dart';
 
-// Hive veritabanına özel tipleri kaydetmek için manuel bir adaptör kullanıyoruz.
 class UserModel {
-  String displayName; // Ekranda görünecek saf adımız (Örn: arda)
-  String firebaseId; // Firebase döküman adı (Örn: arda2)
+  String displayName; 
+  String firebaseId; 
   int age;
   double weight;
   String wakeUpTime;
   String sleepTime;
+  int? customGoal; // 🎯 Kullanıcının belirlediği manuel hedef (Boşsa otomatik hesaplanır)
 
   UserModel({
     required this.displayName,
@@ -16,6 +16,7 @@ class UserModel {
     required this.weight,
     required this.wakeUpTime,
     required this.sleepTime,
+    this.customGoal,
   });
 
   Map<String, dynamic> toMap() {
@@ -26,6 +27,7 @@ class UserModel {
       'weight': weight,
       'wakeUpTime': wakeUpTime,
       'sleepTime': sleepTime,
+      'customGoal': customGoal,
       'createdAt': DateTime.now().toIso8601String(),
     };
   }
@@ -44,6 +46,7 @@ class UserModelAdapter extends TypeAdapter<UserModel> {
       weight: reader.readDouble(),
       wakeUpTime: reader.readString(),
       sleepTime: reader.readString(),
+      customGoal: reader.read() as int?,
     );
   }
 
@@ -55,5 +58,6 @@ class UserModelAdapter extends TypeAdapter<UserModel> {
     writer.writeDouble(obj.weight);
     writer.writeString(obj.wakeUpTime);
     writer.writeString(obj.sleepTime);
+    writer.write(obj.customGoal);
   }
 }

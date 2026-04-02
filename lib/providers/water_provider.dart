@@ -96,11 +96,16 @@ class WaterProvider extends ChangeNotifier {
     _user = box.get('currentUser');
     if (_user == null) return;
 
-    // Kilo * 35ml + mevsimsel çarpan
-    double base = _user!.weight * 35;
-    int month = DateTime.now().month;
-    double factor = (month >= 6 && month <= 8) ? 1.2 : 1.0;
-    _dailyGoal = (base * factor).round();
+    // Öncelik Manuel Hedefte! 🎯
+    if (_user!.customGoal != null && _user!.customGoal! > 0) {
+      _dailyGoal = _user!.customGoal!;
+    } else {
+      // Kilo * 35ml + mevsimsel çarpan (Otomatik Hesaplama)
+      double base = _user!.weight * 35;
+      int month = DateTime.now().month;
+      double factor = (month >= 6 && month <= 8) ? 1.2 : 1.0;
+      _dailyGoal = (base * factor).round();
+    }
 
     _subscribeToTodayDocument();
     notifyListeners();

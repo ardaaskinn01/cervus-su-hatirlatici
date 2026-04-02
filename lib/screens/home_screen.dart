@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/water_provider.dart';
 import '../providers/user_provider.dart';
+import '../providers/locale_provider.dart';
 import '../widgets/water_wave_progress.dart';
-import '../widgets/app_drawer.dart';
 import 'profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -14,6 +14,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     var waterProvider = context.watch<WaterProvider>();
     var userProvider = context.watch<UserProvider>();
+    final lp = context.watch<LocaleProvider>();
     
     String displayName = userProvider.currentUser?.displayName ?? 'Kullanıcı';
     double progress = waterProvider.dailyGoal > 0 ? (waterProvider.currentIntake / waterProvider.dailyGoal).clamp(0.0, 99.0) : 0.0;
@@ -29,29 +30,9 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        surfaceTintColor: Colors.transparent, // Ekledik ✅
         iconTheme: const IconThemeData(color: primaryText),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: accentColor.withOpacity(0.3), width: 2),
-                ),
-                child: const CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person_outline_rounded, size: 20, color: accentColor),
-                ),
-              ),
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
-            ),
-          )
-        ],
       ),
-      drawer: const AppDrawer(),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -63,13 +44,13 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 10),
                 // ─── Karşılama ───────────────────────────────────
                 Text(
-                  'Merhaba, $displayName',
+                  '${context.watch<LocaleProvider>().translate('onb_welcome')}, $displayName',
                   style: const TextStyle(fontSize: 32, height: 1.1, fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Bugünkü su hedefine ulaşmak için içmeye devam et 💧',
-                  style: TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500),
+                Text(
+                  context.watch<LocaleProvider>().translate('home_mot_mid'),
+                  style: const TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500),
                 ),
 
                 const SizedBox(height: 48),
@@ -141,13 +122,13 @@ class HomeScreen extends StatelessWidget {
                           child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 32),
                         ),
                         const SizedBox(width: 16),
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Muazzam!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: -0.5)),
-                              SizedBox(height: 4),
-                              Text('Günlük hedefine başarıyla ulaştın.', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                              Text(context.watch<LocaleProvider>().translate('home_mot_done').split('!')[0] + '!', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: -0.5)),
+                              const SizedBox(height: 4),
+                              Text(context.watch<LocaleProvider>().translate('home_mot_done'), style: const TextStyle(color: Colors.white70, fontSize: 14)),
                             ],
                           ),
                         ),
@@ -155,13 +136,32 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
 
-                // ─── Su Ekleme Butonları ───────────────────────────────
+                // ─── Su Ekleme Butonları (Kategori Bazlı) ───────────────────────────────
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildWaterCard(context, icon: Icons.water_drop_rounded, label: 'Küçük', amount: 100, onTap: () => context.read<WaterProvider>().addWater(100)),
-                    _buildWaterCard(context, icon: Icons.water_drop_rounded, label: 'Orta', amount: 200, onTap: () => context.read<WaterProvider>().addWater(200)),
-                    _buildWaterCard(context, icon: Icons.add_rounded, label: 'Diğer', amount: null, isFeatured: true, onTap: () => _showCustomAmountDialog(context)),
+                    _buildWaterCard(
+                      context, 
+                      icon: Icons.local_drink_rounded, 
+                      label: lp.translate('home_container_glass'), 
+                      amount: null, 
+                      onTap: () => _showContainerSelection(context, isGlass: true)
+                    ),
+                    _buildWaterCard(
+                      context, 
+                      icon: Icons.liquor_rounded, 
+                      label: lp.translate('home_container_bottle'), 
+                      amount: null, 
+                      onTap: () => _showContainerSelection(context, isGlass: false)
+                    ),
+                    _buildWaterCard(
+                      context, 
+                      icon: Icons.add_rounded, 
+                      label: lp.translate('home_btn_add'), 
+                      amount: null, 
+                      isFeatured: true, 
+                      onTap: () => _showCustomAmountDialog(context)
+                    ),
                   ],
                 ),
 
@@ -186,7 +186,7 @@ class HomeScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Son İşlemler', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0F172A), letterSpacing: -0.5)),
+        Text(context.watch<LocaleProvider>().translate('home_recent'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0F172A), letterSpacing: -0.5)),
         const SizedBox(height: 16),
         ...records.map((kaydi) => Dismissible(
           key: Key(kaydi.uid),
@@ -219,7 +219,7 @@ class HomeScreen extends StatelessWidget {
                   child: const Icon(Icons.water_drop_rounded, color: Color(0xFF0EA5E9), size: 24),
                 ),
                 const SizedBox(width: 16),
-                const Text('Su İçildi', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0F172A))),
+                Text(context.watch<LocaleProvider>().translate('home_consumed'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0F172A))),
                 const Spacer(),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -287,7 +287,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    amount != null ? '$amount' : 'Özel',
+                    label, // Asıl başlık burası (Bardak, Şişe, Özel) ✅🎯
                     style: TextStyle(
                       fontWeight: FontWeight.w900, 
                       fontSize: 18, 
@@ -296,7 +296,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'ML',
+                    amount != null ? '$amount ML' : 'ML', // Alt miktar ✅🎯
                     style: TextStyle(
                       fontSize: 10, 
                       fontWeight: FontWeight.w800, 
@@ -308,6 +308,83 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showContainerSelection(BuildContext context, {required bool isGlass}) {
+    final lp = context.read<LocaleProvider>();
+    final options = isGlass 
+      ? [
+          {'label': lp.translate('home_size_small'), 'ml': 100, 'icon': Icons.water_drop_outlined},
+          {'label': lp.translate('home_size_medium'), 'ml': 200, 'icon': Icons.opacity},
+          {'label': lp.translate('home_size_large'), 'ml': 300, 'icon': Icons.water_drop_rounded},
+        ]
+      : [
+          {'label': '33 cl', 'ml': 330, 'icon': Icons.wine_bar_rounded},
+          {'label': '50 cl', 'ml': 500, 'icon': Icons.liquor_rounded},
+          {'label': '1 L', 'ml': 1000, 'icon': Icons.waves_rounded},
+          {'label': '1.5 L', 'ml': 1500, 'icon': Icons.water_rounded},
+        ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 24),
+            Text(
+              isGlass ? lp.translate('home_container_glass') : lp.translate('home_container_bottle'),
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+            ),
+            const SizedBox(height: 12),
+            const Text('Miktar seçerek hızlıca su ekle 💧', style: TextStyle(color: Color(0xFF64748B))),
+            const SizedBox(height: 32),
+            Flexible(
+              child: GridView.builder(
+                shrinkWrap: true,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 16, mainAxisSpacing: 16, childAspectRatio: 1.4),
+                itemCount: options.length,
+                itemBuilder: (context, index) {
+                  final opt = options[index];
+                  return Material(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(24),
+                    child: InkWell(
+                      onTap: () {
+                        context.read<WaterProvider>().addWater(opt['ml'] as int);
+                        Navigator.pop(context);
+                      },
+                      borderRadius: BorderRadius.circular(24),
+                      child: Container(
+                        decoration: BoxDecoration(border: Border.all(color: const Color(0xFFF1F5F9)), borderRadius: BorderRadius.circular(24)),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(opt['icon'] as IconData, color: const Color(0xFF0EA5E9)),
+                            const SizedBox(height: 8),
+                            Text(opt['label'] as String, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                            Text('${opt['ml']} ml', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
         ),
       ),
     );
@@ -332,7 +409,7 @@ class HomeScreen extends StatelessWidget {
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF0EA5E9)),
               decoration: const InputDecoration(
-                hintText: '330',
+                hintText: '250',
                 hintStyle: TextStyle(color: Color(0xFFCBD5E1)),
                 suffixText: 'ml ',
                 constraints: BoxConstraints(minHeight: 70),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
+import '../providers/locale_provider.dart';
 import 'home_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -185,7 +186,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
                             child: Text(
-                              _currentIndex == 3 ? "Bitti, Başla!" : "İleri",
+                              _currentIndex == 3
+                                  ? context.watch<LocaleProvider>().translate('onb_btn_start')
+                                  : context.watch<LocaleProvider>().translate('onb_btn_next'),
                               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                             ),
                           ),
@@ -203,9 +206,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildNameStep() {
     return _StepContentCard(
       icon: Icons.waving_hand_rounded,
-      title: "Merhaba!",
-      subtitle: "Su hatırlatıcı yolculuğuna başlamak için sana nasıl hitap edeceğimizi öğrenelim.",
-      child: _buildTextField(controller: _nameController, hint: "Adın Nedir?", icon: Icons.person_rounded),
+      title: context.watch<LocaleProvider>().translate('onb_welcome'),
+      subtitle: context.watch<LocaleProvider>().translate('onb_subtitle'),
+      child: _buildTextField(controller: _nameController, hint: "Adın", icon: Icons.person_rounded),
     );
   }
 
@@ -213,13 +216,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildBodyDataStep() {
     return _StepContentCard(
       icon: Icons.monitor_weight_rounded,
-      title: "Vücut Yapın",
-      subtitle: "Sana özel 'Günlük Su İhtiyacını' tam olarak hesaplayabilmemiz için bu veriler çok önemli.",
+      title: "Vücut Yapısı", // Could localize later
+      subtitle: "",
       child: Row(
         children: [
           Expanded(child: _buildTextField(controller: _ageController, hint: "Yaş", icon: Icons.cake, isNumber: true)),
           const SizedBox(width: 16),
-          Expanded(child: _buildTextField(controller: _weightController, hint: "Kilo (kg)", icon: Icons.straighten, isNumber: true)),
+          Expanded(child: _buildTextField(controller: _weightController, hint: context.watch<LocaleProvider>().translate('onb_step_weight'), icon: Icons.straighten, isNumber: true)),
         ],
       ),
     );
@@ -229,8 +232,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildWakeTimeStep() {
     return _StepContentCard(
       icon: Icons.wb_sunny_rounded,
-      title: "Günaydın Vakti",
-      subtitle: "Sabahları genelde saat kaçta uyanırsın? İlk hatırlatıcıyı bu saate göre kurgulayacağız.",
+      title: context.watch<LocaleProvider>().translate('onb_step_wake'),
+      subtitle: "",
       child: _buildTimeBox(true, _wakeTime),
     );
   }
@@ -239,8 +242,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildSleepTimeStep() {
     return _StepContentCard(
       icon: Icons.nightlight_round,
-      title: "İyi Geceler",
-      subtitle: "Gece uykunu bölmemek için bildirimleri kapatacağımız saati belirle.",
+      title: context.watch<LocaleProvider>().translate('onb_step_sleep'),
+      subtitle: "",
       child: _buildTimeBox(false, _sleepTime),
     );
   }

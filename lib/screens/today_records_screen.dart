@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../models/user_model.dart';
 import '../providers/user_provider.dart';
 import '../providers/water_provider.dart';
-import '../widgets/app_drawer.dart';
 
 class TodayRecordsScreen extends StatelessWidget {
   const TodayRecordsScreen({super.key});
@@ -29,7 +28,6 @@ class TodayRecordsScreen extends StatelessWidget {
         iconTheme: const IconThemeData(color: primaryText),
         centerTitle: true,
       ),
-      drawer: const AppDrawer(),
       body: user == null
           ? const Center(child: Text('Kullanıcı bulunamadı.'))
           : StreamBuilder<DocumentSnapshot>(

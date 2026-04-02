@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/water_provider.dart';
-import '../widgets/app_drawer.dart';
 import '../widgets/ad_container.dart';
+import '../providers/locale_provider.dart';
+import 'today_records_screen.dart';
+import 'history_screen.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -39,13 +41,24 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     return Scaffold(
       backgroundColor: scaffoldBg,
-      drawer: const AppDrawer(),
       appBar: AppBar(
-        title: Text('Analiz Merkezi', style: TextStyle(color: primaryText, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+        title: Text(context.watch<LocaleProvider>().translate('drawer_stats'), style: TextStyle(color: primaryText, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: primaryText),
-        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.today_rounded, color: Color(0xFF0EA5E9)),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TodayRecordsScreen())),
+            tooltip: 'Bugün',
+          ),
+          IconButton(
+            icon: const Icon(Icons.history_rounded, color: Color(0xFF64748B)),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen())),
+            tooltip: 'Geçmiş',
+          ),
+          const SizedBox(width: 8),
+        ],
+        centerTitle: false,
       ),
       body: RefreshIndicator(
         color: accentColor,
@@ -58,7 +71,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           children: [
             _buildStreakCard(streak),
             const SizedBox(height: 36),
-            _buildHeadline("Haftalık İstikrar"),
+            _buildHeadline(context.watch<LocaleProvider>().translate('stats_weekly')),
             FutureBuilder<List<bool>>(
               future: _weeklyFuture,
               builder: (context, snap) {
@@ -67,7 +80,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               },
             ),
             const SizedBox(height: 36),
-            _buildHeadline("Verilerle Analiz"),
+            _buildHeadline(context.watch<LocaleProvider>().translate('stats_general')),
             FutureBuilder<Map<String, dynamic>>(
               future: _statsFuture,
               builder: (context, snap) {
@@ -76,27 +89,25 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 return Column(
                   children: [
                     _buildAnalysisCard(
-                      title: "Günlük Ortalama",
+                      title: context.watch<LocaleProvider>().translate('stats_avg'),
                       value: "${stats['avg']} ml",
-                      description: "Geçmiş günlerdeki ortalama su tüketimin.",
+                      description: "",
                       color: const Color(0xFF0EA5E9),
                       icon: Icons.analytics_rounded,
                     ),
                     const SizedBox(height: 16),
                     _buildAnalysisCard(
-                      title: "Hedef Başarı Oranı",
+                      title: context.watch<LocaleProvider>().translate('stats_rate'),
                       value: "%${stats['rate']}",
-                      description: "Günlük hedeflerine ulaşma yüzdesi.",
+                      description: "",
                       color: const Color(0xFF10B981),
                       icon: Icons.track_changes_rounded,
                     ),
                     const SizedBox(height: 16),
                     _buildAnalysisCard(
-                      title: "Genel Değerlendirme",
+                      title: context.watch<LocaleProvider>().translate('stats_trend'),
                       value: stats['status'],
-                      description: stats['status'] == 'Veri Bekleniyor'
-                          ? "Daha fazla veri toplandığında analiz edilecektir."
-                          : "Geçmiş tüketim verilerine dayalı genel durumun.",
+                      description: "",
                       color: const Color(0xFF8B5CF6),
                       icon: Icons.health_and_safety_rounded,
                     ),
@@ -141,7 +152,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(100)),
-                  child: const Text('MEVCUT SERİ', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+                  child: Text(context.watch<LocaleProvider>().translate('home_streak').toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
                 ),
                 const SizedBox(height: 16),
                 Row(

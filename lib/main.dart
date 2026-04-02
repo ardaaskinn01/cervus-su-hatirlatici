@@ -9,6 +9,8 @@ import 'firebase_options.dart';
 import 'models/user_model.dart';
 import 'providers/user_provider.dart';
 import 'providers/water_provider.dart';
+import 'providers/locale_provider.dart';
+import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/notification_service.dart';
@@ -61,12 +63,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Hive box'ın dolu olup olmadığını kontrol et (Kayıtlı kullanıcı var mı?)
-    final userBox = Hive.box<UserModel>('userBox');
-    final bool isRegistered = userBox.isNotEmpty && userBox.get('currentUser') != null;
-    
-    debugPrint('🏠 Ana ekran belirleniyor: ${isRegistered ? 'Ana Ekran' : 'Onboarding'}');
-
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) {
@@ -75,28 +71,33 @@ class MyApp extends StatelessWidget {
           return userProvider;
         }),
         ChangeNotifierProvider(create: (_) => WaterProvider()),
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
       ],
-      child: MaterialApp(
-        title: 'Su Hatırlatıcı',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          primaryColor: const Color(0xFF29B6F6),
-          scaffoldBackgroundColor: const Color(0xFFF4F9F9),
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF29B6F6),
-            primary: const Color(0xFF29B6F6),
-            secondary: const Color(0xFF4DD0E1),
-            surface: Colors.white,
-          ),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFF29B6F6),
-            foregroundColor: Colors.white,
-            elevation: 0,
-            centerTitle: true,
-          ),
-        ),
-        home: isRegistered ? const HomeScreen() : const OnboardingScreen(),
+      child: Consumer<LocaleProvider>(
+        builder: (context, localeProvider, child) {
+          return MaterialApp(
+            title: 'Cervus Su Hatırlatıcı', // Default Title
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+              useMaterial3: true,
+              primaryColor: const Color(0xFF29B6F6),
+              scaffoldBackgroundColor: const Color(0xFFF4F9F9),
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF29B6F6),
+                primary: const Color(0xFF29B6F6),
+                secondary: const Color(0xFF4DD0E1),
+                surface: Colors.white,
+              ),
+              appBarTheme: const AppBarTheme(
+                backgroundColor: Color(0xFF29B6F6),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                centerTitle: true,
+              ),
+            ),
+            home: const SplashScreen(),
+          );
+        },
       ),
     );
   }

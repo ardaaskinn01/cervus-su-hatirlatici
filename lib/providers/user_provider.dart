@@ -86,24 +86,27 @@ class UserProvider extends ChangeNotifier {
   }
 
   Future<bool> updateUser({
+    required String displayName,
     required int age,
     required double weight,
     required String wakeUpTime,
     required String sleepTime,
+    int? customGoal,
   }) async {
     if (_currentUser == null) return false;
     _isLoading = true;
     notifyListeners();
 
     try {
-      // 1. Yeni verilerle modeli kopyala (Immutable update)
+      // 1. Yeni verilerle modeli kopyala
       UserModel updatedUser = UserModel(
-        displayName: _currentUser!.displayName, // İsim değişmez (Unique ID ile bağlı)
+        displayName: displayName,
         firebaseId: _currentUser!.firebaseId,
         age: age,
         weight: weight,
         wakeUpTime: wakeUpTime,
         sleepTime: sleepTime,
+        customGoal: customGoal,
       );
 
       // 2. Firestore'u güncelle

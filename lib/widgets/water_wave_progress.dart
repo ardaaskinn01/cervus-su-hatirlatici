@@ -179,22 +179,18 @@ class PitcherOutlinePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final path = _getPitcherPath(size);
     final paint = Paint()
-      ..color = const Color(0xFF0EA5E9).withOpacity(0.12)
+      ..color = const Color(0xFF0EA5E9).withOpacity(0.08)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
+      ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
 
-    final fillPaint = Paint()..color = Colors.white.withOpacity(0.4)..style = PaintingStyle.fill;
+    final fillPaint = Paint()..color = Colors.white.withOpacity(0.3)..style = PaintingStyle.fill;
 
     canvas.drawPath(path, fillPaint);
     canvas.drawPath(path, paint);
     
-    final handlePath = Path();
-    handlePath.moveTo(size.width * 0.78, size.height * 0.35);
-    handlePath.cubicTo(size.width * 0.95, size.height * 0.35, size.width * 0.95, size.height * 0.75, size.width * 0.78, size.height * 0.75);
-    
-    final handlePaint = Paint()..color = const Color(0xFF0EA5E9).withOpacity(0.1)..style = PaintingStyle.stroke..strokeWidth = 6..strokeCap = StrokeCap.round;
-    canvas.drawPath(handlePath, handlePaint);
+    canvas.drawPath(path, fillPaint);
+    canvas.drawPath(path, paint);
   }
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
@@ -204,13 +200,23 @@ Path _getPitcherPath(Size size) {
     final w = size.width;
     final h = size.height;
     final path = Path();
-    path.moveTo(w * 0.3, h * 0.15);
-    path.quadraticBezierTo(w * 0.2, h * 0.12, w * 0.15, h * 0.15);
-    path.lineTo(w * 0.22, h * 0.25);
-    path.cubicTo(w * 0.1, h * 0.4, w * 0.1, h * 0.85, w * 0.3, h * 0.9);
-    path.lineTo(w * 0.7, h * 0.9);
-    path.cubicTo(w * 0.9, h * 0.85, w * 0.9, h * 0.4, w * 0.78, h * 0.25);
-    path.lineTo(w * 0.7, h * 0.15);
+    
+    // Elit Kristal Karaf (Zarif S-Curve Boyun ve Yuvarlak Gövde)
+    path.moveTo(w * 0.38, h * 0.22); // Girdi: Boyun başı
+    path.lineTo(w * 0.62, h * 0.22); // Boyun sağ taraf
+    
+    // Sağ boyundan omuza S-Kavis
+    path.cubicTo(w * 0.62, h * 0.35, w * 0.78, h * 0.40, w * 0.82, h * 0.55);
+    
+    // Sağ gövdeden tabana yumuşak kavis
+    path.cubicTo(w * 0.88, h * 0.75, w * 0.75, h * 0.90, w * 0.50, h * 0.92);
+    
+    // Sol tarafa simetrik geçiş
+    path.cubicTo(w * 0.25, h * 0.90, w * 0.12, h * 0.75, w * 0.18, h * 0.55);
+    
+    // Sol omuzdan boyuna S-Kavis
+    path.cubicTo(w * 0.22, h * 0.40, w * 0.38, h * 0.35, w * 0.38, h * 0.22);
+    
     path.close();
     return path;
 }

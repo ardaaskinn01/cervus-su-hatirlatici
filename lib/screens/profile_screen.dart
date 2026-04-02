@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/water_provider.dart';
+import '../providers/locale_provider.dart';
+import 'package:hive/hive.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -14,12 +16,15 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
 
+  late TextEditingController _nameCtrl;
   late TextEditingController _ageCtrl;
   late TextEditingController _weightCtrl;
+  late TextEditingController _goalCtrl;
   TimeOfDay? _wakeTime;
   TimeOfDay? _sleepTime;
 
   bool _isEditing = false;
+  bool _notificationsEnabled = true;
 
   final primaryText = const Color(0xFF0F172A);
   final secondaryText = const Color(0xFF64748B);
@@ -30,13 +35,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     final user = context.read<UserProvider>().currentUser;
+    _nameCtrl = TextEditingController(text: user?.displayName ?? '');
     _ageCtrl = TextEditingController(text: user?.age.toString() ?? '');
     _weightCtrl = TextEditingController(text: user?.weight.toString() ?? '');
+    _goalCtrl = TextEditingController(text: user?.customGoal?.toString() ?? '');
 
     if (user != null) {
       _wakeTime = _parseTime(user.wakeUpTime);
       _sleepTime = _parseTime(user.sleepTime);
     }
+    _loadSettings();
+  }
+
+  void _loadSettings() {
+    var box = Hive.box('settings');
+    setState(() {
+      _notificationsEnabled = box.get('notificationsEnabled', defaultValue: true);
+    });
+  }
+
+  void _toggleNotifications(bool value) {
+    setState(() => _notificationsEnabled = value);
+    Hive.box('settings').put('notificationsEnabled', value);
   }
 
   TimeOfDay _parseTime(String timeStr) {
@@ -57,10 +77,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: scaffoldBg,
       appBar: AppBar(
-        title: Text('Profilim', style: TextStyle(fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5)),
+        title: Text(context.watch<LocaleProvider>().translate('nav_profile'), style: TextStyle(fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: primaryText),
         centerTitle: true,
         actions: [
           if (!_isEditing)
@@ -79,28 +98,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    // Profile Header
-                    Center(
-                      child: Column(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: accentColor.withOpacity(0.2), width: 3)),
-                            child: CircleAvatar(
-                              radius: 46,
-                              backgroundColor: accentColor.withOpacity(0.1),
-                              child: Icon(Icons.person_rounded, size: 50, color: accentColor),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(user.displayName, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5)),
-                          const SizedBox(height: 4),
-                          Text('ID: ${user.firebaseId}', style: TextStyle(fontSize: 13, color: secondaryText, fontWeight: FontWeight.w600)),
-                        ],
+                    // Yeni Kimlik Bölümü (Profil resmi kalktı ✅)
+                    _buildSectionHeader('KİMLİK BİLGİSİ'),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: const Color(0xFFF1F5F9)),
+                        boxShadow: const [BoxShadow(color: Color(0x33E2E8F0), blurRadius: 24, offset: Offset(0, 10))],
+                      ),
+                      child: _buildTextFieldRow(
+                        icon: Icons.badge_rounded,
+                        label: 'İsim',
+                        controller: _nameCtrl,
+                        suffix: '',
+                        isLast: true,
+                        isNumeric: false,
                       ),
                     ),
 
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 32),
 
                     // Information Forms/Cards
                     _buildSectionHeader('FİZİKSEL DETAYLAR'),
@@ -126,6 +143,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             label: 'Kilo',
                             controller: _weightCtrl,
                             suffix: 'kg',
+                            isLast: true,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    _buildSectionHeader('HEDEF VE SÜREÇ'),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: const Color(0xFFF1F5F9)),
+                        boxShadow: const [BoxShadow(color: Color(0x33E2E8F0), blurRadius: 24, offset: Offset(0, 10))],
+                      ),
+                      child: Column(
+                        children: [
+                          _buildTextFieldRow(
+                            icon: Icons.track_changes_rounded,
+                            label: 'Günlük Hedef',
+                            controller: _goalCtrl,
+                            suffix: 'ml',
                             isLast: true,
                           ),
                         ],
@@ -171,7 +211,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 32),
+
+                    _buildSectionHeader(context.watch<LocaleProvider>().translate('drawer_settings').toUpperCase()),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: const Color(0xFFF1F5F9)),
+                        boxShadow: const [BoxShadow(color: Color(0x33E2E8F0), blurRadius: 24, offset: Offset(0, 10))],
+                      ),
+                      child: Column(
+                        children: [
+                          _buildSettingRow(
+                            icon: Icons.notifications_active_rounded,
+                            iconColor: const Color(0xFFF59E0B),
+                            title: context.watch<LocaleProvider>().translate('settings_notif'),
+                            trailing: CupertinoSwitch(
+                              activeColor: const Color(0xFF10B981),
+                              value: _notificationsEnabled,
+                              onChanged: _toggleNotifications,
+                            ),
+                          ),
+                          const Divider(height: 1, color: Color(0xFFF1F5F9), indent: 64),
+                          _buildSettingRow(
+                            icon: Icons.language_rounded,
+                            iconColor: Colors.blueAccent,
+                            title: context.watch<LocaleProvider>().translate('settings_lang'),
+                            onTap: () {
+                              final lp = context.read<LocaleProvider>();
+                              lp.setLocale(lp.locale.languageCode == 'tr' ? const Locale('en') : const Locale('tr'));
+                            },
+                            trailing: Text(
+                              context.watch<LocaleProvider>().locale.languageCode.toUpperCase(),
+                              style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
                     if (_isEditing)
                       SizedBox(
@@ -208,7 +286,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildTextFieldRow({required IconData icon, required String label, required TextEditingController controller, required String suffix, required bool isLast}) {
+  Widget _buildTextFieldRow({required IconData icon, required String label, required TextEditingController controller, required String suffix, required bool isLast, bool isNumeric = true}) {
     return Padding(
       padding: EdgeInsets.only(left: 20, right: 20, top: isLast ? 8 : 16, bottom: isLast ? 16 : 8),
       child: Row(
@@ -225,17 +303,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Text('${controller.text} $suffix', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: secondaryText))
           else
             SizedBox(
-              width: 80,
+              width: isNumeric ? 80 : 140,
               child: CupertinoTextField(
                 controller: controller,
-                keyboardType: TextInputType.number,
+                keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
                 textAlign: TextAlign.right,
-                suffix: Padding(padding: const EdgeInsets.only(right: 8), child: Text(suffix, style: const TextStyle(color: Colors.grey))),
+                suffix: suffix.isNotEmpty ? Padding(padding: const EdgeInsets.only(right: 8), child: Text(suffix, style: const TextStyle(color: Colors.grey))) : null,
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                 decoration: BoxDecoration(color: scaffoldBg, borderRadius: BorderRadius.circular(8)),
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSettingRow({required IconData icon, required Color iconColor, required String title, required Widget trailing, VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: iconColor.withOpacity(0.1), borderRadius: BorderRadius.circular(14)),
+              child: Icon(icon, color: iconColor, size: 22),
+            ),
+            const SizedBox(width: 16),
+            Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryText)),
+            const Spacer(),
+            trailing,
+          ],
+        ),
       ),
     );
   }
@@ -282,12 +382,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     
     int age = int.tryParse(_ageCtrl.text) ?? 25;
     double weight = double.tryParse(_weightCtrl.text) ?? 70.0;
+    int? customGoal = int.tryParse(_goalCtrl.text);
     
     bool result = await context.read<UserProvider>().updateUser(
+      displayName: _nameCtrl.text,
       age: age,
       weight: weight,
       wakeUpTime: _formatTime(_wakeTime!),
       sleepTime: _formatTime(_sleepTime!),
+      customGoal: customGoal,
     );
 
     if (result) {

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
+import '../providers/locale_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -57,7 +59,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       backgroundColor: scaffoldBg,
       appBar: AppBar(
-        title: Text('Ayarlar', style: TextStyle(fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5)),
+        title: Text(context.watch<LocaleProvider>().translate('settings_title'), style: TextStyle(fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: primaryText),
@@ -68,7 +70,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         child: Column(
           children: [
-            _buildSectionHeader('TERCİHLER'),
+            _buildSectionHeader(context.watch<LocaleProvider>().translate('drawer_settings').toUpperCase()),
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -76,16 +78,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 border: Border.all(color: const Color(0xFFF1F5F9)),
                 boxShadow: const [BoxShadow(color: Color(0x33E2E8F0), blurRadius: 24, offset: Offset(0, 10))],
               ),
-              child: _buildSettingRow(
-                icon: Icons.notifications_active_rounded,
-                iconColor: const Color(0xFFF59E0B),
-                title: 'Akıllı Bildirimler',
-                subtitle: 'Su içme vakti geldiğinde uyar',
-                trailing: CupertinoSwitch(
-                  activeColor: const Color(0xFF10B981),
-                  value: _notificationsEnabled,
-                  onChanged: _toggleNotifications,
-                ),
+              child: Column(
+                children: [
+                  _buildSettingRow(
+                    icon: Icons.notifications_active_rounded,
+                    iconColor: const Color(0xFFF59E0B),
+                    title: context.watch<LocaleProvider>().translate('settings_notif'),
+                    subtitle: "",
+                    trailing: CupertinoSwitch(
+                      activeColor: const Color(0xFF10B981),
+                      value: _notificationsEnabled,
+                      onChanged: _toggleNotifications,
+                    ),
+                  ),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  _buildSettingRow(
+                    icon: Icons.language_rounded,
+                    iconColor: Colors.blueAccent,
+                    title: context.watch<LocaleProvider>().translate('settings_lang'),
+                    subtitle: context.watch<LocaleProvider>().locale.languageCode == 'tr' ? 'Türkçe' : 'English',
+                    onTap: () {
+                      final lp = context.read<LocaleProvider>();
+                      lp.setLocale(lp.locale.languageCode == 'tr' ? const Locale('en') : const Locale('tr'));
+                    },
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.blueAccent.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        context.watch<LocaleProvider>().locale.languageCode.toUpperCase(),
+                        style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 

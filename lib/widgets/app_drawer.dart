@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/locale_provider.dart';
 import '../providers/user_provider.dart';
 import '../screens/home_screen.dart';
 import '../screens/settings_screen.dart';
@@ -60,23 +61,15 @@ class AppDrawer extends StatelessWidget {
             const SizedBox(height: 16),
 
             // ─── Navigasyon ─────────────────────────────────────────
-            _NavTile(icon: Icons.water_drop_rounded, label: 'Ana Ekran', onTap: () {
+            _NavTile(icon: Icons.water_drop_rounded, label: context.watch<LocaleProvider>().translate('drawer_home'), onTap: () {
               Navigator.pop(context);
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
             }),
-            _NavTile(icon: Icons.format_list_bulleted_rounded, label: 'Bugünkü Kayıtlar', onTap: () {
-              Navigator.pop(context);
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const TodayRecordsScreen()));
-            }),
-            _NavTile(icon: Icons.bar_chart_rounded, label: 'Analiz Merkezi', onTap: () {
+            _NavTile(icon: Icons.bar_chart_rounded, label: context.watch<LocaleProvider>().translate('drawer_stats'), onTap: () {
               Navigator.pop(context);
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StatisticsScreen()));
             }),
-            _NavTile(icon: Icons.history_rounded, label: 'Geçmiş Kayıtlar', onTap: () {
-              Navigator.pop(context);
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HistoryScreen()));
-            }),
-            _NavTile(icon: Icons.settings_rounded, label: 'Ayarlar', onTap: () {
+            _NavTile(icon: Icons.settings_rounded, label: context.watch<LocaleProvider>().translate('drawer_settings'), onTap: () {
               Navigator.pop(context);
               Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
             }),
