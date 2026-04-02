@@ -1,16 +1,16 @@
-# Podfile for Cervus Water App (Updated for Firebase & AdMob) 💧🚀🦾
+# Podfile for Cervus Water App (Fixed Path) 💧🚀🦾
 
-platform :ios, '14.0' # En sağlam ve güncel sürümler için 14.0 öneririm ✅🎯
+platform :ios, '14.0'
 
 # Flutter generated dependency plugin info
-root_common_dir = File.expand_path('..', __FILE__)
-require File.join(root_common_dir, 'Flutter', 'generated_plugin_registrant.rb')
+flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
-  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  # Not: GeneratedPluginRegistrant.rb artık otomatik olarak Flutter araçları tarafından bağlanır.
+  # Ancak özel bir yol gerekiyorsa standardı takip etmeliyiz. 👇🎯
   target 'RunnerTests' do
     inherit! :search_paths
   end
