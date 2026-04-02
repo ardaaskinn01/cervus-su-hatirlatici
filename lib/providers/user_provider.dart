@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
 import '../models/user_model.dart';
+import '../services/notification_service.dart';
 
 class UserProvider extends ChangeNotifier {
   UserModel? _currentUser;
@@ -73,9 +74,12 @@ class UserProvider extends ChangeNotifier {
       await box.put('currentUser', newUser);
 
       _currentUser = newUser;
-
       _isLoading = false;
       notifyListeners();
+
+      // Bildirim sistemine bu kullanıcıyı tanıt (Token kaydı başlar) ✅🎯
+      NotificationService().initialize();
+
       return true; // Başarılı
     } catch (e) {
       print("Firebase veya Hive Kayıt Hatası: $e");

@@ -116,14 +116,41 @@ class NotificationService {
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       String? token = await _fcm.getToken();
-      debugPrint('🔑 FCM TOKEN: $token');
+      if (token != null) {
+        debugPrint('🔑 FCM TOKEN: $token');
+        await _saveTokenToFirestore(token);
+      }
     }
+
+    // Token tazeleme olayını dinle ✅🎯
+    _fcm.onTokenRefresh.listen((newToken) async {
+       await _saveTokenToFirestore(newToken);
+    });
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (message.notification != null) {
         _showForegroundNotification(message);
       }
     });
+  }
+
+  // Tokenı Firestore'daki kullanıcı dökümanına kaydet 👇🚀
+  Future<void> _saveTokenToFirestore(String token) async {
+     try {
+       final userBox = Hive.box<UserModel>('userBox');
+       if (userBox.isNotEmpty) {
+         final user = userBox.get('currentUser');
+         if (user != null) {
+           await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.firebaseId)
+              .update({'fcmToken': token});
+           debugPrint('✅ FCM Token Firestorea başarıyla kaydedildi.');
+         }
+       }
+     } catch (e) {
+       debugPrint('⚠️ Token Firestorea kaydedilemedi: $e');
+     }
   }
 
   Future<void> _showForegroundNotification(RemoteMessage message) async {
