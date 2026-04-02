@@ -13,10 +13,9 @@ import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 
 void main() async {
-  // 1. ANINDA BAŞLAT ✅🎯
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 2. HIVE (Kritik - Uygulama için gerekli veriler burada)
+  // 1. HIVE - Lokal veri (hızlı, await edilebilir)
   try {
     await Hive.initFlutter();
     if (!Hive.isAdapterRegistered(0)) {
@@ -27,26 +26,30 @@ void main() async {
     await Hive.openBox('dailyData');
     await Hive.openBox('history');
   } catch (e) {
-    debugPrint('⚠️ Hive Kutsal Emanetleri Açılamadı: $e');
+    debugPrint('⚠️ Hive açılamadı: $e');
   }
 
-  // 3. SERVİSLERİ ARKA PLANDA BAŞLAT (Uygulamayı bekleme noktasına sokma!) 👇🚀
-  // Bir saniyelik gecikme ile veriyoruz ki uygulama önce bir "kendine gelsin" ✅🎯
-  Future.delayed(const Duration(seconds: 2), () {
-    _fireAndForgetServices();
-  });
+  // 2. FIREBASE - await ile başlat (UserProvider ve NotificationService buna bağımlı!)
+  // Bu olmadan Firestore çağrıları crash yapar.
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    debugPrint('🔥 Firebase hazır.');
+  } catch (e) {
+    debugPrint('⚠️ Firebase başlatılamadı: $e');
+  }
 
-  // 4. UYGULAMAYI ANINDA ÇALIŞTIR ✅🏆🥇
+  // 3. ADMOB & BİLDİRİMLER - fire and forget (Firebase'i beklemezler ama içinde kullanabilirler)
+  _startSecondaryServices();
+
+  // 4. UYGULAMAYI BAŞLAT
   runApp(const MyApp());
 }
 
-// Servisleri sessizce (unawaited) arkada başlatır 😉🚀🦾
-void _fireAndForgetServices() {
-  Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform).then((_) {
-    NotificationService().initialize();
-    MobileAds.instance.initialize();
-    debugPrint('🔥 Firebase ve Servisler Arka Planda Hazırlandı.');
-  }).catchError((e) => debugPrint('⚠️ Servis Başlatma Hatası: $e'));
+void _startSecondaryServices() {
+  NotificationService().initialize();
+  MobileAds.instance.initialize();
 }
 
 class MyApp extends StatelessWidget {
@@ -54,14 +57,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 🛡️ MaterialApp'i Provider'ların DIŞINA veya Hemen İçine Alalım 
-    // Ama Provider'dan bir değişken (Consumer) bekleyerek kilitlemeyelim. ✅🎯
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) {
-           final up = UserProvider();
-           up.initUser(); // Unawaited init
-           return up;
+          final up = UserProvider();
+          up.initUser();
+          return up;
         }),
         ChangeNotifierProvider(create: (_) => WaterProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
@@ -86,7 +87,6 @@ class MyApp extends StatelessWidget {
             centerTitle: true,
           ),
         ),
-        // Her zaman SplashScreen ile başla. (Beyaz ekranın antitezi budur!) ✅🎯🏆🥇
         home: const SplashScreen(),
       ),
     );
