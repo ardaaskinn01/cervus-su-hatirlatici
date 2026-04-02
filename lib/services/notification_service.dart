@@ -90,7 +90,9 @@ class NotificationService {
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
 
-    await _setupFirebaseMessaging();
+    // Fire-and-forget: APNs/FCM kaydi hicbir zaman startup'i bloklamemali.
+    // getToken() iOS'ta APNs hazir olana kadar bekler; await edilirse uygulama kilitlenir.
+    _setupFirebaseMessaging();
   }
 
   // BUTONA TIKLANDIĞINDA SU EKLEME MANTIĞI 👇🎯
@@ -102,30 +104,40 @@ class NotificationService {
   }
 
   Future<void> _setupFirebaseMessaging() async {
-    NotificationSettings settings = await _fcm.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    try {
+      NotificationSettings settings = await _fcm.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      String? token = await _fcm.getToken();
-      if (token != null) {
-        debugPrint('🔑 FCM TOKEN: $token');
-        await _saveTokenToFirestore(token);
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        String? token = await _fcm.getToken().timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            debugPrint('FCM WARNING: getToken() 10 saniyede cevap vermedi, atlanıyor.');
+            return null;
+          },
+        );
+        if (token != null) {
+          debugPrint('FCM TOKEN: $token');
+          _saveTokenToFirestore(token);
+        }
       }
+
+      // Token tazeleme olayını dinle
+      _fcm.onTokenRefresh.listen((newToken) async {
+        await _saveTokenToFirestore(newToken);
+      });
+
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        if (message.notification != null) {
+          _showForegroundNotification(message);
+        }
+      });
+    } catch (e) {
+      debugPrint('FCM SETUP ERROR: $e');
     }
-
-    // Token tazeleme olayını dinle ✅🎯
-    _fcm.onTokenRefresh.listen((newToken) async {
-       await _saveTokenToFirestore(newToken);
-    });
-
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (message.notification != null) {
-        _showForegroundNotification(message);
-      }
-    });
   }
 
   // Tokenı Firestore'daki kullanıcı dökümanına kaydet 👇🚀

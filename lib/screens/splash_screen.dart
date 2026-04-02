@@ -26,10 +26,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    debugPrint('SPLASH: InitState basladi');
-    
-    _controller = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 1500));
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
     _controller.forward();
   }
@@ -37,62 +34,69 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Yüklemeyi sadece bir kere başlat (Rebuild'lerde tekrar etmesin)
     if (!_isInitStarted) {
       _isInitStarted = true;
       _initializeApp();
     }
   }
 
-  // AĞIR YÜKLER BURADA ARKA PLANDA ÇALIŞIR
+  // ZAMAN AŞIMLI GÜVENLİ YÜKLEME 🛡️
   Future<void> _initializeApp() async {
-    debugPrint('SPLASH: Sistem yuklemeleri basliyor (Arka Plan)');
+    debugPrint('SPLASH: Guvenli yukleme baslatildi.');
 
-    // 1. HIVE
+    // 1. HIVE YÜKLEMESİ (Max 3 Saniye)
     try {
-      debugPrint('STEP 1: Hive aciliyor');
-      await Hive.initFlutter();
-      if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
-      await Hive.openBox<UserModel>('userBox');
-      await Hive.openBox('settings');
-      await Hive.openBox('dailyData');
-      await Hive.openBox('history');
-      debugPrint('STEP 1: Hive Hazir');
+      await Future.any([
+        _initHive(),
+        Future.delayed(const Duration(seconds: 3), () => throw 'Hive Timeout')
+      ]);
     } catch (e) {
-      debugPrint('ERR: Hive hatasi: $e');
+      debugPrint('SPLASH WARNING: Hive kisminda sorun/gecikme: $e');
     }
 
-    // LocaleProvider ve UserProvider'i manuel tetikle (Hive'dan verileri okusunlar)
+    // Provider'ları hazırla
     if (mounted) {
-      await context.read<UserProvider>().initUser();
+      await context.read<UserProvider>().initUser().timeout(const Duration(seconds: 2)).catchError((_){});
     }
 
-    // 2. FIREBASE (iOS'ta kitlenmeye sebep olan yer burasi olabilir, SplashScreen icinde olmali!)
+    // 2. FIREBASE YÜKLEMESİ (Max 5 Saniye) - iOS kilitlenmelerinin ana sebebi ⚠️
     try {
-      debugPrint('STEP 2: Firebase config basliyor');
-      if (Firebase.apps.isEmpty) {
-        await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-        debugPrint('STEP 2: Firebase Basariyla Yuklendi');
-      }
+      debugPrint('SPLASH: Firebase bekleniyor...');
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)
+          .timeout(const Duration(seconds: 5));
+      debugPrint('SPLASH: Firebase hazir.');
     } catch (e) {
-      debugPrint('ERR: Firebase hatasi: $e');
+      debugPrint('SPLASH ERROR: Firebase kilitlendi veya hata verdi, atlanıyor: $e');
     }
 
-    // 3. DIGER SERVISLER (Non-blocking)
-    debugPrint('STEP 3: Diger servisler tetikleniyor');
+    // 3. DİĞER SERVİSLER (Fire and Forget)
     NotificationService().initialize();
     MobileAds.instance.initialize();
 
-    // 4. SON OLARAK YÖNLENDİR
+    // 4. NE OLURSA OLSUN YÖNLENDİR (Uygulama hapis kalmasın)
     _navigateToNext();
   }
 
-  void _navigateToNext() async {
-    debugPrint('SPLASH: Yonlendirme yapiliyor');
-    if (!mounted) return;
+  Future<void> _initHive() async {
+    await Hive.initFlutter();
+    if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
+    await Hive.openBox<UserModel>('userBox');
+    await Hive.openBox('settings');
+    await Hive.openBox('dailyData');
+    await Hive.openBox('history');
+  }
 
-    final userBox = Hive.box<UserModel>('userBox');
-    final bool isRegistered = userBox.isNotEmpty && userBox.get('currentUser') != null;
+  void _navigateToNext() async {
+    if (!mounted) return;
+    
+    // Hive acik mi kontrol et, acik degilse bile devam et (hata sayfasi yerine onboarding'e duser en azindan)
+    bool isRegistered = false;
+    try {
+      final userBox = Hive.box<UserModel>('userBox');
+      isRegistered = userBox.isNotEmpty && userBox.get('currentUser') != null;
+    } catch (_) {}
+
+    debugPrint('SPLASH: Final yonlendirme yapiliyor. Kayitli mi: $isRegistered');
 
     Navigator.pushReplacement(
       context,
@@ -115,7 +119,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('SPLASH: Build calisti');
     return Scaffold(
       body: Container(
         width: double.infinity,
