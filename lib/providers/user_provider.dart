@@ -12,10 +12,14 @@ class UserProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   Future<void> initUser() async {
+    debugPrint('➡️ UserProvider.initUser called');
     var box = Hive.box<UserModel>('userBox');
     if (box.isNotEmpty) {
       _currentUser = box.get('currentUser');
+      debugPrint('➡️ UserProvider: Found current user: ${_currentUser?.displayName}');
       notifyListeners();
+    } else {
+      debugPrint('➡️ UserProvider: No current user found in Hive');
     }
   }
 

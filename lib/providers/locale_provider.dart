@@ -13,30 +13,36 @@ class LocaleProvider extends ChangeNotifier {
   Map<String, String> _localizedStrings = {};
 
   LocaleProvider() {
+    debugPrint('➡️ LocaleProvider constructor called');
     _loadSavedLocale();
   }
 
   void _loadSavedLocale() {
+    debugPrint('➡️ LocaleProvider._loadSavedLocale called');
     String? lang = Hive.box('settings').get('language');
     if (lang != null) {
       _locale = Locale(lang);
+      debugPrint('➡️ LocaleProvider: Found saved language: $lang');
+    } else {
+      debugPrint('➡️ LocaleProvider: No saved language, defaulting to tr');
     }
     _loadLanguageData();
   }
 
   Future<void> _loadLanguageData() async {
+    debugPrint('➡️ LocaleProvider._loadLanguageData called for ${_locale.languageCode}');
     try {
       String jsonString = await rootBundle.loadString('assets/langs/${_locale.languageCode}.json');
       Map<String, dynamic> jsonMap = json.decode(jsonString);
       
       _localizedStrings = jsonMap.map((key, value) => MapEntry(key, value.toString()));
-      _isLoading = false; // Yükleme bitti ✅🏁
+      _isLoading = false; 
+      debugPrint('➡️ LocaleProvider: Language data loaded successfully. Keys count: ${_localizedStrings.length}');
       
-      // Build aşamasında notify hatası almamak için mikrotask kullanıyoruz ✅🎯
       Future.microtask(() => notifyListeners());
     } catch (e) {
-      debugPrint("Dil dosyası yüklenemedi: $e");
-      _isLoading = false; // Hata olsa bile kilidi açalım ✅🎯
+      debugPrint("⚠️ Dil dosyası yüklenemedi: $e");
+      _isLoading = false; 
       Future.microtask(() => notifyListeners());
     }
   }
