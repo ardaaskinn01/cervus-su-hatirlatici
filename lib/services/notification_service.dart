@@ -31,9 +31,7 @@ class NotificationService {
           DarwinNotificationAction.plain(action100ml, '💧 100 ml İç'),
           DarwinNotificationAction.plain(action200ml, '🌊 200 ml İç'),
         ],
-        options: <DarwinNotificationCategoryOption>{
-          DarwinNotificationCategoryOption.allowAnnouncements,
-        },
+        options: <DarwinNotificationCategoryOption>{},
       ),
     ];
 
