@@ -5,6 +5,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../models/user_model.dart';
+import '../providers/water_provider.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -14,64 +15,85 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
 
+  // Buton ID'leri
+  static const String action100ml = 'DRINK_100ML';
+  static const String action200ml = 'DRINK_200ML';
+  static const String categoryId = 'WATER_CATEGORY';
+
   Future<void> initialize() async {
-    // 1. ZAMAN DİLİMLERİNİ BAŞLAT
     tz.initializeTimeZones();
 
-    // 2. ANDROID AYARLARI
+    // 1. IOS KATEGORİ VE BUTON TANIMLAMA (Kritik!) 👇🎯
+    final List<DarwinNotificationCategory> darwinCategories = [
+      DarwinNotificationCategory(
+        categoryId,
+        actions: <DarwinNotificationAction>[
+          DarwinNotificationAction.plain(action100ml, '💧 100 ml İç'),
+          DarwinNotificationAction.plain(action200ml, '🌊 200 ml İç'),
+        ],
+        options: <DarwinNotificationCategoryOption>{
+          DarwinNotificationCategoryOption.allowAnnouncements,
+        },
+      ),
+    ];
+
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    // 3. IOS AYARLARI (Zaten 15.0 hedefimiz var)
-    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
+    final DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
+      notificationCategories: darwinCategories, // KATEGORİLERİ BURAYA VERİYORUZ ✅
     );
 
-    // 4. LOCAL BAŞLATMA
-    const InitializationSettings settings = InitializationSettings(
+    final InitializationSettings settings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     );
-    await _notifications.initialize(settings);
 
-    // 5. 🔥 FIREBASE MESSAGING AYARLARI (P8 sonrası kritik adım)
+    // 2. TIKLANMA OLAYINI YAKALAMA 👇🎯
+    await _notifications.initialize(
+      settings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) async {
+        if (response.actionId == action100ml) {
+          _handleDrinkAction(100);
+        } else if (response.actionId == action200ml) {
+          _handleDrinkAction(200);
+        }
+      },
+    );
+
     await _setupFirebaseMessaging();
   }
 
+  // BUTONA TIKLANDIĞINDA SU EKLEME MANTIĞI 👇🎯
+  void _handleDrinkAction(int amount) {
+    debugPrint('📢 Bildirimden su eklendi: $amount ml');
+    final waterProvider = WaterProvider(); // Veritabanına doğrudan kayıt için
+    waterProvider.addWater(amount); 
+    // Not: Uygulama ön plandaysa UI güncellenir, arka plandaysa sadece Hive güncellenir.
+  }
+
   Future<void> _setupFirebaseMessaging() async {
-    // IOS İZİNLERİ İSTE
     NotificationSettings settings = await _fcm.requestPermission(
       alert: true,
       badge: true,
       sound: true,
-      provisional: false,
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      debugPrint('✅ Kullanıcı bildirim izni verdi.');
-      
-      // 🔑 FCM TOKEN AL (Test Mesajı İçin Gereklidir)
       String? token = await _fcm.getToken();
       debugPrint('🔑 FCM TOKEN: $token');
-      // İleride bu token'ı Firestore'a kaydedeceğiz.
-    } else {
-      debugPrint('❌ Kullanıcı bildirim iznini reddetti.');
     }
 
-    // ÖN PLANDA GELEN BİLDİRİMLERİ YAKALA (App açıkken)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('📩 Ön planda bildirim geldi: ${message.notification?.title}');
-      
-      // Gelen bildirimi Local Notification ile gösterelim (Ekranda gözüksün diye)
       if (message.notification != null) {
         _showForegroundNotification(message);
       }
     });
   }
 
-  // APP AÇIKKEN GELEN MESAJI GÖSTERME (IOS/Android)
   Future<void> _showForegroundNotification(RemoteMessage message) async {
     const NotificationDetails details = NotificationDetails(
       android: AndroidNotificationDetails(
@@ -95,7 +117,7 @@ class NotificationService {
     );
   }
 
-  // 💦 LOKAL SU HATIRLATICI PLANLAMA
+  // 💦 LOKAL SU HATIRLATICI (BUTONLAR BURADA EKLENİYOR!) 👇🏆
   Future<void> scheduleNextReminder() async {
     bool isEnabled = Hive.box('settings').get('notificationsEnabled', defaultValue: true);
     if (!isEnabled) return;
@@ -108,7 +130,8 @@ class NotificationService {
     final user = userBox.get('currentUser');
     if (user == null) return;
 
-    DateTime scheduledTime = DateTime.now().add(const Duration(minutes: 2));
+    // TEST İÇİN YİNE 1 DAKİKA YAPIYORUM (Sen istersen 2 saate çekersin)
+    DateTime scheduledTime = DateTime.now().add(const Duration(minutes: 1));
 
     if (_isUserSleeping(scheduledTime, user.wakeUpTime, user.sleepTime)) {
       DateTime now = DateTime.now();
@@ -133,10 +156,16 @@ class NotificationService {
           'Su Hatırlatıcı',
           importance: Importance.max,
           priority: Priority.high,
+          // ANDROID BUTONLARI 👇🎯
+          actions: <AndroidNotificationAction>[
+            AndroidNotificationAction(action100ml, '💧 100 ml İç'),
+            AndroidNotificationAction(action200ml, '🌊 200 ml İç'),
+          ],
         ),
         iOS: DarwinNotificationDetails(
           presentSound: true,
           presentAlert: true,
+          categoryIdentifier: categoryId, // IOS BUTON KATEGORİSİ ✅
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
