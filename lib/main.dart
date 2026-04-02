@@ -16,45 +16,30 @@ import 'screens/home_screen.dart';
 import 'services/notification_service.dart';
 
 void main() async {
-  // 1. ZORUNLU BAŞLATMA
+  // 1. ANINDA BAŞLAT (Hiçbir şeyi bekleme) ✅🎯
   WidgetsFlutterBinding.ensureInitialized();
-  debugPrint('🚀 Uygulama başlatılıyor...');
-  
-  // 2. FIREBASE (Daha sağlam başlatma kontrolü) 👇🎯
+
+  // 2. HIVE (Çok hızlıdır, sadece bunu bekle)
   try {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    debugPrint('🔥 Firebase başarıyla başlatıldı.');
+    await Hive.initFlutter();
+    if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
+    await Hive.openBox<UserModel>('userBox');
+    await Hive.openBox('settings');
+    await Hive.openBox('dailyData');
+    await Hive.openBox('history');
   } catch (e) {
-    if (e.toString().contains('duplicate-app')) {
-      debugPrint('🔥 Firebase zaten başlatılmış, devam ediliyor.');
-    } else {
-      debugPrint('⚠️ Firebase hata: $e');
-    }
+    debugPrint('⚠️ Hive Hatası (Devam ediliyor): $e');
   }
 
-  // 3. HIVE (Veritabanı)
-  await Hive.initFlutter();
-  if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
-  
-  await Hive.openBox<UserModel>('userBox');
-  await Hive.openBox('settings');
-  await Hive.openBox('dailyData');
-  await Hive.openBox('history');
-  debugPrint('📦 Hive Boxlar hazır.');
+  // 3. KRİTİK SERVİSLERİ ARKA PLANDA BAŞLAT (Await etme!) 👇🚀
+  Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform).then((_) {
+    debugPrint('🔥 Firebase Hazır.');
+    // Bildirimleri ve Reklamları Firebase hazır olunca başlat
+    NotificationService().initialize();
+    MobileAds.instance.initialize();
+  }).catchError((e) => debugPrint('⚠️ Firebase Başlatma Hatası: $e'));
 
-  // 4. BİLDİRİM SERVİSİ
-  try {
-    await NotificationService().initialize();
-    debugPrint('🔔 Bildirim servisi hazır.');
-  } catch (e) {
-     debugPrint('⚠️ Bildirim hatası: $e');
-  }
-
-  // 5. REKLAMLARI ARKA PLANDA BAŞLAT
-  MobileAds.instance.initialize().then((status) {
-    debugPrint('💰 Reklam servisi arka planda başlatıldı: $status');
-  });
-
+  // 4. UYGULAMAYI ANINDA ÇALIŞTIR ✅🏆🥇
   runApp(const MyApp());
 }
 

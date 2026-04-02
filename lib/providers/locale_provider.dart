@@ -25,8 +25,11 @@ class LocaleProvider extends ChangeNotifier {
     try {
       String jsonString = await rootBundle.loadString('assets/langs/${_locale.languageCode}.json');
       Map<String, dynamic> jsonMap = json.decode(jsonString);
+      
       _localizedStrings = jsonMap.map((key, value) => MapEntry(key, value.toString()));
-      notifyListeners();
+      
+      // Build aşamasında notify hatası almamak için mikrotask kullanıyoruz ✅🎯
+      Future.microtask(() => notifyListeners());
     } catch (e) {
       debugPrint("Dil dosyası yüklenemedi: $e");
     }
