@@ -1,0 +1,31 @@
+# Podfile for Cervus Water App (Updated for Firebase & AdMob) 💧🚀🦾
+
+platform :ios, '14.0' # En sağlam ve güncel sürümler için 14.0 öneririm ✅🎯
+
+# Flutter generated dependency plugin info
+root_common_dir = File.expand_path('..', __FILE__)
+require File.join(root_common_dir, 'Flutter', 'generated_plugin_registrant.rb')
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    
+    # 🕵️ Kritik Ayarlar: Deployment Target ve Swift Sürümü 👇🚀
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)', 'PERMISSION_NOTIFICATIONS=1']
+      # Google Mobile Ads gereği static framework kullanımı için (gerekirse)
+      # config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+    end
+  end
+end
