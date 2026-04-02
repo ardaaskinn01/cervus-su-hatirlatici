@@ -7,6 +7,9 @@ class LocaleProvider extends ChangeNotifier {
   Locale _locale = const Locale('tr');
   Locale get locale => _locale;
 
+  bool _isLoading = true;
+  bool get isLoading => _isLoading;
+
   Map<String, String> _localizedStrings = {};
 
   LocaleProvider() {
@@ -27,11 +30,14 @@ class LocaleProvider extends ChangeNotifier {
       Map<String, dynamic> jsonMap = json.decode(jsonString);
       
       _localizedStrings = jsonMap.map((key, value) => MapEntry(key, value.toString()));
+      _isLoading = false; // Yükleme bitti ✅🏁
       
       // Build aşamasında notify hatası almamak için mikrotask kullanıyoruz ✅🎯
       Future.microtask(() => notifyListeners());
     } catch (e) {
       debugPrint("Dil dosyası yüklenemedi: $e");
+      _isLoading = false; // Hata olsa bile kilidi açalım ✅🎯
+      Future.microtask(() => notifyListeners());
     }
   }
 
