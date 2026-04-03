@@ -13,11 +13,11 @@ import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 
 void main() async {
-  // 1. MOTORU UYANDIR (Beyaz ekran kalkanı 1)
+  // 1. MOTORU UYANDIR (Beyaz ekran kalkanı)
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('➡️ STARTUP: Motor uyandi');
 
-  // 2. YEREL VERITABANI VE YAPILANDIRMA (Isik hizinda biter)
+  // 2. YEREL VERİTABANI (Milisaniyeler sürer)
   try {
     await Hive.initFlutter();
     if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
@@ -26,24 +26,26 @@ void main() async {
     await Hive.openBox('dailyData');
     await Hive.openBox('history');
   } catch (e) {
-  // 3. FIREBASE BURADA BAŞLATILMIYOR
-  // Firebase ve bildirimler SplashScreen içinde güvenle (timeout ile) başlatılacak.
-  // Çünkü WaterProvider ana ekranda (MainShell) Firebase'e ihtiyaç duyuyor.
-  
-  // 4. DIK DIKKAT: Dil Provider'ini disarida olusturuyoruz ki runApp icinde "Re-entrant build" (Sonsuz Dongu Beyaz Ekrani) yapmasin.
+    debugPrint('⚠️ Hive Hatası: $e');
+  }
+
+  // 3. AĞIR SERVİSLERİ ARKA PLANDA BAŞLAT (Asla await etme!)
+  _initSlowServices();
+
+  // 4. DİL YAPILANDIRMASI
   final localeProvider = LocaleProvider(); 
-  
-  // 5. UYGULAMAYI ANINDA GOSTER (Splash Screen animasyonu başlar)
+
+  // 5. UYGULAMAYI ATEŞLE
   runApp(
     MultiProvider(
       providers: [
-         ChangeNotifierProvider(create: (_) {
+        ChangeNotifierProvider(create: (_) {
            final up = UserProvider();
            up.initUser(); 
            return up;
-         }),
-         ChangeNotifierProvider(create: (_) => WaterProvider()),
-         ChangeNotifierProvider.value(value: localeProvider),
+        }),
+        ChangeNotifierProvider(create: (_) => WaterProvider()),
+        ChangeNotifierProvider.value(value: localeProvider),
       ],
       child: const MyApp(),
     ),
@@ -70,5 +72,18 @@ class MyApp extends StatelessWidget {
       ),
       home: const SplashScreen(),
     );
+  }
+}
+
+// 🛡️ FIREBASE KİLİTLENMELERİNE KARŞI ARKA PLAN BAŞLATICI
+void _initSlowServices() async {
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    }
+    NotificationService().initialize();
+    MobileAds.instance.initialize();
+  } catch (e) {
+    debugPrint('⚠️ Servis Başlatma Hatası: $e');
   }
 }
