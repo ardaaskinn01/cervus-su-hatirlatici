@@ -1,7 +1,6 @@
 import Flutter
 import UIKit
 import FirebaseCore
-import FirebaseMessaging
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -11,23 +10,11 @@ import FirebaseMessaging
   ) -> Bool {
     FirebaseApp.configure()
     
-    // Push notification kayıt
     if #available(iOS 10.0, *) {
       UNUserNotificationCenter.current().delegate = self
     }
     
-    application.registerForRemoteNotifications()
-    
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
-  }
-  
-  // APNs token'ı Firebase'e ilet
-  override func application(
-    _ application: UIApplication,
-    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
-  ) {
-    Messaging.messaging().apnsToken = deviceToken
-    super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
   }
 }
