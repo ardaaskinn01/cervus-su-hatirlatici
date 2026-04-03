@@ -90,7 +90,7 @@ class NotificationService {
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
 
-    // Fire-and-forget: Bildirim servisi (APNs) iOS'ta kilitlenme yapmasın.
+    // iOS'ta TestFlight üzerinde APNs kaynaklı donmaları önlemek için fire-and-forget
     _setupFirebaseMessaging();
   }
 
@@ -103,18 +103,25 @@ class NotificationService {
   }
 
   Future<void> _setupFirebaseMessaging() async {
-    NotificationSettings settings = await _fcm.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    try {
+      NotificationSettings settings = await _fcm.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      String? token = await _fcm.getToken();
-      if (token != null) {
-        debugPrint('🔑 FCM TOKEN: $token');
-        await _saveTokenToFirestore(token);
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        String? token = await _fcm.getToken().timeout(
+          const Duration(seconds: 10),
+          onTimeout: () => null,
+        );
+        if (token != null) {
+          debugPrint('🔑 FCM TOKEN: $token');
+          _saveTokenToFirestore(token);
+        }
       }
+    } catch (e) {
+      debugPrint('FCM Hatasi: $e');
     }
 
     // Token tazeleme olayını dinle ✅🎯

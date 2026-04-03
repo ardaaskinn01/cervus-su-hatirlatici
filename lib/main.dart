@@ -26,26 +26,14 @@ void main() async {
     await Hive.openBox('dailyData');
     await Hive.openBox('history');
   } catch (e) {
-    debugPrint('⚠️ Hive Hatası: $e');
-  }
-
-  // 3. FIREBASE BASLAT (iOS APNs takilmasini engellemek icin await etsek de arkasini saglama alacagiz)
-  try {
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    }
-  } catch (e) {
-    debugPrint('⚠️ Firebase Hatasi: $e');
-  }
-
-  // 4. SERVISLERI BASLAT (Fire-and-forget: Aninda dondurur, startup'i bloklamaz)
-  NotificationService().initialize();
-  MobileAds.instance.initialize();
-
-  // 5. DIK DIKKAT: Dil Provider'ini disarida olusturuyoruz ki runApp icinde "Re-entrant build" (Sonsuz Dongu Beyaz Ekrani) yapmasin.
+  // 3. FIREBASE BURADA BAŞLATILMIYOR
+  // Firebase ve bildirimler SplashScreen içinde güvenle (timeout ile) başlatılacak.
+  // Çünkü WaterProvider ana ekranda (MainShell) Firebase'e ihtiyaç duyuyor.
+  
+  // 4. DIK DIKKAT: Dil Provider'ini disarida olusturuyoruz ki runApp icinde "Re-entrant build" (Sonsuz Dongu Beyaz Ekrani) yapmasin.
   final localeProvider = LocaleProvider(); 
   
-  // 6. UYGULAMAYI ANINDA GOSTER (Splash Screen 2 saniye isler)
+  // 5. UYGULAMAYI ANINDA GOSTER (Splash Screen animasyonu başlar)
   runApp(
     MultiProvider(
       providers: [
