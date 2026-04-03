@@ -12,18 +12,44 @@ import 'providers/locale_provider.dart';
 import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 
-void main() {
-  // Emojisiz net takip logları
-  debugPrint('START: main() calisti');
-  
-  // 1. Flutter engine'i anında uyandır
+void main() async {
+  // 🛡️ İlk kareyi koru: Flutter motorunu uyandır.
   WidgetsFlutterBinding.ensureInitialized();
-  debugPrint('STEP 1: WidgetsFlutterBinding hazır');
+  debugPrint('➡️ START: main() basladi');
 
-  // 2. Uygulamayı BEKLETMEDEN başlat (Beyaz ekranı engellemenin yolu budur)
-  // Ağır yükleri (Firebase/Hive) SplashScreen icinde veya runApp'ten sonra cagiracagiz.
-  debugPrint('STEP 2: runApp() cagriliyor (Bekleme yapilmiyor)');
-  runApp(const MyApp());
+  // 🛡️ ÇOK HIZLI İŞLEMLER (Yerel Veri): SplashScreen'in düzgün çizilmesi için gereklidir.
+  try {
+    await Hive.initFlutter();
+    if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
+    await Hive.openBox<UserModel>('userBox');
+    await Hive.openBox('settings');
+    await Hive.openBox('dailyData');
+    await Hive.openBox('history');
+    debugPrint('➡️ STEP 1: Hive Hazir');
+  } catch (e) {
+    debugPrint('⚠️ Hive Hatası: $e');
+  }
+
+  // 🛡️ DİL DOSYALARI (Çok Hızlı): SplashScreen'deki metinlerin anında görünmesini sağlar.
+  final localeProvider = LocaleProvider(); 
+  // Initializer içinde dil yüklemesi zaten yapılıyor.
+
+  // 🛡️ UYGULAMAYI ANINDA ÇALIŞTIR (Firebase'i beklemeden!)
+  debugPrint('➡️ STEP 2: runApp() Cagriliyor');
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) {
+           final up = UserProvider();
+           up.initUser(); 
+           return up;
+        }),
+        ChangeNotifierProvider(create: (_) => WaterProvider()),
+        ChangeNotifierProvider.value(value: localeProvider),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -31,27 +57,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(create: (_) => WaterProvider()),
-        ChangeNotifierProvider(create: (_) => LocaleProvider()),
-      ],
-      child: MaterialApp(
-        title: 'Cervus Su Hatırlatıcı',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          primaryColor: const Color(0xFF29B6F6),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFF29B6F6),
-            foregroundColor: Colors.white,
-            centerTitle: true,
-          ),
+    return MaterialApp(
+      title: 'Cervus Su Hatırlatıcı',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        primaryColor: const Color(0xFF29B6F6),
+        scaffoldBackgroundColor: const Color(0xFFF4F9F9),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF29B6F6),
+          foregroundColor: Colors.white,
+          centerTitle: true,
         ),
-        // SplashScreen artik sadece gorsel degil, yukleyici gorevi gorecek.
-        home: const SplashScreen(),
       ),
+      home: const SplashScreen(),
     );
   }
 }
