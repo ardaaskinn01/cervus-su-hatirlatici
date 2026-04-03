@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../models/user_model.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
-import '../firebase_options.dart';
 import '../providers/locale_provider.dart';
-import '../services/notification_service.dart';
 import 'onboarding_screen.dart';
 import 'main_shell.dart';
 
@@ -47,25 +43,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   void _navigateToNext() async {
-    // Görsel amaçlı minimum bekleme süresi
     await Future.delayed(const Duration(seconds: 2));
-
-    // Ana ekrana geçmeden önce Firebase'i BAŞARIYLA BAŞLATMALIYIZ.
-    // Başlatılmazsa, MainShell'deki WaterProvider çöker ve ekran yükleniyorda donup kalır!
-    try {
-      if (Firebase.apps.isEmpty) {
-        // En fazla 5 saniye bekletiyoruz (Kilitlenmelere karşı güvenlik)
-        await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)
-            .timeout(const Duration(seconds: 5));
-      }
-      
-      // APNs izinlerini (takılırsa engellemesin diye fire-and-forget içinde) başlat.
-      NotificationService().initialize();
-      MobileAds.instance.initialize();
-    } catch (e) {
-      debugPrint('⚠️ Firebase veya Servisler başlatılamadı: $e');
-    }
-
     if (!mounted) return;
 
     final userBox = Hive.box<UserModel>('userBox');

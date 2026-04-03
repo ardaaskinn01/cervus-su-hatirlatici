@@ -23,7 +23,6 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('➡️ MainShell.build called. Current index: $_currentIndex');
     final lp = context.watch<LocaleProvider>();
 
     return Scaffold(

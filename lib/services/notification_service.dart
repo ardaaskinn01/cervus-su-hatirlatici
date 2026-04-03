@@ -9,28 +9,34 @@ import 'package:firebase_core/firebase_core.dart';
 import '../firebase_options.dart';
 import '../models/user_model.dart';
 import '../providers/water_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 @pragma('vm:entry-point')
 Future<void> notificationTapBackground(NotificationResponse response) async {
-  // Arka planda bildirimden su ekleme butonuna basıldığında tetiklenir.
+  debugPrint('📢 Arka planda bildirim eylemi: ${response.actionId}');
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    }
+  } catch (e) {
+    debugPrint('Firebase init error: $e');
+  }
   
-  if (response.actionId == NotificationService.action100ml || 
-      response.actionId == NotificationService.action200ml) {
-    
-    // Tüm sistemi (Firebase/FirebaseCore) başlatmak yerine sadece Hive'ı açıyoruz.
-    // Bu, ana uygulama açılırken dosya kilitlenme (Deadlock) riskini azaltır.
-    await Hive.initFlutter();
-    if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
-    
-    final dailyBox = await Hive.openBox('dailyData');
-    int currentAmount = dailyBox.get(DateTime.now().toString().split(' ')[0]) ?? 0;
-    
-    int addAmount = (response.actionId == NotificationService.action100ml) ? 100 : 200;
-    await dailyBox.put(DateTime.now().toString().split(' ')[0], currentAmount + addAmount);
-    
-    debugPrint('📢 Bildirimden $addAmount ml su arka planda eklendi.');
+  await Hive.initFlutter();
+  if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
+  
+  final userBox = await Hive.openBox<UserModel>('userBox');
+  await Hive.openBox('settings');
+  
+  if (userBox.isEmpty || userBox.get('currentUser') == null) return;
+  
+  int amount = 0;
+  if (response.actionId == NotificationService.action100ml) amount = 100;
+  else if (response.actionId == NotificationService.action200ml) amount = 200;
+  
+  if (amount > 0) {
+    final wp = WaterProvider();
+    await wp.addWater(amount);
   }
 }
 
@@ -90,8 +96,7 @@ class NotificationService {
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
 
-    // iOS'ta TestFlight üzerinde APNs kaynaklı donmaları önlemek için fire-and-forget
-    _setupFirebaseMessaging();
+    await _setupFirebaseMessaging();
   }
 
   // BUTONA TIKLANDIĞINDA SU EKLEME MANTIĞI 👇🎯
@@ -111,48 +116,22 @@ class NotificationService {
       );
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        String? token = await _fcm.getToken().timeout(
-          const Duration(seconds: 10),
-          onTimeout: () => null,
-        );
-        if (token != null) {
+        try {
+          String? token = await _fcm.getToken();
           debugPrint('🔑 FCM TOKEN: $token');
-          _saveTokenToFirestore(token);
+        } catch (e) {
+          debugPrint('⚠️ FCM Token alınamadı: $e');
         }
       }
+
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        if (message.notification != null) {
+          _showForegroundNotification(message);
+        }
+      });
     } catch (e) {
-      debugPrint('FCM Hatasi: $e');
+      debugPrint('⚠️ Firebase Messaging kurulumu hatası: $e');
     }
-
-    // Token tazeleme olayını dinle ✅🎯
-    _fcm.onTokenRefresh.listen((newToken) async {
-       await _saveTokenToFirestore(newToken);
-    });
-
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (message.notification != null) {
-        _showForegroundNotification(message);
-      }
-    });
-  }
-
-  // Tokenı Firestore'daki kullanıcı dökümanına kaydet 👇🚀
-  Future<void> _saveTokenToFirestore(String token) async {
-     try {
-       final userBox = Hive.box<UserModel>('userBox');
-       if (userBox.isNotEmpty) {
-         final user = userBox.get('currentUser');
-         if (user != null) {
-           await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.firebaseId)
-              .update({'fcmToken': token});
-           debugPrint('✅ FCM Token Firestorea başarıyla kaydedildi.');
-         }
-       }
-     } catch (e) {
-       debugPrint('⚠️ Token Firestorea kaydedilemedi: $e');
-     }
   }
 
   Future<void> _showForegroundNotification(RemoteMessage message) async {

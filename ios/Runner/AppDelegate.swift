@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
-import FirebaseCore // Eklendi ✅🎯
+import FirebaseCore
+import FirebaseMessaging
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -8,12 +9,25 @@ import FirebaseCore // Eklendi ✅🎯
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    // 🛡️ Firebase Native tarafta bir kez başlatılmalı (iOS kilitlenmelerini engeller!) ✅🎯
-    if FirebaseApp.app() == nil {
-        FirebaseApp.configure()
+    FirebaseApp.configure()
+    
+    // Push notification kayıt
+    if #available(iOS 10.0, *) {
+      UNUserNotificationCenter.current().delegate = self
     }
-
+    
+    application.registerForRemoteNotifications()
+    
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+  
+  // APNs token'ı Firebase'e ilet
+  override func application(
+    _ application: UIApplication,
+    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+  ) {
+    Messaging.messaging().apnsToken = deviceToken
+    super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
   }
 }
