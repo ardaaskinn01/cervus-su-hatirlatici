@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:hive/hive.dart';
 import '../models/user_model.dart';
+import 'package:provider/provider.dart';
 import '../providers/locale_provider.dart';
-import '../providers/user_provider.dart';
-import '../services/notification_service.dart';
-import '../firebase_options.dart';
 import 'onboarding_screen.dart';
 import 'main_shell.dart';
 
@@ -21,82 +16,38 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
-  bool _isInitStarted = false;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
+    
+    // 1. Animasyon Hazırlığı
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: AppCurves.outOrdinary),
+    );
+
     _controller.forward();
-  }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_isInitStarted) {
-      _isInitStarted = true;
-      _initializeApp();
-    }
-  }
-
-  // ZAMAN AŞIMLI GÜVENLİ YÜKLEME 🛡️
-  Future<void> _initializeApp() async {
-    debugPrint('SPLASH: Guvenli yukleme baslatildi.');
-
-    // 1. HIVE YÜKLEMESİ (Max 3 Saniye)
-    try {
-      await Future.any([
-        _initHive(),
-        Future.delayed(const Duration(seconds: 3), () => throw 'Hive Timeout')
-      ]);
-    } catch (e) {
-      debugPrint('SPLASH WARNING: Hive kisminda sorun/gecikme: $e');
-    }
-
-    // Provider'ları hazırla
-    if (mounted) {
-      await context.read<UserProvider>().initUser().timeout(const Duration(seconds: 2)).catchError((_){});
-    }
-
-    // 2. FIREBASE YÜKLEMESİ (Max 5 Saniye) - iOS kilitlenmelerinin ana sebebi ⚠️
-    try {
-      debugPrint('SPLASH: Firebase bekleniyor...');
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)
-          .timeout(const Duration(seconds: 5));
-      debugPrint('SPLASH: Firebase hazir.');
-    } catch (e) {
-      debugPrint('SPLASH ERROR: Firebase kilitlendi veya hata verdi, atlanıyor: $e');
-    }
-
-    // 3. DİĞER SERVİSLER (Fire and Forget)
-    NotificationService().initialize();
-    MobileAds.instance.initialize();
-
-    // 4. NE OLURSA OLSUN YÖNLENDİR (Uygulama hapis kalmasın)
+    // 2. 2 Saniye Sonra Yönlendirme
     _navigateToNext();
   }
 
-  Future<void> _initHive() async {
-    await Hive.initFlutter();
-    if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
-    await Hive.openBox<UserModel>('userBox');
-    await Hive.openBox('settings');
-    await Hive.openBox('dailyData');
-    await Hive.openBox('history');
-  }
-
   void _navigateToNext() async {
+    await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
-    
-    // Hive acik mi kontrol et, acik degilse bile devam et (hata sayfasi yerine onboarding'e duser en azindan)
-    bool isRegistered = false;
-    try {
-      final userBox = Hive.box<UserModel>('userBox');
-      isRegistered = userBox.isNotEmpty && userBox.get('currentUser') != null;
-    } catch (_) {}
 
-    debugPrint('SPLASH: Final yonlendirme yapiliyor. Kayitli mi: $isRegistered');
+    final userBox = Hive.box<UserModel>('userBox');
+    final bool isRegistered = userBox.isNotEmpty && userBox.get('currentUser') != null;
 
     Navigator.pushReplacement(
       context,
@@ -126,25 +77,76 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFE1F5FE), Color(0xFF29B6F6), Color(0xFF0288D1)],
+            colors: [
+              Color(0xFFE1F5FE), // Açık Mavi
+              Color(0xFF29B6F6), // Orta Mavi
+              Color(0xFF0288D1), // Koyu Mavi (Ferahlık hissi için)
+            ],
           ),
         ),
         child: FadeTransition(
           opacity: _fadeAnimation,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.water_drop_rounded, size: 100, color: Colors.white),
-              const SizedBox(height: 30),
-              const Text('CERVUS', style: TextStyle(
-                fontSize: 42, fontWeight: FontWeight.w900, letterSpacing: 8, color: Colors.white,
-              )),
-              const SizedBox(height: 50),
-              const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white54)),
-            ],
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // LOGO ALANI (İkon şimdilik logo görevi görüyor)
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.water_drop_rounded,
+                    size: 100,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                // METİN ALANI
+                const Text(
+                  'CERVUS',
+                  style: TextStyle(
+                    fontSize: 42,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 8,
+                    color: Colors.white,
+                    fontFamily: 'Roboto', // Premium Font seçimi
+                  ),
+                ),
+                Text(
+                  context.watch<LocaleProvider>().translate('splash_subtitle'),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w300,
+                    letterSpacing: 4,
+                    color: Colors.white70,
+                  ),
+                ),
+                const SizedBox(height: 50),
+                const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
+                  strokeWidth: 2,
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+}
+
+// Custom Curve for smooth scaling
+class AppCurves {
+  static const Curve outOrdinary = Cubic(0.2, 0.0, 0.0, 1.0);
 }

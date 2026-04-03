@@ -13,11 +13,11 @@ import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 
 void main() async {
-  // 🛡️ İlk kareyi koru: Flutter motorunu uyandır.
+  // 1. MOTORU UYANDIR (Beyaz ekran kalkanı 1)
   WidgetsFlutterBinding.ensureInitialized();
-  debugPrint('➡️ START: main() basladi');
+  debugPrint('➡️ STARTUP: Motor uyandi');
 
-  // 🛡️ ÇOK HIZLI İŞLEMLER (Yerel Veri): SplashScreen'in düzgün çizilmesi için gereklidir.
+  // 2. YEREL VERITABANI VE YAPILANDIRMA (Isik hizinda biter)
   try {
     await Hive.initFlutter();
     if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
@@ -25,27 +25,37 @@ void main() async {
     await Hive.openBox('settings');
     await Hive.openBox('dailyData');
     await Hive.openBox('history');
-    debugPrint('➡️ STEP 1: Hive Hazir');
   } catch (e) {
     debugPrint('⚠️ Hive Hatası: $e');
   }
 
-  // 🛡️ DİL DOSYALARI (Çok Hızlı): SplashScreen'deki metinlerin anında görünmesini sağlar.
-  final localeProvider = LocaleProvider(); 
-  // Initializer içinde dil yüklemesi zaten yapılıyor.
+  // 3. FIREBASE BASLAT (iOS APNs takilmasini engellemek icin await etsek de arkasini saglama alacagiz)
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    }
+  } catch (e) {
+    debugPrint('⚠️ Firebase Hatasi: $e');
+  }
 
-  // 🛡️ UYGULAMAYI ANINDA ÇALIŞTIR (Firebase'i beklemeden!)
-  debugPrint('➡️ STEP 2: runApp() Cagriliyor');
+  // 4. SERVISLERI BASLAT (Fire-and-forget: Aninda dondurur, startup'i bloklamaz)
+  NotificationService().initialize();
+  MobileAds.instance.initialize();
+
+  // 5. DIK DIKKAT: Dil Provider'ini disarida olusturuyoruz ki runApp icinde "Re-entrant build" (Sonsuz Dongu Beyaz Ekrani) yapmasin.
+  final localeProvider = LocaleProvider(); 
+  
+  // 6. UYGULAMAYI ANINDA GOSTER (Splash Screen 2 saniye isler)
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) {
+         ChangeNotifierProvider(create: (_) {
            final up = UserProvider();
            up.initUser(); 
            return up;
-        }),
-        ChangeNotifierProvider(create: (_) => WaterProvider()),
-        ChangeNotifierProvider.value(value: localeProvider),
+         }),
+         ChangeNotifierProvider(create: (_) => WaterProvider()),
+         ChangeNotifierProvider.value(value: localeProvider),
       ],
       child: const MyApp(),
     ),
