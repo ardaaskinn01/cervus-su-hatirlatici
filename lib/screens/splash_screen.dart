@@ -9,13 +9,14 @@ import '../services/notification_service.dart';
 import '../firebase_options.dart';
 import 'onboarding_screen.dart';
 import 'main_shell.dart';
+import 'dart:async';
 
 /// ==========================================
-/// 🚀 ZERO-BLOCKING SPLASH SCREEN EKLENDİ
+/// 🚀 ULTRA-SAFE SPLASH SCREEN (ZIRHLI MOD)
 /// ==========================================
-/// Geri kalan her şey (Firebase, AdMob, Bildirimler) 
-/// Splash Screen içinde arka planda başlatılır.
-/// Kullanıcı beyaz ekran görmez, SplashScreen'i ve yükleme ikonunu görür.
+/// Uygulama açılır açılmaz UI render edilir.
+/// Servisler (Firebase, AdMob) ARKA PLANDA başlar.
+/// Hiçbir servis UI çizilmeli (Blue Screen) engellemez.
 /// ==========================================
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -28,6 +29,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  bool _isNavigated = false;
 
   @override
   void initState() {
@@ -49,43 +51,49 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _controller.forward();
 
-    // Arka planda servisleri başlat
-    _initializeApp();
+    // 🎯 KRİTİK: beklemeden servisleri tetikle!
+    _startInitialization();
   }
 
-  Future<void> _initializeApp() async {
-    // 1. İlk karenin çizilmesi için native motora zaman tanı
-    await Future.delayed(const Duration(milliseconds: 300));
+  void _startInitialization() async {
+    // 1. Ekranın çizilmesi için bekle (Hemen başlar başlamaz çizim yapılır)
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // 2. Maksimum bekleme süresi koy (Eğer her şey kilitlenirse bile 6 saniye sonra ana ekrana fırlat)
+    Timer(const Duration(seconds: 6), () {
+      if (mounted && !_isNavigated) {
+        debugPrint('⏰ SPLASH TIMEOUT: Servisler bitmeden gidiyoruz.');
+        _navigateToNext();
+      }
+    });
 
     try {
-      // 2. FIREBASE BAŞLATMA 👇🎯 (En riskli nokta, try-catch içinde)
+      // 3. Arka Plan Servisleri (Burası kilitlenirse timeout bekleyen Timer kurtaracak)
       debugPrint('🔥 Firebase başlatılıyor...');
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform
-      ).timeout(const Duration(seconds: 10)); // Bekleme süresine kilit koyduk
-      debugPrint('🔥 Firebase başarıyla başlatıldı.');
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      debugPrint('🔥 Firebase hazır.');
 
-      // 3. BİLDİRİM SERVİS BAŞLATMA
-      debugPrint('🔔 Bildirim servisi başlatılıyor...');
-      await NotificationService().initialize().timeout(const Duration(seconds: 5));
-      debugPrint('🔔 Bildirim servisi hazır.');
+      debugPrint('🔔 Bildirimler başlatılıyor...');
+      await NotificationService().initialize();
 
-      // 4. ADMOB BAŞLATMA
-      debugPrint('💰 Reklam servisi başlatılıyor...');
+      debugPrint('💰 AdMob başlatılıyor...');
       MobileAds.instance.initialize();
 
-      // En az 1-1.5 saniye splash kalsın, sonra yönlendir
-      await Future.delayed(const Duration(milliseconds: 600));
-      
-      if (mounted) _navigateToNext();
+      // İşlemler biter bitmez yönlendir (Timer'ı bekleme)
+      if (mounted && !_isNavigated) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        _navigateToNext();
+      }
     } catch (e) {
-      debugPrint("⚠️ Başlatma sırasında hata (devam ediliyor): $e");
-      // Hata olsa bile kullanıcıyı en azından uygulamaya sok
-      if (mounted) _navigateToNext();
+      debugPrint("⚠️ Servislerde hata: $e");
+      if (mounted && !_isNavigated) _navigateToNext();
     }
   }
 
   void _navigateToNext() {
+    if (_isNavigated) return;
+    _isNavigated = true;
+
     final userBox = Hive.box<UserModel>('userBox');
     final bool isRegistered = userBox.isNotEmpty && userBox.get('currentUser') != null;
 
@@ -138,11 +146,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     color: Colors.white.withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.water_drop_rounded,
-                    size: 100,
-                    color: Colors.white,
-                  ),
+                  child: const Icon(Icons.water_drop_rounded, size: 100, color: Colors.white),
                 ),
                 const SizedBox(height: 30),
                 const Text(
@@ -163,7 +167,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 }
 
-// Custom Curve for smooth scaling
 class AppCurves {
   static const Curve outOrdinary = Cubic(0.2, 0.0, 0.0, 1.0);
 }
