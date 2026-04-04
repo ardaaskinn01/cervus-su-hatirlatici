@@ -15,20 +15,34 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
-  final _pages = const [
-    HomeScreen(),
-    StatisticsScreen(),
-    ProfileScreen(),
+  // 🎯 DÜZELTME: Sayfaları 'const' yapmaktan çıkarıyoruz. 
+  // Çünkü IndexedStack tüm sayfaları aynı anda init eder. 
+  // Eğer sayfalardan birinde (örn: Statistics) bir Hive hatası varsa tüm uygulama kilitlenir.
+  List<Widget> get _pages => [
+    const HomeScreen(),
+    const StatisticsScreen(),
+    const ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    // LocaleProvider'ın hazır olduğundan emin olalım
     final lp = context.watch<LocaleProvider>();
 
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
+      // Sayfalar arası geçişte çökme riskine karşı IndexedStack'i de koruyoruz
+      body: Builder(
+        builder: (context) {
+          try {
+            return IndexedStack(
+              index: _currentIndex,
+              children: _pages,
+            );
+          } catch (e) {
+            debugPrint("🚨 MainShell Sayfa Hatası: $e");
+            return const Center(child: Text("Bir hata oluştu, lütfen uygulamayı yeniden başlatın."));
+          }
+        },
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -106,23 +120,19 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                icon,
-                size: isActive ? 26 : 24,
-                color: isActive ? accentColor : inactiveColor,
-              ),
+            Icon(
+              icon,
+              size: isActive ? 26 : 24,
+              color: isActive ? accentColor : inactiveColor,
             ),
             const SizedBox(height: 4),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
+            Text(
+              label,
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: isActive ? FontWeight.w800 : FontWeight.w500,
                 color: isActive ? accentColor : inactiveColor,
               ),
-              child: Text(label),
             ),
           ],
         ),

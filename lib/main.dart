@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 
 import 'models/user_model.dart';
@@ -14,26 +13,63 @@ import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 
 /// ==========================================================
-/// 🚀 ZERO-BLOCKING STARTUP (ZORLU ALARM MODELİ)
-/// ==========================================================
-/// main() içerisinde HİÇBİR ağır işlem (Firebase, FCM vb.) 
-/// BEKLENMEZ. Bu sayede iOS Beyaz Ekran hatası kesinlikle çözülür.
+/// 🚀 ABSOLUTE ZERO-BLOCKING STARTUP (ZIRHLI MOD V2)
+/// Eğer main() içerisinde Hive patlarsa, runApp() hiç çağrılmaz
+/// ve uygulama SONSUZA KADAR BEYAZ EKRANDA kalır.
+/// Bu yüzden main() devasa bir try-catch ile korunmalıdır!
 /// ==========================================================
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('🚀 main() başladı');
   
-  // 1. Sadece Hive'ı (Veritabanı) başlatıyoruz (Hızlıdır, kilitlenme yapmaz)
-  await Hive.initFlutter();
-  if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
-  
-  await Hive.openBox<UserModel>('userBox');
-  await Hive.openBox('settings');
-  await Hive.openBox('dailyData');
-  await Hive.openBox('history');
-  debugPrint('📦 Hive hazır');
+  try {
+    await Hive.initFlutter();
+    if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
+    
+    // Hive bazen sürüm/model değişimlerinde crash atabilir. 
+    // Eğer TestFlight'ta eski sürüm yüklüyse ve model değiştiyse, 
+    // openBox anında patlayıp uygulamayı beyaz ekrana gömer.
+    await Hive.openBox<UserModel>('userBox');
+    await Hive.openBox('settings');
+    await Hive.openBox('dailyData');
+    await Hive.openBox('history');
+    debugPrint('📦 Hive hazır');
+  } catch (e) {
+    debugPrint('🚨 KRITIK HATA: Hive kutuları açılamadı! Temizleniyor... Hata: $e');
+    // Eğer kutular bozuksa silip sıfırdan açalım ki beyaz ekran kalksın
+    try {
+      await Hive.deleteBoxFromDisk('userBox');
+      await Hive.deleteBoxFromDisk('settings');
+      await Hive.deleteBoxFromDisk('dailyData');
+      await Hive.deleteBoxFromDisk('history');
+      await Hive.openBox<UserModel>('userBox');
+    } catch (e2) {
+      debugPrint('🚨 FATAL: Hive tamamen çöktü: $e2');
+    }
+  }
 
-  // 2. Uygulamayı anında başlatıyoruz
+  // Hata Ekranı Yakalayıcı (BEYAZ EKRAN YERİNE HATAYI GÖSTER) 👇
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Material(
+      child: Container(
+        color: Colors.red.shade900,
+        padding: const EdgeInsets.all(20),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('⚠️ UYGULAMA ÇÖKTÜ:', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              Text(details.exceptionAsString(), style: const TextStyle(color: Colors.white, fontSize: 14)),
+              const SizedBox(height: 10),
+              Text(details.stack?.toString() ?? '', style: const TextStyle(color: Colors.white, fontSize: 10)),
+            ],
+          ),
+        ),
+      ),
+    );
+  };
+
   runApp(const MyApp());
 }
 
@@ -46,7 +82,10 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) {
           var userProvider = UserProvider();
-          userProvider.initUser();
+          // Eğer initUser içinde Hive patlarsa diye onu provider içinde koruyoruz.
+          try {
+            userProvider.initUser();
+          } catch(e) { debugPrint("UserProvider init hatası: $e"); }
           return userProvider;
         }),
         ChangeNotifierProvider(create: (_) => WaterProvider()),

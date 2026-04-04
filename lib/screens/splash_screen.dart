@@ -68,15 +68,20 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     });
 
     try {
-      // 3. Arka Plan Servisleri (Burası kilitlenirse timeout bekleyen Timer kurtaracak)
+      // 3. Arka Plan Servisleri
       debugPrint('🔥 Firebase başlatılıyor...');
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-      debugPrint('🔥 Firebase hazır.');
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+        debugPrint('🔥 Firebase başarıyla başlatıldı.');
+      } else {
+        debugPrint('🔥 Firebase zaten başlatılmış, atlanıyor.');
+      }
 
       debugPrint('🔔 Bildirimler başlatılıyor...');
       await NotificationService().initialize();
 
       debugPrint('💰 AdMob başlatılıyor...');
+      // initialize() zaten güvenli, ama beklemeden devam ediyoruz
       MobileAds.instance.initialize();
 
       // İşlemler biter bitmez yönlendir (Timer'ı bekleme)
