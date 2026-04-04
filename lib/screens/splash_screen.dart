@@ -2,23 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:provider/provider.dart';
-import '../firebase_options.dart';
 import '../models/user_model.dart';
-import '../providers/user_provider.dart';
-import '../providers/water_provider.dart';
+import 'package:provider/provider.dart';
 import '../providers/locale_provider.dart';
 import '../services/notification_service.dart';
+import '../firebase_options.dart';
 import 'onboarding_screen.dart';
 import 'main_shell.dart';
 
-/// ==========================================================
-/// 🌊 SPLASH SCREEN - Zırhlı Yükleme Katmanı
-/// ==========================================================
-/// Kullanıcı mavi gradyanlı splash ekranı görürken,
-/// arka planda TÜM ağır servisler yüklenir.
-/// Yükleme bitmeden kesinlikle navigasyon yapılmaz.
-/// ==========================================================
+/// ==========================================
+/// 🚀 ZERO-BLOCKING SPLASH SCREEN EKLENDİ
+/// ==========================================
+/// Geri kalan her şey (Firebase, AdMob, Bildirimler) 
+/// Splash Screen içinde arka planda başlatılır.
+/// Kullanıcı beyaz ekran görmez, SplashScreen'i ve yükleme ikonunu görür.
+/// ==========================================
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -30,15 +28,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-  bool _isInitialized = false;
-  bool _isRegistered = false;
 
   @override
   void initState() {
     super.initState();
-    debugPrint('🌊 SPLASH: initState başladı');
+    debugPrint('🌊 SPLASH: Başladı');
 
-    // 1. Animasyon Hazırlığı
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -54,88 +49,57 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _controller.forward();
 
-    // 2. Arka Planda Tüm Servisleri Başlat
-    _initializeServices();
+    // Arka planda servisleri başlat
+    _initializeApp();
   }
 
-  /// Tüm servisleri sırayla başlatır, sonra state günceller.
-  Future<void> _initializeServices() async {
-    debugPrint('🌊 SPLASH: Sistem yüklemeleri başlıyor (Arka Plan)');
+  Future<void> _initializeApp() async {
+    // 1. İlk karenin çizilmesi için native motora zaman tanı
+    await Future.delayed(const Duration(milliseconds: 300));
 
-    // ─── ADIM 1: HIVE (Lokal Veritabanı) ──────────────────────
     try {
-      debugPrint('📦 STEP 1: Hive açılıyor...');
-      await Hive.initFlutter();
-      if (!Hive.isAdapterRegistered(0)) {
-        Hive.registerAdapter(UserModelAdapter());
-      }
-      await Hive.openBox<UserModel>('userBox');
-      await Hive.openBox('settings');
-      await Hive.openBox('dailyData');
-      await Hive.openBox('history');
-      debugPrint('📦 STEP 1: Hive Hazır ✅');
-
-      // Kayıtlı kullanıcı var mı kontrol et
-      final userBox = Hive.box<UserModel>('userBox');
-      _isRegistered = userBox.isNotEmpty && userBox.get('currentUser') != null;
-      debugPrint('👤 Kullanıcı durumu: ${_isRegistered ? "Kayıtlı" : "Yeni"}');
-    } catch (e) {
-      debugPrint('⚠️ Hive hatası: $e');
-    }
-
-    // ─── ADIM 2: FIREBASE ──────────────────────────────────────
-    try {
-      debugPrint('🔥 STEP 2: Firebase başlatılıyor...');
+      // 2. FIREBASE BAŞLATMA 👇🎯 (En riskli nokta, try-catch içinde)
+      debugPrint('🔥 Firebase başlatılıyor...');
       await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      ).timeout(
-        const Duration(seconds: 8),
-        onTimeout: () {
-          debugPrint('⚠️ Firebase zaman aşımı! Devam ediliyor...');
-          return Firebase.app();
-        },
-      );
-      debugPrint('🔥 STEP 2: Firebase Hazır ✅');
+        options: DefaultFirebaseOptions.currentPlatform
+      ).timeout(const Duration(seconds: 10)); // Bekleme süresine kilit koyduk
+      debugPrint('🔥 Firebase başarıyla başlatıldı.');
+
+      // 3. BİLDİRİM SERVİS BAŞLATMA
+      debugPrint('🔔 Bildirim servisi başlatılıyor...');
+      await NotificationService().initialize().timeout(const Duration(seconds: 5));
+      debugPrint('🔔 Bildirim servisi hazır.');
+
+      // 4. ADMOB BAŞLATMA
+      debugPrint('💰 Reklam servisi başlatılıyor...');
+      MobileAds.instance.initialize();
+
+      // En az 1-1.5 saniye splash kalsın, sonra yönlendir
+      await Future.delayed(const Duration(milliseconds: 600));
+      
+      if (mounted) _navigateToNext();
     } catch (e) {
-      if (e.toString().contains('duplicate-app')) {
-        debugPrint('🔥 Firebase zaten başlatılmış, devam ediliyor.');
-      } else {
-        debugPrint('⚠️ Firebase hatası: $e - Devam ediliyor...');
-      }
+      debugPrint("⚠️ Başlatma sırasında hata (devam ediliyor): $e");
+      // Hata olsa bile kullanıcıyı en azından uygulamaya sok
+      if (mounted) _navigateToNext();
     }
+  }
 
-    // ─── ADIM 3: BİLDİRİM SERVİSİ ─────────────────────────────
-    try {
-      debugPrint('🔔 STEP 3: Bildirim servisi başlatılıyor...');
-      await NotificationService().initialize().timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {
-          debugPrint('⚠️ Bildirim servisi zaman aşımı! Devam ediliyor...');
+  void _navigateToNext() {
+    final userBox = Hive.box<UserModel>('userBox');
+    final bool isRegistered = userBox.isNotEmpty && userBox.get('currentUser') != null;
+
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => 
+          isRegistered ? const MainShell() : const OnboardingScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
         },
-      );
-      debugPrint('🔔 STEP 3: Bildirim servisi Hazır ✅');
-    } catch (e) {
-      debugPrint('⚠️ Bildirim hatası: $e - Devam ediliyor...');
-    }
-
-    // ─── ADIM 4: REKLAMLAR (Arka Plan - Beklemeden!) ────────────
-    debugPrint('💰 STEP 4: Reklamlar tetikleniyor (arka plan)...');
-    MobileAds.instance.initialize().then((status) {
-      debugPrint('💰 Reklam servisi hazır: $status');
-    }).catchError((e) {
-      debugPrint('⚠️ Reklam hatası: $e');
-    });
-
-    // ─── ADIM 5: MİNİMUM 2 SANİYE SPLASH GÖSTERİMİ ────────────
-    await Future.delayed(const Duration(seconds: 2));
-
-    // ─── ADIM 6: STATE GÜNCELLE VE YÖNLENDİR ──────────────────
-    if (!mounted) return;
-    debugPrint('🌊 SPLASH: Yükleme tamamlandı, yönlendirme yapılıyor...');
-
-    setState(() {
-      _isInitialized = true;
-    });
+        transitionDuration: const Duration(milliseconds: 800),
+      ),
+    );
   }
 
   @override
@@ -146,50 +110,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    // Yükleme tamamlandıysa provider'lı uygulamaya geç
-    if (_isInitialized) {
-      debugPrint('🌊 SPLASH: Provider\'lı uygulama oluşturuluyor');
-      return MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) {
-            var userProvider = UserProvider();
-            userProvider.initUser();
-            return userProvider;
-          }),
-          ChangeNotifierProvider(create: (_) => WaterProvider()),
-          ChangeNotifierProvider(create: (_) => LocaleProvider()),
-        ],
-        child: Consumer<LocaleProvider>(
-          builder: (context, localeProvider, child) {
-            return MaterialApp(
-              title: 'Cervus Su Hatırlatıcı',
-              debugShowCheckedModeBanner: false,
-              theme: ThemeData(
-                useMaterial3: true,
-                primaryColor: const Color(0xFF29B6F6),
-                scaffoldBackgroundColor: const Color(0xFFF4F9F9),
-                colorScheme: ColorScheme.fromSeed(
-                  seedColor: const Color(0xFF29B6F6),
-                  primary: const Color(0xFF29B6F6),
-                  secondary: const Color(0xFF4DD0E1),
-                  surface: Colors.white,
-                ),
-                appBarTheme: const AppBarTheme(
-                  backgroundColor: Color(0xFF29B6F6),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  centerTitle: true,
-                ),
-              ),
-              home: _isRegistered ? const MainShell() : const OnboardingScreen(),
-            );
-          },
-        ),
-      );
-    }
-
-    // Yükleme devam ediyorken splash ekranı göster
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Container(
         width: double.infinity,
         decoration: const BoxDecoration(
@@ -215,13 +137,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                      ),
-                    ],
                   ),
                   child: const Icon(
                     Icons.water_drop_rounded,
@@ -232,22 +147,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 const SizedBox(height: 30),
                 const Text(
                   'CERVUS',
-                  style: TextStyle(
-                    fontSize: 42,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 8,
-                    color: Colors.white,
-                    fontFamily: 'Roboto',
-                  ),
-                ),
-                const Text(
-                  'SU HATIRLATICI',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w300,
-                    letterSpacing: 4,
-                    color: Colors.white70,
-                  ),
+                  style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900, letterSpacing: 8, color: Colors.white),
                 ),
                 const SizedBox(height: 50),
                 const CircularProgressIndicator(
