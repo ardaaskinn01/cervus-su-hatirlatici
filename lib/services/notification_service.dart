@@ -2,6 +2,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter/material.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'dart:async';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -78,13 +80,28 @@ class NotificationService {
   NotificationService._internal();
 
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  Completer<void>? _initCompleter;
 
   static const String action100ml = 'DRINK_100ML';
   static const String action200ml = 'DRINK_200ML';
   static const String categoryId = 'WATER_CATEGORY';
 
   Future<void> initialize() async {
+    if (_initCompleter != null) return _initCompleter!.future;
+    _initCompleter = Completer<void>();
+
     tz.initializeTimeZones();
+    try {
+      final info = await FlutterTimezone.getLocalTimezone();
+      final String timeZoneName = info.identifier;
+      tz.setLocalLocation(tz.getLocation(timeZoneName));
+      debugPrint('🌍 Zaman Dilimi: $timeZoneName');
+    } catch (e) {
+      debugPrint('🚨 Zaman dilimi hatası, UTC kullanılıyor: $e');
+      tz.setLocalLocation(tz.getLocation('UTC'));
+    }
+
+    _initCompleter!.complete();
 
     final List<DarwinNotificationCategory> darwinCategories = [
       DarwinNotificationCategory(
@@ -137,6 +154,7 @@ class NotificationService {
   }
 
   Future<void> scheduleNextReminder() async {
+    await initialize();
     bool isEnabled = Hive.box('settings').get('notificationsEnabled', defaultValue: true);
     if (!isEnabled) return;
 
@@ -187,10 +205,12 @@ class NotificationService {
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
     );
+    debugPrint('⏰ Hatırlatıcı Programlandı: $scheduledTime');
   }
 
   Future<void> cancelAllReminders() async {
     await _notifications.cancelAll();
+    debugPrint('🚫 Tüm hatırlatıcılar iptal edildi.');
   }
 
   bool _isUserSleeping(DateTime time, String wakeUp, String sleep) {
