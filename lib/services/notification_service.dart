@@ -3,16 +3,17 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../firebase_options.dart';
 import '../models/user_model.dart';
 import '../providers/water_provider.dart';
 
 /// ============================================================
-/// 🔔 NOTIFICATION SERVICE (FCM KALDIRILDI - SADECE LOKAL)
+/// 🔔 NOTIFICATION SERVICE (BEYAZ EKRAN ÇÖZÜMLÜ & STABİL)
 /// ============================================================
-/// firebase_messaging paketi iOS'ta native plugin olarak
-/// Flutter'ın ilk frame'inden önce APNs ile iletişim kurarak
-/// uygulamayı kilitliyordu. Tamamen kaldırıldı.
-/// Sadece lokal su hatırlatıcı bildirimleri çalışıyor.
+/// Arka planda su ekleme işleminin Firestore'a yansıması için
+/// Firebase'in ve Kullanıcı Verilerinin doğru yüklenmesi gerekir.
 /// ============================================================
 
 @pragma('vm:entry-point')
@@ -20,21 +21,54 @@ Future<void> notificationTapBackground(NotificationResponse response) async {
   debugPrint('📢 Arka planda bildirim eylemi: ${response.actionId}');
   WidgetsFlutterBinding.ensureInitialized();
   
-  await Hive.initFlutter();
-  if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
-  
-  final userBox = await Hive.openBox<UserModel>('userBox');
-  await Hive.openBox('settings');
-  
-  if (userBox.isEmpty || userBox.get('currentUser') == null) return;
-  
   int amount = 0;
   if (response.actionId == NotificationService.action100ml) amount = 100;
   else if (response.actionId == NotificationService.action200ml) amount = 200;
-  
-  if (amount > 0) {
-    final wp = WaterProvider();
-    await wp.addWater(amount);
+  if (amount <= 0) return;
+
+  try {
+    // 1. Firebase'i arka planda başlat
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    }
+
+    // 2. Hive'ı başlat ve kullanıcıyı yükle
+    await Hive.initFlutter();
+    if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
+    final userBox = await Hive.openBox<UserModel>('userBox');
+    await Hive.openBox('settings');
+    await Hive.openBox('dailyData');
+
+    final user = userBox.get('currentUser');
+    if (user == null) {
+      debugPrint('🚨 Arka Plan: Kullanıcı bulunamadı, işlem iptal.');
+      return;
+    }
+
+    // 3. WaterProvider BYPASS → Doğrudan Firestore'a Yaz 🎯
+    // (WaterProvider stream tabanlıdır, arka planda _user null kalır, addWater sessizce başarısız olur)
+    final now = DateTime.now();
+    final dateKey = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final saat = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    final uid = now.millisecondsSinceEpoch.toString();
+
+    final docRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.firebaseId)
+        .collection('gunler')
+        .doc(dateKey);
+
+    await docRef.set({
+      'gunlukMiktar': FieldValue.increment(amount),
+      'tarih': dateKey,
+      'suIcildi': FieldValue.arrayUnion([
+        {'uid': uid, 'saat': saat, 'miktar': amount}
+      ]),
+    }, SetOptions(merge: true));
+
+    debugPrint('✅ Arka Plan: $amount ml → Firestore\'a başarıyla yazıldı.');
+  } catch (e) {
+    debugPrint('🚨 Arka Plan Hatası: $e');
   }
 }
 
@@ -45,7 +79,6 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
 
-  // Buton ID'leri
   static const String action100ml = 'DRINK_100ML';
   static const String action200ml = 'DRINK_200ML';
   static const String categoryId = 'WATER_CATEGORY';
@@ -82,6 +115,7 @@ class NotificationService {
     await _notifications.initialize(
       settings,
       onDidReceiveNotificationResponse: (NotificationResponse response) async {
+        // Ön planda tıklanırsa da aynı mantığı çalıştıralım
         if (response.actionId == action100ml) {
           _handleDrinkAction(100);
         } else if (response.actionId == action200ml) {
@@ -91,14 +125,15 @@ class NotificationService {
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
 
-    // FCM _setupFirebaseMessaging() TAMAMEN KALDIRILDI 🚫
-    debugPrint('🔔 Lokal Bildirim Servisi Hazır (FCM Yok)');
+    debugPrint('🔔 Lokal Bildirim Servisi Hazır');
   }
 
-  void _handleDrinkAction(int amount) {
-    debugPrint('📢 Bildirimden su eklendi: $amount ml');
-    final waterProvider = WaterProvider();
-    waterProvider.addWater(amount);
+  // ÖN PLAN TIKLAMA YÖNETİMİ 👇🎯
+  void _handleDrinkAction(int amount) async {
+    debugPrint('📢 Ön planda bildirimden su eklendi: $amount ml');
+    final wp = WaterProvider();
+    await wp.recalculateGoal(); // Kullanıcı verisini yükle
+    await wp.addWater(amount); // Kaydet
   }
 
   Future<void> scheduleNextReminder() async {
