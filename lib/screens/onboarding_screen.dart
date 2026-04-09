@@ -101,103 +101,107 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0F8FF), // Çok açık su mavisi arka plan
-      body: Stack(
-        children: [
-          // Arkaplan Şık Dekorasyon
-          Positioned(
-            top: -100,
-            right: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(colors: [const Color(0xFF4DD0E1).withOpacity(0.4), Colors.transparent]),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF0F8FF), // Çok açık su mavisi arka plan
+        resizeToAvoidBottomInset: true,
+        body: Stack(
+          children: [
+            // Arkaplan Şık Dekorasyon
+            Positioned(
+              top: -100,
+              right: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(colors: [const Color(0xFF4DD0E1).withOpacity(0.4), Colors.transparent]),
+                ),
               ),
             ),
-          ),
-          Positioned(
-            bottom: -50,
-            left: -50,
-            child: Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(colors: [const Color(0xFF29B6F6).withOpacity(0.3), Colors.transparent]),
+            Positioned(
+              bottom: -50,
+              left: -50,
+              child: Container(
+                width: 250,
+                height: 250,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(colors: [const Color(0xFF29B6F6).withOpacity(0.3), Colors.transparent]),
+                ),
               ),
             ),
-          ),
-          
-          SafeArea(
-            child: Column(
-              children: [
-                // Adım Göstergesi (Dots)
-                Padding(
-                  padding: const EdgeInsets.only(top: 24, bottom: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(4, (index) {
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        height: 8,
-                        width: _currentIndex == index ? 24 : 8,
-                        decoration: BoxDecoration(
-                          color: _currentIndex == index ? const Color(0xFF29B6F6) : Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      );
-                    }),
+            
+            SafeArea(
+              child: Column(
+                children: [
+                  // Adım Göstergesi (Dots)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16, bottom: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(4, (index) {
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          height: 8,
+                          width: _currentIndex == index ? 24 : 8,
+                          decoration: BoxDecoration(
+                            color: _currentIndex == index ? const Color(0xFF29B6F6) : Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        );
+                      }),
+                    ),
                   ),
-                ),
-
-                // Kaydırmalı Sayfalar (Content)
-                Expanded(
-                  child: PageView(
-                    controller: _pageController,
-                    physics: const NeverScrollableScrollPhysics(), // Sadece butonla geçilebilsin
-                    onPageChanged: (index) => setState(() => _currentIndex = index),
-                    children: [
-                      _buildNameStep(),
-                      _buildBodyDataStep(),
-                      _buildWakeTimeStep(),
-                      _buildSleepTimeStep(),
-                    ],
+  
+                  // Kaydırmalı Sayfalar (Content)
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      physics: const NeverScrollableScrollPhysics(), // Sadece butonla geçilebilsin
+                      onPageChanged: (index) => setState(() => _currentIndex = index),
+                      children: [
+                        _buildNameStep(),
+                        _buildBodyDataStep(),
+                        _buildWakeTimeStep(),
+                        _buildSleepTimeStep(),
+                      ],
+                    ),
                   ),
-                ),
-
-                // Alt Buton Alanı
-                Padding(
-                  padding: const EdgeInsets.all(32.0),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Color(0xFF29B6F6))
-                      : SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: _nextPage,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF29B6F6),
-                              elevation: 5,
-                              shadowColor: const Color(0xFF29B6F6).withOpacity(0.5),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            ),
-                            child: Text(
-                              _currentIndex == 3
-                                  ? context.watch<LocaleProvider>().translate('onb_btn_start')
-                                  : context.watch<LocaleProvider>().translate('onb_btn_next'),
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+  
+                  // Alt Buton Alanı
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Color(0xFF29B6F6))
+                        : SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: _nextPage,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF29B6F6),
+                                elevation: 5,
+                                shadowColor: const Color(0xFF29B6F6).withOpacity(0.5),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                              child: Text(
+                                _currentIndex == 3
+                                    ? context.watch<LocaleProvider>().translate('onb_btn_start')
+                                    : context.watch<LocaleProvider>().translate('onb_btn_next'),
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
                             ),
                           ),
-                        ),
-                )
-              ],
+                  )
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -308,28 +312,56 @@ class _StepContentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: const Color(0xFF29B6F6).withOpacity(0.2), blurRadius: 20, offset: const Offset(0, 10))],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF29B6F6).withOpacity(0.2),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        )
+                      ],
+                    ),
+                    child: Icon(icon, size: 60, color: const Color(0xFF29B6F6)),
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    title,
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.black87),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(fontSize: 15, height: 1.5, color: Colors.black54),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                  const SizedBox(height: 48),
+                  child,
+                  // Keyboard payasunu önlemek için ekstra boşluk (isteğe bağlı)
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
-            child: Icon(icon, size: 60, color: const Color(0xFF29B6F6)),
           ),
-          const SizedBox(height: 32),
-          Text(title, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.black87), textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          Text(subtitle, style: const TextStyle(fontSize: 15, height: 1.5, color: Colors.black54), textAlign: TextAlign.center),
-          const SizedBox(height: 48),
-          child,
-        ],
-      ),
+        );
+      },
     );
   }
 }
