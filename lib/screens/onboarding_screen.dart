@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/locale_provider.dart';
+import '../services/notification_service.dart';
 import 'home_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -68,6 +69,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             wakeUpTime: wakeStr,
             sleepTime: sleepStr,
           );
+
+      // 🔔 Bildirim sistemini ilk kez kur
+      final ns = NotificationService();
+      ns.scheduleMorningGreeting();
+      ns.scheduleReEngagementNotifications();
+      ns.scheduleEscalatingReminders();
+
       if (mounted) {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
       }

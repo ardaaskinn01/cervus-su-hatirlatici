@@ -80,6 +80,21 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       debugPrint('🔔 Bildirimler başlatılıyor...');
       await NotificationService().initialize();
 
+      // 🌅 Günaydın bildirimi — her gün uyanış saati + 30dk (kullanıcı varsa)
+      NotificationService().scheduleMorningGreeting();
+
+      // 📅 Re-engagement bildirimleri — 3 ve 7 gün kullanılmadı uyarısı
+      // Uygulama her açıldığında yeniden planlanır (süre sıfırlanır)
+      NotificationService().scheduleReEngagementNotifications();
+
+      // ⏰ Escalating su hatırlatıcıları — eğer son su kaydı varsa
+      // (İlk açılış veya kullanıcı kayıtlı ise)
+      final settingsBox = Hive.box('settings');
+      final lastTs = settingsBox.get('lastWaterTimestamp');
+      if (lastTs != null) {
+        NotificationService().scheduleEscalatingReminders();
+      }
+
       debugPrint('💰 AdMob başlatılıyor...');
       // initialize() zaten güvenli, ama beklemeden devam ediyoruz
       MobileAds.instance.initialize();

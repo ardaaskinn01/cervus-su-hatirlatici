@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/water_provider.dart';
 import '../providers/locale_provider.dart';
+import '../services/notification_service.dart';
 import 'package:hive/hive.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -396,6 +397,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (result) {
       context.read<WaterProvider>().recalculateGoal();
       setState(() => _isEditing = false);
+      // Uyanış saati değişmiş olabilir → günaydın bildirimini yeniden planla
+      NotificationService().scheduleMorningGreeting();
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profil başarıyla güncellendi!', style: TextStyle(color: Colors.white)), backgroundColor: Color(0xFF10B981)));
     }
   }
