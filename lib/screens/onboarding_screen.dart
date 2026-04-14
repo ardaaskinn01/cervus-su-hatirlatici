@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/locale_provider.dart';
 import '../services/notification_service.dart';
-import 'home_screen.dart';
+import 'main_shell.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -77,7 +77,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ns.scheduleEscalatingReminders();
 
       if (mounted) {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainShell()));
       }
     } catch (e) {
       _showSnackbar('Bir hata oluştu: $e');
@@ -220,7 +220,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       icon: Icons.waving_hand_rounded,
       title: context.watch<LocaleProvider>().translate('onb_welcome'),
       subtitle: context.watch<LocaleProvider>().translate('onb_subtitle'),
-      child: _buildTextField(controller: _nameController, hint: "Adın", icon: Icons.person_rounded),
+      child: _buildTextField(controller: _nameController, hint: context.watch<LocaleProvider>().translate('onb_hint_name'), icon: Icons.person_rounded),
     );
   }
 
@@ -228,11 +228,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildBodyDataStep() {
     return _StepContentCard(
       icon: Icons.monitor_weight_rounded,
-      title: "Vücut Yapısı", // Could localize later
+      title: context.watch<LocaleProvider>().translate('onb_title_body'),
       subtitle: "",
       child: Row(
         children: [
-          Expanded(child: _buildTextField(controller: _ageController, hint: "Yaş", icon: Icons.cake, isNumber: true)),
+          Expanded(child: _buildTextField(controller: _ageController, hint: context.watch<LocaleProvider>().translate('onb_hint_age'), icon: Icons.cake, isNumber: true)),
           const SizedBox(width: 16),
           Expanded(child: _buildTextField(controller: _weightController, hint: context.watch<LocaleProvider>().translate('onb_step_weight'), icon: Icons.straighten, isNumber: true)),
         ],

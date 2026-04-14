@@ -101,13 +101,32 @@ class NotificationService {
   static const String categoryId = 'WATER_CATEGORY';
 
   // --- Notification IDs ---
-  static const int _id2h = 10;    // 2 saat
-  static const int _id4h = 11;    // 4 saat
-  static const int _id8h = 12;    // 8 saat
-  static const int _id24h = 13;   // 24 saat
+  static const int _id1st = 10;   // 1. hatırlatma
+  static const int _id2nd = 11;   // 2. hatırlatma
+  static const int _id3rd = 12;   // 3. hatırlatma
+  static const int _id4th = 13;   // 4. hatırlatma
+  static const int _id5th = 14;   // 5. hatırlatma (sadece 30dk presetinde)
+  static const int _id24h = 15;   // 24 saat
   static const int _idMorning = 20; // Günaydın
   static const int _id3day = 30;   // 3 gün
   static const int _id7day = 31;   // 7 gün
+
+  /// Kullanıcının seçtiği interval preset (Hive key: 'notifIntervalPreset')
+  /// Değerler: 'half' | '1h' | '3h' | '4h'   — Varsayılan: '2h' (eski 2 saat davranışı)
+  static String getIntervalPreset() =>
+      Hive.box('settings').get('notifIntervalPreset', defaultValue: '2h') as String;
+
+  /// Preset adına göre okunabilir etiket döndürür
+  static String presetLabel(String key) {
+    switch (key) {
+      case 'half': return '30 Dakika';
+      case '1h':   return '1 Saat';
+      case '2h':   return '2 Saat (Varsayılan)';
+      case '3h':   return '3 Saat';
+      case '4h':   return '4 Saat';
+      default:     return '2 Saat';
+    }
+  }
 
   // ─── INIT ────────────────────────────────────────────────────
   Future<void> initialize() async {
@@ -177,36 +196,111 @@ class NotificationService {
   }
 
   // ─── ANA PLANLAMA NOKTASI ────────────────────────────────────
-  /// Su eklendiğinde çağrılır. Escalating bildirimleri planlar.
+  /// Su eklendiğinde çağrılır. Seçili preset'e göre escalating bildirimleri planlar.
   Future<void> scheduleEscalatingReminders() async {
     await initialize();
     bool isEnabled = Hive.box('settings').get('notificationsEnabled', defaultValue: true);
     if (!isEnabled) return;
 
-    // Eski su hatırlatıcılarını iptal et (günaydın ve re-engagement dokunma)
-    await _cancelReminderIds([_id2h, _id4h, _id8h, _id24h]);
+    // Tüm eskalasyon ID'lerini temizle
+    await _cancelReminderIds([_id1st, _id2nd, _id3rd, _id4th, _id5th, _id24h]);
 
     final userBox = Hive.box<UserModel>('userBox');
     final user = userBox.get('currentUser');
     if (user == null) return;
 
     final now = DateTime.now();
-
-    // Son eylem zamanını kaydet
     await Hive.box('settings').put('lastWaterTimestamp', now.millisecondsSinceEpoch);
     await Hive.box('settings').put('lastAppOpenDate', _formatDate(now));
 
-    await _schedule2hReminder(now, user);
-    await _schedule4hReminder(now, user);
-    await _schedule8hReminder(now, user);
-    await _schedule24hReminder(now, user);
+    final preset = getIntervalPreset();
+    await _scheduleByPreset(now, user, preset);
 
-    debugPrint('✅ Escalating bildirimler planlandı: ${now.toString()}');
+    debugPrint('✅ Escalating bildirimler planlandı [preset=$preset]: ${now.toString()}');
   }
 
   /// Schedules the next reminder (legacy compat — calls scheduleEscalatingReminders)
   Future<void> scheduleNextReminder() async {
     await scheduleEscalatingReminders();
+  }
+
+  // ─── PRESET ROUTİNG ─────────────────────────────────────────
+  Future<void> _scheduleByPreset(DateTime from, UserModel user, String preset) async {
+    switch (preset) {
+      case 'half':
+        // 30dk → 1s → 2s → 4s → 8s → 24s
+        await _scheduleReminder(_id1st, from, const Duration(minutes: 30), user,
+            '💧 Su İçme Vakti!', 'Yarım saatte bir hatırlatıyorum — bir yudum al!',
+            Importance.high, Priority.defaultPriority);
+        await _scheduleReminder(_id2nd, from, const Duration(hours: 1), user,
+            '💧 Hâlâ Su İçmedin', 'Bir saattir bekliyor. Küçük bir yudum büyük fark yapar!',
+            Importance.high, Priority.high);
+        await _scheduleReminder(_id3rd, from, const Duration(hours: 2), user,
+            '⚠️ 2 Saattir Su Yok', 'Vücudun su dengesini korumak için şimdi içebilirsin.',
+            Importance.high, Priority.high);
+        await _scheduleReminder(_id4th, from, const Duration(hours: 4), user,
+            '🚨 4 Saattir Su İçmedin!', 'Susuzluk belirtileri başlayabilir. Hemen bir bardak su iç!',
+            Importance.max, Priority.max);
+        await _scheduleReminder(_id5th, from, const Duration(hours: 8), user,
+            '🔴 8 Saat! Acil Uyarı', 'Ciddi susuzluk riski! Yorgunluk ve baş ağrısı başlamış olabilir.',
+            Importance.max, Priority.max);
+        await _schedule24hReminderAdaptive(from, user);
+        break;
+
+      case '1h':
+        // 1s → 2s → 4s → 8s → 24s
+        await _scheduleReminder(_id1st, from, const Duration(hours: 1), user,
+            '💧 Su İçme Vakti!', 'Bir saattir su kaydın yok. Bir bardak su hem zihnini hem bedenini tazeleyecek.',
+            Importance.high, Priority.defaultPriority);
+        await _scheduleReminder(_id2nd, from, const Duration(hours: 2), user,
+            '⚠️ 2 Saattir Su Yok', 'Vücudun su dengesini korumak için şimdi iç!',
+            Importance.high, Priority.high);
+        await _scheduleReminder(_id3rd, from, const Duration(hours: 4), user,
+            '🚨 4 Saattir Su İçmedin!', 'Susuzluk belirtileri başlayabilir. Hemen bir bardak su iç!',
+            Importance.max, Priority.high);
+        await _scheduleReminder(_id4th, from, const Duration(hours: 8), user,
+            '🔴 8 Saat! Ciddi Uyarı', 'Ciddi susuzluk riski! Yorgunluk, baş ağrısı yaşıyor olabilirsin.',
+            Importance.max, Priority.max);
+        await _schedule24hReminderAdaptive(from, user);
+        break;
+
+      case '3h':
+        // 3s → 6s → 24s
+        await _scheduleReminder(_id1st, from, const Duration(hours: 3), user,
+            '💧 Su Vakti Geldi', '3 saattir su içmedin. Bir bardak su içmek için güzel bir an!',
+            Importance.high, Priority.defaultPriority);
+        await _scheduleReminder(_id2nd, from, const Duration(hours: 6), user,
+            '🚨 6 Saattir Su Yok!', 'Artık ciddi bir süre geçti. Hemen bir bardak su iç!',
+            Importance.max, Priority.high);
+        await _schedule24hReminderAdaptive(from, user);
+        break;
+
+      case '4h':
+        // 4s → 8s → 24s
+        await _scheduleReminder(_id1st, from, const Duration(hours: 4), user,
+            '💧 Su Vakti', '4 saattir su kaydın yok. Bir bardak su hem zihnini hem bedenini tazeleyecek.',
+            Importance.high, Priority.defaultPriority);
+        await _scheduleReminder(_id2nd, from, const Duration(hours: 8), user,
+            '🚨 8 Saattir Su İçmedin!', 'Ciddi susuzluk sinyali! Yorgunluk ve baş ağrısı başlamış olabilir.',
+            Importance.max, Priority.max);
+        await _schedule24hReminderAdaptive(from, user);
+        break;
+
+      case '2h':
+      default:
+        // 2s → 4s → 8s → 24s  (varsayılan / eski davranış)
+        await _scheduleReminder(_id1st, from, const Duration(hours: 2), user,
+            '💧 Su Vakti Geldi', 'Son 2 saattir su içmedin. Bir yudum su hem zihnini hem bedenini tazeleyecek.',
+            Importance.high, Priority.defaultPriority);
+        await _scheduleReminder(_id2nd, from, const Duration(hours: 4), user,
+            '⚠️ Su İçmeyi Unuttun mu?', '4 saattir su kaydın yok. Vücudun yavaş yavaş susuz kalmaya başlıyor!',
+            Importance.high, Priority.high);
+        await _scheduleReminder(_id3rd, from, const Duration(hours: 8), user,
+            '🚨 8 Saattir Su Yok!', 'Ciddi susuzluk sinyali! Yorgunluk, baş ağrısı, konsantrasyon kaybı olabilir.',
+            Importance.max, Priority.max);
+        await _schedule24hReminderAdaptive(from, user);
+        break;
+    }
   }
 
   // ─── SABAH GÜN AÇILIŞ BİLDİRİMİ ────────────────────────────
@@ -320,88 +414,57 @@ class NotificationService {
     debugPrint('📅 Re-engagement bildirimleri planlandı: 3 gün=$scheduled3d | 7 gün=$scheduled7d');
   }
 
-  // ─── ESCALATİNG BİLDİRİMLER ─────────────────────────────────
+  // ─── GENEL PLANLAYICI ────────────────────────────────────────
 
-  Future<void> _schedule2hReminder(DateTime from, UserModel user) async {
-    final target = from.add(const Duration(hours: 2));
-    if (_isUserSleeping(target, user.wakeUpTime, user.sleepTime)) return;
-
+  /// Tek bir bildirimi `from + offset` zamanına planlar.
+  Future<void> _scheduleReminder(
+    int id,
+    DateTime from,
+    Duration offset,
+    UserModel user,
+    String title,
+    String body,
+    Importance importance,
+    Priority priority,
+  ) async {
+    final target = from.add(offset);
+    if (_isUserSleeping(target, user.wakeUpTime, user.sleepTime)) {
+      debugPrint('⏰ [id=$id] Uyku saatine denk geldi, atlandı.');
+      return;
+    }
+    final channelId = importance == Importance.max ? 'water_critical' : 'water_reminders';
+    final channelName = importance == Importance.max ? 'Kritik Su Uyarısı' : 'Su Hatırlatıcı';
     await _notifications.zonedSchedule(
-      _id2h,
-      '💧 Su Vakti Geldi',
-      'Son 2 saattir su içmedin. Bir yudum su hem zihnini hem bedenini tazeleyecek.',
+      id,
+      title,
+      body,
       tz.TZDateTime.from(target, tz.local),
       _buildNotifDetails(
-        channelId: 'water_reminders',
-        channelName: 'Su Hatırlatıcı',
-        importance: Importance.high,
-        priority: Priority.defaultPriority,
+        channelId: channelId,
+        channelName: channelName,
+        importance: importance,
+        priority: priority,
         withActions: true,
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
     );
-    debugPrint('⏰ [2h] Bildirim planlandı: $target');
+    debugPrint('⏰ [id=$id] Bildirim planlandı: $target');
   }
 
-  Future<void> _schedule4hReminder(DateTime from, UserModel user) async {
-    final target = from.add(const Duration(hours: 4));
-    if (_isUserSleeping(target, user.wakeUpTime, user.sleepTime)) return;
-
-    await _notifications.zonedSchedule(
-      _id4h,
-      '⚠️ Su İçmeyi Unuttun mu?',
-      '4 saattir su kaydın yok. Vücudun yavaş yavaş susuz kalmaya başlıyor — şimdi iyi bir an!',
-      tz.TZDateTime.from(target, tz.local),
-      _buildNotifDetails(
-        channelId: 'water_reminders',
-        channelName: 'Su Hatırlatıcı',
-        importance: Importance.high,
-        priority: Priority.high,
-        withActions: true,
-      ),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-    );
-    debugPrint('⏰ [4h] Bildirim planlandı: $target');
-  }
-
-  Future<void> _schedule8hReminder(DateTime from, UserModel user) async {
-    final target = from.add(const Duration(hours: 8));
-    if (_isUserSleeping(target, user.wakeUpTime, user.sleepTime)) return;
-
-    await _notifications.zonedSchedule(
-      _id8h,
-      '🚨 8 Saattir Su Yok!',
-      'Ciddi susuzluk sinyali! Yorgunluk, baş ağrısı, konsantrasyon kaybı olabilir. Hemen bir bardak su iç!',
-      tz.TZDateTime.from(target, tz.local),
-      _buildNotifDetails(
-        channelId: 'water_critical',
-        channelName: 'Kritik Su Uyarısı',
-        importance: Importance.max,
-        priority: Priority.max,
-        withActions: true,
-      ),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-    );
-    debugPrint('⏰ [8h] Bildirim planlandı: $target');
-  }
-
-  Future<void> _schedule24hReminder(DateTime from, UserModel user) async {
+  /// 24 saatlik kritik hatırlatmayı planlar (uyku saatine göre kaydırmalı)
+  Future<void> _schedule24hReminderAdaptive(DateTime from, UserModel user) async {
     final target = from.add(const Duration(hours: 24));
-    // 24 saatlik bildirimi uyku saatine göre kaydır
     DateTime adjusted = target;
     if (_isUserSleeping(adjusted, user.wakeUpTime, user.sleepTime)) {
       final parts = user.wakeUpTime.split(':');
       final wakeHour = int.tryParse(parts[0]) ?? 8;
       final wakeMin = int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0;
       final wakeToday = DateTime(target.year, target.month, target.day, wakeHour, wakeMin);
-      adjusted = wakeToday.isBefore(target) 
-          ? wakeToday.add(const Duration(days: 1)) 
+      adjusted = wakeToday.isBefore(target)
+          ? wakeToday.add(const Duration(days: 1))
           : wakeToday;
     }
-
     await _notifications.zonedSchedule(
       _id24h,
       '🔴 24 Saattir Su Kaydın Yok!',

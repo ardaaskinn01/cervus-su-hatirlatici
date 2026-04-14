@@ -106,7 +106,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                     const SizedBox(height: 16),
                     _buildAnalysisCard(
                       title: context.watch<LocaleProvider>().translate('stats_trend'),
-                      value: stats['status'],
+                      value: context.watch<LocaleProvider>().translate(stats['status']),
                       description: "",
                       color: const Color(0xFF8B5CF6),
                       icon: Icons.health_and_safety_rounded,

@@ -263,7 +263,7 @@ class WaterProvider extends ChangeNotifier {
         .limit(30)
         .get();
 
-    if (snaps.docs.isEmpty) return {'avg': 0, 'rate': 0, 'status': 'Veri Bekleniyor'};
+    if (snaps.docs.isEmpty) return {'avg': 0, 'rate': 0, 'status': 'stats_status_waiting'};
 
     double total = 0;
     int success = 0;
@@ -276,7 +276,7 @@ class WaterProvider extends ChangeNotifier {
     return {
       'avg': (total / count).round(),
       'rate': ((success / count) * 100).round(),
-      'status': count < 3 ? 'Analiz Ediliyor' : (success / count > 0.7 ? 'İstikrarlı' : 'Düşük Trend'),
+      'status': count < 3 ? 'stats_status_analyzing' : (success / count > 0.7 ? 'stats_status_stable' : 'stats_status_low'),
     };
   }
 }

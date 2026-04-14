@@ -5,7 +5,6 @@ import '../providers/water_provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/locale_provider.dart';
 import '../widgets/water_wave_progress.dart';
-import 'profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -27,13 +26,8 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: scaffoldBg,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent, // Ekledik ✅
-        iconTheme: const IconThemeData(color: primaryText),
-      ),
       body: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Padding(
@@ -41,18 +35,23 @@ class HomeScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 10),
-                // ─── Karşılama ───────────────────────────────────
-                Text(
-                  '${context.watch<LocaleProvider>().translate('onb_welcome')}, $displayName',
-                  style: const TextStyle(fontSize: 32, height: 1.1, fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5),
+                const SizedBox(height: 24),
+                // ─── Özel Header ─────────────────────────────────
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${context.watch<LocaleProvider>().translate('onb_welcome')}, $displayName',
+                      style: const TextStyle(
+                          fontSize: 28, height: 1.2, fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      context.watch<LocaleProvider>().translate('home_mot_mid'),
+                      style: const TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  context.watch<LocaleProvider>().translate('home_mot_mid'),
-                  style: const TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500),
-                ),
-
                 const SizedBox(height: 48),
 
                 // ─── Su Göstergesi (Sürahi Formu) ────────────────────
@@ -348,7 +347,7 @@ class HomeScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
             ),
             const SizedBox(height: 12),
-            const Text('Miktar seçerek hızlıca su ekle 💧', style: TextStyle(color: Color(0xFF64748B))),
+            Text(lp.translate('home_dialog_subtitle'), style: const TextStyle(color: Color(0xFF64748B))),
             const SizedBox(height: 32),
             Flexible(
               child: GridView.builder(
@@ -400,7 +399,7 @@ class HomeScreen extends StatelessWidget {
           backgroundColor: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-          title: const Text('Özel Miktar 💧', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF0F172A), fontSize: 22)),
+          title: Text(context.read<LocaleProvider>().translate('home_dialog_custom'), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF0F172A), fontSize: 22)),
           content: Container(
             decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFE2E8F0))),
             child: TextField(
@@ -430,7 +429,7 @@ class HomeScreen extends StatelessWidget {
                   child: TextButton(
                     onPressed: () => Navigator.pop(dialogContext), 
                     style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-                    child: const Text('İptal', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 16)),
+                    child: Text(context.read<LocaleProvider>().translate('home_dialog_cancel'), style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 16)),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -446,7 +445,7 @@ class HomeScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
-                    child: const Text('Ekle', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    child: Text(context.read<LocaleProvider>().translate('home_dialog_add'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                   ),
                 ),
               ],

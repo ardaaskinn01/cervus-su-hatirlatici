@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'firebase_options.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'models/user_model.dart';
 import 'providers/user_provider.dart';
@@ -23,12 +24,20 @@ void main() async {
   debugPrint('🚀 main() başladı');
   
   try {
+    debugPrint('🔧 Servisler başlatılıyor...');
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await MobileAds.instance.initialize();
+    await initializeDateFormatting('tr_TR', null);
+    await initializeDateFormatting('en_US', null);
+    debugPrint('✅ Servisler hazır');
+  } catch (e) {
+    debugPrint('⚠️ Servis başlatma uyarısı (Bazı özellikler çalışmayabilir): $e');
+  }
+
+  try {
     await Hive.initFlutter();
     if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(UserModelAdapter());
     
-    // Hive bazen sürüm/model değişimlerinde crash atabilir. 
-    // Eğer TestFlight'ta eski sürüm yüklüyse ve model değiştiyse, 
-    // openBox anında patlayıp uygulamayı beyaz ekrana gömer.
     await Hive.openBox<UserModel>('userBox');
     await Hive.openBox('settings');
     await Hive.openBox('dailyData');
@@ -50,20 +59,28 @@ void main() async {
 
   // Hata Ekranı Yakalayıcı (BEYAZ EKRAN YERİNE HATAYI GÖSTER) 👇
   ErrorWidget.builder = (FlutterErrorDetails details) {
-    return Material(
-      child: Container(
-        color: Colors.red.shade900,
-        padding: const EdgeInsets.all(20),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('⚠️ UYGULAMA ÇÖKTÜ:', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
-              Text(details.exceptionAsString(), style: const TextStyle(color: Colors.white, fontSize: 14)),
-              const SizedBox(height: 10),
-              Text(details.stack?.toString() ?? '', style: const TextStyle(color: Colors.white, fontSize: 10)),
-            ],
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.red.shade900,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.error_outline_rounded, color: Colors.white, size: 60),
+                const SizedBox(height: 16),
+                const Text('⚠️ UYGULAMA ÇÖKTÜ:', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+                const SizedBox(height: 12),
+                Text(details.exceptionAsString(), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 24),
+                const Text('STACK TRACE:', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text(details.stack?.toString() ?? 'No stack trace available', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+              ],
+            ),
           ),
         ),
       ),
