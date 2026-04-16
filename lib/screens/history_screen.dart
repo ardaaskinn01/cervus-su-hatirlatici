@@ -5,6 +5,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import '../providers/user_provider.dart';
 import '../providers/locale_provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -23,6 +24,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   void initState() {
     super.initState();
+    initializeDateFormatting();
     _selectedDay = _focusedDay;
   }
 
@@ -38,11 +40,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     const secondaryText = Color(0xFF64748B);
     const accentColor = Color(0xFF0EA5E9);
     const scaffoldBg = Color(0xFFF8FAFC);
-    const successColor = Color(0xFF10B981);
+    const successColor = Color(0xFF22C55E);
 
     if (user == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(context.watch<LocaleProvider>().translate('hist_title'), style: const TextStyle(color: primaryText))),
+        appBar: AppBar(title: Text(context.watch<LocaleProvider>().translate('hist_title'), style: const TextStyle(color: primaryText)), centerTitle: true),
         body: Center(child: Text(context.watch<LocaleProvider>().translate('prof_user_not_found'))),
       );
     }

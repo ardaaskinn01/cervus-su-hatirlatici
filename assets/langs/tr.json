@@ -1,7 +1,6 @@
 {
-  "app_name": "Cervus Su",
-  "splash_subtitle": "SU HATIRLATICI",
-  
+  "app_name": "Drinkly",
+  "splash_subtitle": "SU İÇME HATIRLATICISI",
   "onb_welcome": "Hoşgeldin",
   "onb_subtitle": "Seni biraz tanıyalım, böylece sana özel su içme hedefini hesaplayacağız.",
   "onb_step_gender": "Cinsiyetin",
@@ -14,7 +13,14 @@
   "onb_btn_back": "Geri",
   "onb_btn_start": "Başla",
   "onb_saving": "Ayarlanıyor...",
-  
+  "onb_lang_title": "Dil Seçimi",
+  "onb_lang_subtitle": "Lütfen tercih ettiğiniz dili seçin",
+  "onb_privacy_title": "Gizlilik Politikası",
+  "onb_privacy_text": "Cervus Su Hatırlatıcı olarak kişisel verilerinizin güvenliği hususunda azami hassasiyet göstermekteyiz. Aşağıdaki maddeler temel çalışma prensiplerimizi özetlemektedir:\n\n1. Veri Toplama: Uygulamamız adınız, yaşınız, kilonuz ve uyku saatleriniz gibi bilgileri size özel su hedefini hesaplamak için toplar.\n\n2. Veri Saklama: Verileriniz yerel cihazınızda ve Firebase üzerinde güvenli bir şekilde saklanır. \n\n3. Üçüncü Taraflar: Google AdMob gibi hizmet sağlayıcılarımız reklam kişiselleştirme için cihaz verilerini kullanabilir.\n\n4. Kullanım: Verileriniz yalnızca uygulama içi deneyimi iyileştirmek için kullanılır.\n\nDevam ederek gizlilik politikamızı kabul etmiş sayılırsınız.",
+  "onb_privacy_accept": "Gizlilik Politikası'nı okudum ve kabul ediyorum.",
+  "onb_privacy_error": "Devam etmek için lütfen gizlilik politikasını kabul edin.",
+  "onb_error_name": "Sana nasıl hitap etmemizi istersin? Lütfen bir isim gir.",
+  "onb_error_numbers": "Lütfen yaşını ve kilonu rakam olarak gir. (Örn: 25, 70)",
   "home_greeting_morning": "Günaydın,",
   "home_greeting_day": "İyi Günler,",
   "home_greeting_evening": "İyi Akşamlar,",
@@ -38,12 +44,10 @@
   "home_recent": "Son İçilenler",
   "home_undo": "Geri Al",
   "home_streak": "Günlük Seri",
-  
   "drawer_home": "Ana Ekran",
   "drawer_stats": "Analiz",
   "drawer_settings": "Ayarlar",
   "nav_profile": "Profil",
-  
   "stats_title": "İstatistikler",
   "stats_weekly": "Haftalık İstikrar",
   "stats_general": "Genel Durum",
@@ -54,19 +58,16 @@
   "stats_status_stable": "İstikrarlı",
   "stats_status_low": "Düşük Trend",
   "stats_status_waiting": "Veri Bekleniyor",
-
   "settings_title": "Ayarlar",
   "settings_goal": "Günlük Hedef (ml)",
   "settings_notif": "Bildirimleri Aç",
   "settings_lang": "Uygulama Dili",
   "settings_lang_tr": "Türkçe",
   "settings_lang_en": "İngilizce",
-  
   "notif_title": "Su Vakti! 🌊",
   "notif_body": "Vücudunun su dengesini korumak için bir bardak su içmelisin.\n(Seçenekler için basılı tutun)",
   "notif_action_100": "💧 100 ml İç",
   "notif_action_200": "🌊 200 ml İç",
-
   "hist_title": "Takvim & Geçmiş",
   "hist_view_calendar": "Takvim Modu",
   "hist_view_list": "Detaylı Liste",
@@ -84,11 +85,9 @@
   "hist_no_log_detail": "Detaylı kayıt yok.",
   "hist_success_badge": "Hedef Başarılı 🏆",
   "hist_pending_badge": "Tamamlanmadı",
-
   "onb_hint_name": "Adın",
   "onb_title_body": "Vücut Yapısı",
   "onb_hint_age": "Yaş",
-
   "sett_section_support": "DESTEK VE HAKKINDA",
   "sett_btn_rate": "Bizi Değerlendir",
   "sett_subtitle_rate": "Uygulamayı mağazada puanla",
@@ -99,7 +98,6 @@
   "sett_preset_2h": "2 Saat (Varsayılan)",
   "sett_preset_3h": "3 Saat",
   "sett_preset_4h": "4 Saat",
-  
   "prof_section_identity": "KİMLİK BİLGİLERİ",
   "prof_section_physical": "FİZİKSEL DETAYLAR",
   "prof_section_goal": "HEDEF VE SÜREÇ",

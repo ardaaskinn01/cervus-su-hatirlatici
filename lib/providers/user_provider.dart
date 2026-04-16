@@ -47,6 +47,7 @@ class UserProvider extends ChangeNotifier {
     required double weight,
     required String wakeUpTime,
     required String sleepTime,
+    bool isPrivacyAccepted = true, // Varsayılan true, onboarding'den geliyor
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -63,6 +64,7 @@ class UserProvider extends ChangeNotifier {
         weight: weight,
         wakeUpTime: wakeUpTime,
         sleepTime: sleepTime,
+        isPrivacyAccepted: isPrivacyAccepted,
       );
 
       // 3. Firebase'e kaydet (Unique ID doc name olarak)

@@ -23,16 +23,18 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('🚀 main() başladı');
   
-  try {
-    debugPrint('🔧 Servisler başlatılıyor...');
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    await MobileAds.instance.initialize();
+    // Tarih formatlama yerelleştirmesini garantiye alalım (Hereden bağımsız)
     await initializeDateFormatting('tr_TR', null);
     await initializeDateFormatting('en_US', null);
-    debugPrint('✅ Servisler hazır');
-  } catch (e) {
-    debugPrint('⚠️ Servis başlatma uyarısı (Bazı özellikler çalışmayabilir): $e');
-  }
+    
+    debugPrint('🔧 Servisler başlatılıyor...');
+    try {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      await MobileAds.instance.initialize();
+      debugPrint('✅ Servisler hazır');
+    } catch (e) {
+      debugPrint('⚠️ Servis başlatma uyarısı (Bazı özellikler çalışmayabilir): $e');
+    }
 
   try {
     await Hive.initFlutter();
@@ -111,20 +113,20 @@ class MyApp extends StatelessWidget {
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, child) {
           return MaterialApp(
-            title: 'Cervus Su Hatırlatıcı',
+            title: 'Drinkly',
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
               useMaterial3: true,
-              primaryColor: const Color(0xFF29B6F6),
-              scaffoldBackgroundColor: const Color(0xFFF4F9F9),
+              primaryColor: const Color(0xFF0EA5E9),
+              scaffoldBackgroundColor: const Color(0xFFF8FAFC),
               colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF29B6F6),
-                primary: const Color(0xFF29B6F6),
-                secondary: const Color(0xFF4DD0E1),
+                seedColor: const Color(0xFF0EA5E9),
+                primary: const Color(0xFF0EA5E9),
+                secondary: const Color(0xFF38BDF8),
                 surface: Colors.white,
               ),
               appBarTheme: const AppBarTheme(
-                backgroundColor: Color(0xFF29B6F6),
+                backgroundColor: Color(0xFF0EA5E9),
                 foregroundColor: Colors.white,
                 elevation: 0,
                 centerTitle: true,

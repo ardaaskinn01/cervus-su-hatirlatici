@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/locale_provider.dart';
 import '../services/notification_service.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/gestures.dart';
 import 'main_shell.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -23,23 +25,35 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   TimeOfDay _wakeTime = const TimeOfDay(hour: 7, minute: 30);
   TimeOfDay _sleepTime = const TimeOfDay(hour: 23, minute: 0);
 
+  String? _selectedLanguage; // 'tr' veya 'en'
+  bool _isPrivacyAccepted = false;
   bool _isLoading = false;
 
   void _nextPage() {
-    // 1. Sayfa Doğrulaması
-    if (_currentIndex == 0 && _nameController.text.trim().isEmpty) {
-      _showSnackbar('Sana nasıl hitap etmemizi differsin? Lütfen bir isim gir.');
+    // 0. Dil Seçimi Doğrulaması
+    if (_currentIndex == 0 && _selectedLanguage == null) {
+      _showSnackbar('Lütfen bir dil seçin / Please select a language.');
       return;
     }
-    // 2. Sayfa Doğrulaması
-    if (_currentIndex == 1) {
+    // 1. Gizlilik Politikası Doğrulaması
+    if (_currentIndex == 1 && !_isPrivacyAccepted) {
+      _showSnackbar(context.read<LocaleProvider>().translate('onb_privacy_error') ?? 'Devam etmek için gizliliği kabul edin.');
+      return;
+    }
+    // 2. Sayfa Doğrulaması (İsim)
+    if (_currentIndex == 2 && _nameController.text.trim().isEmpty) {
+      _showSnackbar(context.read<LocaleProvider>().translate('onb_error_name'));
+      return;
+    }
+    // 3. Sayfa Doğrulaması (Kilo/Yaş)
+    if (_currentIndex == 3) {
       if (int.tryParse(_ageController.text) == null || int.tryParse(_weightController.text) == null) {
-        _showSnackbar('Lütfen yaşını ve kilonu rakam olarak gir. (Örn: 25, 70)');
+        _showSnackbar(context.read<LocaleProvider>().translate('onb_error_numbers'));
         return;
       }
     }
 
-    if (_currentIndex < 3) {
+    if (_currentIndex < 5) {
       _pageController.nextPage(duration: const Duration(milliseconds: 600), curve: Curves.fastOutSlowIn);
     } else {
       _submitForm();
@@ -68,6 +82,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             weight: double.parse(_weightController.text),
             wakeUpTime: wakeStr,
             sleepTime: sleepStr,
+            isPrivacyAccepted: _isPrivacyAccepted,
           );
 
       // 🔔 Bildirim sistemini ilk kez kur
@@ -92,7 +107,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       builder: (context, child) {
         return Theme(
           data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(primary: Color(0xFF29B6F6)),
+            colorScheme: const ColorScheme.light(primary: Color(0xFF0EA5E9)),
           ),
           child: child!,
         );
@@ -112,7 +127,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFF0F8FF), // Çok açık su mavisi arka plan
+        backgroundColor: const Color(0xFFF8FAFC), // Çok açık su mavisi arka plan
         resizeToAvoidBottomInset: true,
         body: Stack(
           children: [
@@ -125,7 +140,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 height: 300,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: RadialGradient(colors: [const Color(0xFF4DD0E1).withOpacity(0.4), Colors.transparent]),
+                  gradient: RadialGradient(colors: [const Color(0xFF38BDF8).withOpacity(0.4), Colors.transparent]),
                 ),
               ),
             ),
@@ -137,7 +152,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 height: 250,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: RadialGradient(colors: [const Color(0xFF29B6F6).withOpacity(0.3), Colors.transparent]),
+                  gradient: RadialGradient(colors: [const Color(0xFF0EA5E9).withOpacity(0.3), Colors.transparent]),
                 ),
               ),
             ),
@@ -150,14 +165,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     padding: const EdgeInsets.only(top: 16, bottom: 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(4, (index) {
+                      children: List.generate(6, (index) {
                         return AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
                           margin: const EdgeInsets.symmetric(horizontal: 4),
                           height: 8,
                           width: _currentIndex == index ? 24 : 8,
                           decoration: BoxDecoration(
-                            color: _currentIndex == index ? const Color(0xFF29B6F6) : Colors.grey.shade300,
+                            color: _currentIndex == index ? const Color(0xFF0EA5E9) : Colors.grey.shade300,
                             borderRadius: BorderRadius.circular(4),
                           ),
                         );
@@ -172,6 +187,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       physics: const NeverScrollableScrollPhysics(), // Sadece butonla geçilebilsin
                       onPageChanged: (index) => setState(() => _currentIndex = index),
                       children: [
+                        _buildLanguageStep(),
+                        _buildPrivacyStep(),
                         _buildNameStep(),
                         _buildBodyDataStep(),
                         _buildWakeTimeStep(),
@@ -184,20 +201,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
                     child: _isLoading
-                        ? const CircularProgressIndicator(color: Color(0xFF29B6F6))
+                        ? const CircularProgressIndicator(color: Color(0xFF0EA5E9))
                         : SizedBox(
                             width: double.infinity,
                             height: 56,
                             child: ElevatedButton(
                               onPressed: _nextPage,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF29B6F6),
+                                backgroundColor: const Color(0xFF0EA5E9),
                                 elevation: 5,
-                                shadowColor: const Color(0xFF29B6F6).withOpacity(0.5),
+                                shadowColor: const Color(0xFF0EA5E9).withOpacity(0.5),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               ),
                               child: Text(
-                                _currentIndex == 3
+                                _currentIndex == 5
                                     ? context.watch<LocaleProvider>().translate('onb_btn_start')
                                     : context.watch<LocaleProvider>().translate('onb_btn_next'),
                                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
@@ -210,6 +227,133 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ADIM -1: DİL SEÇİMİ
+  Widget _buildLanguageStep() {
+    return _StepContentCard(
+      icon: Icons.language_rounded,
+      title: "Dil Seçimi / Language",
+      subtitle: "Lütfen tercih ettiğiniz dili seçin / Please select your language",
+      child: Column(
+        children: [
+          _buildLanguageOption("Türkçe", "tr", "🇹🇷"),
+          const SizedBox(height: 12),
+          _buildLanguageOption("English", "en", "🇺🇸"),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageOption(String label, String code, String flag) {
+    bool isSelected = _selectedLanguage == code;
+    return GestureDetector(
+      onTap: () {
+        setState(() => _selectedLanguage = code);
+        context.read<LocaleProvider>().setLocale(Locale(code));
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF0EA5E9).withOpacity(0.1) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF0EA5E9) : Colors.grey.shade200,
+            width: 2,
+          ),
+        ),
+        child: Row(
+          children: [
+            Text(flag, style: const TextStyle(fontSize: 24)),
+            const SizedBox(width: 16),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? const Color(0xFF0EA5E9) : const Color(0xFF0F172A),
+              ),
+            ),
+            const Spacer(),
+            if (isSelected) const Icon(Icons.check_circle_rounded, color: Color(0xFF0EA5E9)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ADIM 0: GİZLİLİK POLİTİKASI
+  Widget _buildPrivacyStep() {
+    final lp = context.watch<LocaleProvider>();
+    final fullText = lp.translate('onb_privacy_accept') ?? "";
+    final String linkPart = _selectedLanguage == 'tr' ? "Gizlilik Politikası" : "Privacy Policy";
+    
+    final parts = fullText.split(linkPart);
+
+    return _StepContentCard(
+      icon: Icons.security_rounded,
+      title: lp.translate('onb_privacy_title'),
+      subtitle: "",
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: [BoxShadow(color: const Color(0xFF0F172A).withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))],
+            ),
+            child: Column(
+              children: [
+                const Icon(Icons.verified_user_rounded, color: Color(0xFF22C55E), size: 48),
+                const SizedBox(height: 20),
+                CheckboxListTile(
+                  value: _isPrivacyAccepted,
+                  onChanged: (val) => setState(() => _isPrivacyAccepted = val ?? false),
+                  title: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(fontSize: 15, color: Color(0xFF0F172A), height: 1.5),
+                      children: [
+                        if (parts.isNotEmpty) TextSpan(text: parts[0]),
+                        TextSpan(
+                          text: linkPart,
+                          style: const TextStyle(
+                            color: Color(0xFF0EA5E9),
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () async {
+                              final url = Uri.parse("https://cervusdigital.com/drinkly/privacy-policy/");
+                              if (await canLaunchUrl(url)) {
+                                await launchUrl(url, mode: LaunchMode.externalApplication);
+                              }
+                            },
+                        ),
+                        if (parts.length > 1) TextSpan(text: parts[1]),
+                      ],
+                    ),
+                  ),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  activeColor: const Color(0xFF0EA5E9),
+                  contentPadding: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            _selectedLanguage == 'tr' 
+              ? "Devam etmek için kutucuğu işaretleyin."
+              : "Please check the box to continue.",
+            style: TextStyle(color: const Color(0xFF0F172A).withOpacity(0.5), fontSize: 13),
+          ),
+        ],
       ),
     );
   }
@@ -274,7 +418,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey.shade400),
-          prefixIcon: Icon(icon, color: const Color(0xFF29B6F6)),
+          prefixIcon: Icon(icon, color: const Color(0xFF0EA5E9)),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         ),
@@ -290,17 +434,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFF29B6F6).withOpacity(0.3), width: 2),
+          border: Border.all(color: const Color(0xFF0EA5E9).withOpacity(0.3), width: 2),
           boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5))],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.access_time_rounded, color: Color(0xFF29B6F6)),
+            const Icon(Icons.access_time_rounded, color: Color(0xFF0EA5E9)),
             const SizedBox(width: 12),
             Text(
               "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}",
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
             )
           ],
         ),
@@ -338,18 +482,18 @@ class _StepContentCard extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF29B6F6).withOpacity(0.2),
+                          color: const Color(0xFF0EA5E9).withOpacity(0.2),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         )
                       ],
                     ),
-                    child: Icon(icon, size: 60, color: const Color(0xFF29B6F6)),
+                    child: Icon(icon, size: 60, color: const Color(0xFF0EA5E9)),
                   ),
                   const SizedBox(height: 32),
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.black87),
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A)),
                     textAlign: TextAlign.center,
                   ),
                   if (subtitle.isNotEmpty) ...[

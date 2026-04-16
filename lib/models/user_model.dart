@@ -8,6 +8,7 @@ class UserModel {
   String wakeUpTime;
   String sleepTime;
   int? customGoal; // 🎯 Kullanıcının belirlediği manuel hedef (Boşsa otomatik hesaplanır)
+  bool isPrivacyAccepted; // 🛡️ Gizlilik politikası kabul edildi mi?
 
   UserModel({
     required this.displayName,
@@ -17,6 +18,7 @@ class UserModel {
     required this.wakeUpTime,
     required this.sleepTime,
     this.customGoal,
+    this.isPrivacyAccepted = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -28,6 +30,7 @@ class UserModel {
       'wakeUpTime': wakeUpTime,
       'sleepTime': sleepTime,
       'customGoal': customGoal,
+      'isPrivacyAccepted': isPrivacyAccepted,
       'createdAt': DateTime.now().toIso8601String(),
     };
   }
@@ -47,6 +50,7 @@ class UserModelAdapter extends TypeAdapter<UserModel> {
       wakeUpTime: reader.readString(),
       sleepTime: reader.readString(),
       customGoal: reader.read() as int?,
+      isPrivacyAccepted: reader.readBool(),
     );
   }
 
@@ -59,5 +63,6 @@ class UserModelAdapter extends TypeAdapter<UserModel> {
     writer.writeString(obj.wakeUpTime);
     writer.writeString(obj.sleepTime);
     writer.write(obj.customGoal);
+    writer.writeBool(obj.isPrivacyAccepted);
   }
 }

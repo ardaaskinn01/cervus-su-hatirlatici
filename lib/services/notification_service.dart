@@ -398,7 +398,7 @@ class NotificationService {
     await _notifications.zonedSchedule(
       _id7day,
       '🚨 Bir haftadır görünmedin!',
-      '7 gündür su kaydın yok. Sağlıklı kalmak için Cervus\'a geri dönme zamanı! 💪',
+      '7 gündür su kaydın yok. Sağlıklı kalmak için Drinkly\'ye geri dönme zamanı! 💪',
       tz.TZDateTime.from(scheduled7d, tz.local),
       _buildNotifDetails(
         channelId: 'reengagement',
@@ -468,7 +468,7 @@ class NotificationService {
     await _notifications.zonedSchedule(
       _id24h,
       '🔴 24 Saattir Su Kaydın Yok!',
-      'Tüm gün boyunca hiç su eklemedin. Cervus\'u aç ve küçük bir adımla yeniden başla — vücudun teşekkür edecek.',
+      'Tüm gün boyunca hiç su eklemedin. Drinkly\'yi aç ve küçük bir adımla yeniden başla — vücudun teşekkür edecek.',
       tz.TZDateTime.from(adjusted, tz.local),
       _buildNotifDetails(
         channelId: 'water_critical',
@@ -528,7 +528,7 @@ class NotificationService {
       '🌊 Günaydın! Vücudun Hazır mı?',
     ];
     const bodies = [
-      'Bugüne canlı başlamak için bir bardak su iç. Cervus senin için burada! 💧',
+      'Bugüne canlı başlamak için bir bardak su iç. Drinkly senin için burada! 💧',
       'Uyanma saatin geldi! Bir bardak su, güne harika bir başlangıç yapmanı sağlar.',
       'Sabahın ilk bardak suyu metabolizmanı hızlandırır ve zihni açar. Hadi başla!',
       'Bugün de hedefine ulaşmak için ilk adımı at — bir bardak su içerek!',

@@ -264,7 +264,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             title: context.watch<LocaleProvider>().translate('settings_notif'),
                             subtitle: '',
                             trailing: CupertinoSwitch(
-                              activeColor: const Color(0xFF10B981),
+                              activeColor: const Color(0xFF22C55E),
                               value: _notificationsEnabled,
                               onChanged: _toggleNotifications,
                             ),
@@ -537,7 +537,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() => _isEditing = false);
       // Uyanış saati değişmiş olabilir → günaydın bildirimini yeniden planla
       NotificationService().scheduleMorningGreeting();
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.read<LocaleProvider>().translate('prof_success'), style: const TextStyle(color: Colors.white)), backgroundColor: const Color(0xFF10B981)));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.read<LocaleProvider>().translate('prof_success'), style: const TextStyle(color: Colors.white)), backgroundColor: const Color(0xFF22C55E)));
     }
   }
 }

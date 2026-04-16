@@ -21,7 +21,8 @@ class HomeScreen extends StatelessWidget {
     // Design System Colors
     const primaryText = Color(0xFF0F172A);
     const secondaryText = Color(0xFF64748B);
-    const accentColor = Color(0xFF0EA5E9);
+    const primaryColor = Color(0xFF0EA5E9);
+    const accentColor = Color(0xFF22C55E);
     const scaffoldBg = Color(0xFFF8FAFC);
 
     return Scaffold(
@@ -38,16 +39,18 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 // ─── Özel Header ─────────────────────────────────
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
                       '${context.watch<LocaleProvider>().translate('onb_welcome')}, $displayName',
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
                           fontSize: 28, height: 1.2, fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       context.watch<LocaleProvider>().translate('home_mot_mid'),
+                      textAlign: TextAlign.center,
                       style: const TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500),
                     ),
                   ],
@@ -67,7 +70,7 @@ class HomeScreen extends StatelessWidget {
                           shape: BoxShape.rectangle,
                           borderRadius: BorderRadius.circular(150),
                           boxShadow: [
-                            BoxShadow(color: accentColor.withOpacity(0.08), blurRadius: 60, spreadRadius: 20),
+                            BoxShadow(color: primaryColor.withOpacity(0.08), blurRadius: 60, spreadRadius: 20),
                           ],
                         ),
                       ),
@@ -107,11 +110,11 @@ class HomeScreen extends StatelessWidget {
                     margin: const EdgeInsets.only(bottom: 32),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF10B981), Color(0xFF059669)],
+                        colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
                         begin: Alignment.topLeft, end: Alignment.bottomRight
                       ),
                       borderRadius: BorderRadius.circular(28),
-                      boxShadow: [BoxShadow(color: const Color(0xFF10B981).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
+                      boxShadow: [BoxShadow(color: const Color(0xFF22C55E).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
                     ),
                     child: Row(
                       children: [
@@ -237,7 +240,8 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildWaterCard(BuildContext context, {required IconData icon, required String label, required int? amount, bool isFeatured = false, required VoidCallback onTap}) {
-    const accentColor = Color(0xFF0EA5E9);
+    const primaryColor = Color(0xFF0EA5E9);
+    const accentColor = Color(0xFF22C55E);
     const primaryText = Color(0xFF0F172A);
 
     return Expanded(
@@ -275,13 +279,13 @@ class HomeScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isFeatured 
                           ? Colors.white.withOpacity(0.2) 
-                          : accentColor.withOpacity(0.08),
+                          : primaryColor.withOpacity(0.08),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       icon, 
                       size: 24, 
-                      color: isFeatured ? Colors.white : accentColor
+                      color: isFeatured ? Colors.white : primaryColor
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -440,7 +444,7 @@ class HomeScreen extends StatelessWidget {
                       Navigator.pop(dialogContext);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0EA5E9),
+                      backgroundColor: const Color(0xFF22C55E),
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

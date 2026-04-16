@@ -1,7 +1,6 @@
 {
-  "app_name": "Cervus Water",
+  "app_name": "Drinkly",
   "splash_subtitle": "WATER REMINDER",
-  
   "onb_welcome": "Welcome",
   "onb_subtitle": "Let's get to know you a bit to calculate your personalized daily water goal.",
   "onb_step_gender": "Your Gender",
@@ -14,7 +13,14 @@
   "onb_btn_back": "Back",
   "onb_btn_start": "Start",
   "onb_saving": "Saving...",
-  
+  "onb_lang_title": "Language Selection",
+  "onb_lang_subtitle": "Please select your preferred language",
+  "onb_privacy_title": "Privacy Policy",
+  "onb_privacy_text": "As Cervus Water Reminder, we place the utmost importance on the security of your personal data. The following points summarize our core principles:\n\n1. Data Collection: Our app collects information such as your name, age, weight, and sleep patterns to calculate your personalized water goal.\n\n2. Data Storage: Your data is securely stored on your local device and Firebase.\n\n3. Third Parties: Our service providers, like Google AdMob, may use device data for ad personalization.\n\n4. Usage: Your data is used solely to improve the in-app experience.\n\nBy continuing, you are deemed to have accepted our privacy policy.",
+  "onb_privacy_accept": "I have read and agree to the Privacy Policy.",
+  "onb_privacy_error": "Please accept the privacy policy to continue.",
+  "onb_error_name": "How should we address you? Please enter a name.",
+  "onb_error_numbers": "Please enter your age and weight as numbers. (e.g., 25, 70)",
   "home_greeting_morning": "Good Morning,",
   "home_greeting_day": "Good Day,",
   "home_greeting_evening": "Good Evening,",
@@ -38,12 +44,10 @@
   "home_recent": "Recent Records",
   "home_undo": "Undo",
   "home_streak": "Daily Streak",
-  
   "drawer_home": "Home",
   "drawer_stats": "Analytics",
   "drawer_settings": "Settings",
   "nav_profile": "Profile",
-  
   "stats_title": "Statistics",
   "stats_weekly": "Weekly Consistency",
   "stats_general": "General Status",
@@ -54,19 +58,16 @@
   "stats_status_stable": "Stable",
   "stats_status_low": "Low Trend",
   "stats_status_waiting": "Waiting Data",
-
   "settings_title": "Settings",
   "settings_goal": "Daily Goal (ml)",
   "settings_notif": "Enable Notifications",
   "settings_lang": "App Language",
   "settings_lang_tr": "Turkish",
   "settings_lang_en": "English",
-  
   "notif_title": "Water Time! 🌊",
   "notif_body": "To maintain your body's water balance, you should drink a glass of water.\n(Long-press for options)",
   "notif_action_100": "💧 Drink 100 ml",
   "notif_action_200": "🌊 Drink 200 ml",
-
   "hist_title": "Calendar & History",
   "hist_view_calendar": "Calendar Mode",
   "hist_view_list": "Detailed List",
@@ -84,11 +85,9 @@
   "hist_no_log_detail": "No detailed records.",
   "hist_success_badge": "Goal Achieved 🏆",
   "hist_pending_badge": "Not Completed",
-
   "onb_hint_name": "Name",
   "onb_title_body": "Body Structure",
   "onb_hint_age": "Age",
-
   "sett_section_support": "SUPPORT AND ABOUT",
   "sett_btn_rate": "Rate Us",
   "sett_subtitle_rate": "Rate the app on the store",
@@ -99,7 +98,6 @@
   "sett_preset_2h": "2 Hours (Default)",
   "sett_preset_3h": "3 Hours",
   "sett_preset_4h": "4 Hours",
-  
   "prof_section_identity": "IDENTITY INFO",
   "prof_section_physical": "PHYSICAL DETAILS",
   "prof_section_goal": "GOAL AND PROGRESS",
