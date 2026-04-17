@@ -87,14 +87,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _rateApp() async {
+    const String appStoreId = '6761442203';
     try {
       if (await _inAppReview.isAvailable()) {
         await _inAppReview.requestReview();
       } else {
-        await _inAppReview.openStoreListing(appStoreId: 'XXX');
+        await _inAppReview.openStoreListing(appStoreId: appStoreId);
       }
     } catch (e) {
-      debugPrint('Rate app failed: $e');
+      debugPrint('Rate app failed, opening store as fallback: $e');
+      await _inAppReview.openStoreListing(appStoreId: appStoreId);
     }
   }
 

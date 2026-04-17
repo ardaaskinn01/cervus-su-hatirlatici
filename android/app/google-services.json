@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:832274027170:android:20e9608722e5cb69003dfb",
+        "mobilesdk_app_id": "1:832274027170:android:8345eb9cb9e2a385003dfb",
         "android_client_info": {
-          "package_name": "com.cervus.suhatirlatici"
+          "package_name": "com.cervus.drinkly"
         }
       },
       "oauth_client": [],

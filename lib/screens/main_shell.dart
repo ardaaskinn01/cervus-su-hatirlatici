@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/locale_provider.dart';
+import '../widgets/ad_banner_widget.dart';
 import 'home_screen.dart';
 import 'statistics_screen.dart';
 import 'profile_screen.dart';
@@ -34,9 +35,16 @@ class _MainShellState extends State<MainShell> {
       body: Builder(
         builder: (context) {
           try {
-            return IndexedStack(
-              index: _currentIndex,
-              children: _pages,
+            return Column(
+              children: [
+                Expanded(
+                  child: IndexedStack(
+                    index: _currentIndex,
+                    children: _pages,
+                  ),
+                ),
+                const AdBannerWidget(),
+              ],
             );
           } catch (e) {
             debugPrint("🚨 MainShell Sayfa Hatası: $e");

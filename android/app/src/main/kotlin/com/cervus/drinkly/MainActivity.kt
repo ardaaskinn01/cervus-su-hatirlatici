@@ -1,4 +1,4 @@
-package com.cervus.suhatirlatici
+package com.cervus.drinkly
 
 import io.flutter.embedding.android.FlutterActivity
 
