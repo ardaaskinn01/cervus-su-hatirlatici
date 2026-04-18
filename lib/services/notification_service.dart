@@ -160,7 +160,7 @@ class NotificationService {
     ];
 
     const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/launcher_icon');
 
     final DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
