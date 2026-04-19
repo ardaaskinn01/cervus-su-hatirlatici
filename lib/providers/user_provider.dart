@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
+import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../models/user_model.dart';
 
 class UserProvider extends ChangeNotifier {
@@ -14,7 +17,55 @@ class UserProvider extends ChangeNotifier {
     var box = Hive.box<UserModel>('userBox');
     if (box.isNotEmpty) {
       _currentUser = box.get('currentUser');
+      if (_currentUser != null) {
+        // Uygulama her açıldığında girişi kaydet
+        recordVisit(_currentUser!.firebaseId);
+      }
       notifyListeners();
+    }
+  }
+
+  /// 🚀 Giriş Sayılarını Analiz Etme Sistemi
+  /// Hem kullanıcı dökümanındaki 'enterCount'u artırır,
+  /// hem de 'visits' alt koleksiyonuna detaylı döküman ekler.
+  Future<void> recordVisit(String userId) async {
+    try {
+      final now = DateTime.now();
+      // Döküman ID'si: Günün Tarihi + Saat (Unutulmaması için benzersizlik sağlar)
+      // "2024-04-20_15-30-22" formatı
+      final String docId = DateFormat('yyyy-MM-dd_HH-mm-ss').format(now);
+      
+      final String date = DateFormat('yyyy-MM-dd').format(now);
+      final String time = DateFormat('HH:mm:ss').format(now);
+      final String platform = Platform.isAndroid ? 'Android' : (Platform.isIOS ? 'iOS' : 'Other');
+      
+      // package_info_plus ile versiyonu dinamik alalım
+      final packageInfo = await PackageInfo.fromPlatform();
+      final String appVersion = "${packageInfo.version}+${packageInfo.buildNumber}";
+
+      // 1. Kullanıcı ana dökümanındaki toplam giriş sayısını artır
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .set({'enterCount': FieldValue.increment(1)}, SetOptions(merge: true));
+
+      // 2. 'visits' alt koleksiyonuna yeni giriş dökümanını ekle
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('visits')
+          .doc(docId)
+          .set({
+        'date': date,
+        'time': time,
+        'platform': platform,
+        'appVersion': appVersion,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      debugPrint("✅ Giriş başarıyla kaydedildi: $docId");
+    } catch (e) {
+      debugPrint("❌ Giriş kaydı hatası: $e");
     }
   }
 
@@ -75,6 +126,9 @@ class UserProvider extends ChangeNotifier {
       await box.put('currentUser', newUser);
 
       _currentUser = newUser;
+      
+      // İlk kayıtta da girişi işle
+      await recordVisit(uniqueId);
 
       _isLoading = false;
       notifyListeners();
