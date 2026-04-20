@@ -160,7 +160,7 @@ class NotificationService {
     ];
 
     const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/launcher_icon');
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
     final DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -350,6 +350,7 @@ class NotificationService {
         importance: Importance.high,
         priority: Priority.high,
         withActions: true,
+        subtitle: 'Günaydın!',
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
@@ -445,6 +446,7 @@ class NotificationService {
         importance: importance,
         priority: priority,
         withActions: true,
+        subtitle: 'Drinkly - Su Hatırlatıcı',
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
@@ -491,6 +493,7 @@ class NotificationService {
     required Importance importance,
     required Priority priority,
     required bool withActions,
+    String? subtitle,
   }) {
     return NotificationDetails(
       android: AndroidNotificationDetails(
@@ -498,6 +501,7 @@ class NotificationService {
         channelName,
         importance: importance,
         priority: priority,
+        largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
         actions: withActions
             ? const <AndroidNotificationAction>[
                 AndroidNotificationAction(action100ml, '💧 100 ml İç'),
@@ -509,8 +513,9 @@ class NotificationService {
         presentSound: true,
         presentAlert: true,
         presentBadge: true,
+        subtitle: subtitle,
         categoryIdentifier: withActions ? categoryId : null,
-        interruptionLevel: importance == Importance.max
+        interruptionLevel: importance == Importance.max || importance == Importance.high
             ? InterruptionLevel.timeSensitive
             : InterruptionLevel.active,
       ),

@@ -101,7 +101,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
       // İşlemler biter bitmez yönlendir (Timer'ı bekleme)
       if (mounted && !_isNavigated) {
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future.delayed(const Duration(milliseconds: 2000));
         _navigateToNext();
       }
     } catch (e) {
@@ -160,7 +160,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/images/app_icon.png', width: 150, height: 150),
+                ClipOval(
+                  child: Image.asset('assets/images/app_icon.png', width: 140, height: 140, fit: BoxFit.cover),
+                ),
                 const SizedBox(height: 30),
                 const Text(
                   'DRINKLY',
