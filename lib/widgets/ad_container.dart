@@ -13,10 +13,10 @@ class _AdContainerState extends State<AdContainer> {
   BannerAd? _bannerAd;
   bool _isLoaded = false;
 
-  // GOOGLE RESMİ TEST BANNER AD ID'LERİ (Sıfır Native Kod Gerektirir!)
+  // GERÇEK REKLAM BİRİMİ ID'LERİ
   final String _adUnitId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/6300978111' // Android Test ID
-      : 'ca-app-pub-3940256099942544/2934735716'; // iOS Test ID
+      ? 'ca-app-pub-2073707860224174/5672841140' // Gerçek Android ID
+      : 'ca-app-pub-2073707860224174/8299004484'; // Gerçek iOS ID
 
   @override
   void initState() {
