@@ -88,15 +88,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _rateApp() async {
     const String appStoreId = '6761442203';
+    // Mağaza URL'leri (Yedek plan için)
+    final Uri appStoreUri = Uri.parse('https://apps.apple.com/app/id$appStoreId?action=write-review');
+    final Uri playStoreUri = Uri.parse('https://play.google.com/store/apps/details?id=com.cervus.suhatirlatici'); // Paket adınızı kontrol edin
+
     try {
+      // Eğer in-app review mümkünse dene
       if (await _inAppReview.isAvailable()) {
+        // Not: requestReview Apple/Google tarafından sınırlanabilir (yılda 3 kez).
+        // Eğer gösterilmezse kullanıcı tepkisiz kalmasın diye mağazaya yönlendirmek daha sağlıklıdır.
         await _inAppReview.requestReview();
       } else {
+        // Mevcut değilse direkt mağazayı aç
         await _inAppReview.openStoreListing(appStoreId: appStoreId);
       }
     } catch (e) {
-      debugPrint('Rate app failed, opening store as fallback: $e');
-      await _inAppReview.openStoreListing(appStoreId: appStoreId);
+      debugPrint('Rate app in-app failed: $e');
+      // in_app_review paketi başarısız olursa url_launcher ile manuel açmayı dene
+      try {
+        final Uri url = Platform.isIOS ? appStoreUri : playStoreUri;
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url, mode: LaunchMode.externalApplication);
+        }
+      } catch (e2) {
+        debugPrint('Manual store launch failed: $e2');
+      }
     }
   }
 

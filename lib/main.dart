@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -30,6 +32,19 @@ void main() async {
     debugPrint('🔧 Servisler başlatılıyor...');
     try {
       await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      
+      // 🛡️ iOS İZİN YÖNETİMİ (ATT)
+      // İlk 6 reklamdan sonra iOS'da reklamların kesilme sebebi IDFA erişimi olmamasıdır.
+      // Bu adım kullanıcıya "İzin Ver" veya "Takip Etme" seçeneği sunar.
+      if (Platform.isIOS) {
+        // İzin durumunu kontrol et
+        final status = await AppTrackingTransparency.trackingAuthorizationStatus;
+        if (status == TrackingStatus.notDetermined) {
+          // İzin henüz istenmemişse popup'ı göster
+          await AppTrackingTransparency.requestTrackingAuthorization();
+        }
+      }
+
       await MobileAds.instance.initialize();
       debugPrint('✅ Servisler hazır');
     } catch (e) {

@@ -47,12 +47,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.today_rounded, color: Color(0xFF0EA5E9)),
+            icon: const Icon(Icons.list_alt_rounded, color: Color(0xFF0EA5E9)),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TodayRecordsScreen())),
             tooltip: 'Bugün',
           ),
           IconButton(
-            icon: const Icon(Icons.history_rounded, color: Color(0xFF64748B)),
+            icon: const Icon(Icons.calendar_month_rounded, color: Color(0xFF64748B)),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen())),
             tooltip: 'Geçmiş',
           ),
