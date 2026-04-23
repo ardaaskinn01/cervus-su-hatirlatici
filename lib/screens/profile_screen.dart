@@ -17,8 +17,9 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserver {
   final _formKey = GlobalKey<FormState>();
+  bool _didAppGoInactive = false;
 
   late TextEditingController _nameCtrl;
   late TextEditingController _ageCtrl;
@@ -49,6 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final user = context.read<UserProvider>().currentUser;
     _nameCtrl = TextEditingController(text: user?.displayName ?? '');
     _ageCtrl = TextEditingController(text: user?.age.toString() ?? '');
@@ -87,33 +89,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await NotificationService().scheduleEscalatingReminders();
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _nameCtrl.dispose();
+    _ageCtrl.dispose();
+    _weightCtrl.dispose();
+    _goalCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Popup açıldığında uygulama inaktifleşir veya duraklatılır
+    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+      _didAppGoInactive = true;
+    }
+  }
+
   Future<void> _rateApp() async {
     const String appStoreId = '6761442203';
-    // Mağaza URL'leri (Yedek plan için)
-    final Uri appStoreUri = Uri.parse('https://apps.apple.com/app/id$appStoreId?action=write-review');
-    final Uri playStoreUri = Uri.parse('https://play.google.com/store/apps/details?id=com.cervus.suhatirlatici'); // Paket adınızı kontrol edin
+    _didAppGoInactive = false; // Sıfırla
 
     try {
-      // Eğer in-app review mümkünse dene
       if (await _inAppReview.isAvailable()) {
-        // Not: requestReview Apple/Google tarafından sınırlanabilir (yılda 3 kez).
-        // Eğer gösterilmezse kullanıcı tepkisiz kalmasın diye mağazaya yönlendirmek daha sağlıklıdır.
+        // requestReview kotaya takılabilir ve hiçbir şey yapmayabilir
         await _inAppReview.requestReview();
+
+        // 4 saniye bekle ve uygulamanın inaktifleşip inaktifleşmediğini kontrol et
+        await Future.delayed(const Duration(seconds: 4));
+
+        // Eğer uygulama hala aktifse, popup açılmamış demektir
+        if (!_didAppGoInactive && mounted) {
+          debugPrint('Popup açılmadı, mağazaya yönlendiriliyor...');
+          await _inAppReview.openStoreListing(appStoreId: appStoreId);
+        }
       } else {
-        // Mevcut değilse direkt mağazayı aç
         await _inAppReview.openStoreListing(appStoreId: appStoreId);
       }
     } catch (e) {
-      debugPrint('Rate app in-app failed: $e');
-      // in_app_review paketi başarısız olursa url_launcher ile manuel açmayı dene
-      try {
-        final Uri url = Platform.isIOS ? appStoreUri : playStoreUri;
-        if (await canLaunchUrl(url)) {
-          await launchUrl(url, mode: LaunchMode.externalApplication);
-        }
-      } catch (e2) {
-        debugPrint('Manual store launch failed: $e2');
-      }
+      debugPrint('Rate app failed: $e');
+      await _inAppReview.openStoreListing(appStoreId: appStoreId);
     }
   }
 
@@ -392,8 +408,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
 
                     const SizedBox(height: 48),
-                    Text('Su Hatırlatıcı v1.0.0', style: TextStyle(color: secondaryText.withOpacity(0.3), fontSize: 12, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 24),
                   ],
                 ),
               ),

@@ -115,8 +115,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 );
               },
             ),
-            const SizedBox(height: 36),
-            const AdContainer(),
             const SizedBox(height: 48),
           ],
         ),
