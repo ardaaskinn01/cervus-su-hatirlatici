@@ -1,2 +1,3 @@
-"CFBundleDisplayName" = "Drinkly - Water Reminder";
-"CFBundleName" = "Drinkly - Water Reminder";
+"CFBundleDisplayName" = "Drinkly";
+"CFBundleName" = "Drinkly";
+"NSUserTrackingUsageDescription" = "Your data will be used to provide you with a better and personalized advertising experience.";

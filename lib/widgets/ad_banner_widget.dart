@@ -78,7 +78,7 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Reklam yüklendiyse göster
+    // Sadece reklam yüklendiyse göster, aksi durumda (hata veya yükleme) alanı boş bırak
     if (_isLoaded && _bannerAd != null) {
       return Container(
         color: Colors.white,
@@ -86,23 +86,6 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
         height: _bannerAd!.size.height.toDouble(),
         alignment: Alignment.center,
         child: AdWidget(ad: _bannerAd!),
-      );
-    }
-
-    // Reklam yüklenemediyse ve hata varsa, Release'de bile ekranda mesajı göster
-    if (_error != null) {
-      return Container(
-        padding: const EdgeInsets.all(8),
-        color: Colors.red.withOpacity(0.1),
-        width: double.infinity,
-        height: 50,
-        alignment: Alignment.center,
-        child: Text(
-          _error!,
-          style: const TextStyle(
-              color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
-        ),
       );
     }
 

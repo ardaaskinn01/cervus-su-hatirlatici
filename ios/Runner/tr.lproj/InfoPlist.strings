@@ -1,2 +1,3 @@
-"CFBundleDisplayName" = "Drinkly - Su İçme Hatırlatıcısı";
-"CFBundleName" = "Drinkly - Su İçme Hatırlatıcısı";
+"CFBundleDisplayName" = "Drinkly";
+"CFBundleName" = "Drinkly";
+"NSUserTrackingUsageDescription" = "Verileriniz, size daha iyi ve kişiselleştirilmiş reklam deneyimi sunmak amacıyla kullanılacaktır.";
