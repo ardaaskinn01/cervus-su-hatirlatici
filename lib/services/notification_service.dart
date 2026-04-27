@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../firebase_options.dart';
 import '../models/user_model.dart';
 import '../providers/water_provider.dart';
@@ -58,7 +59,8 @@ Future<void> notificationTapBackground(NotificationResponse response) async {
     }
 
     final now = DateTime.now();
-    final dateKey = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    // 🎯 KRİTİK DÜZELTME: Mantıksal tarih anahtarını hesapla (WaterProvider ile aynı mantık)
+    final dateKey = _getLogicalDateKeyFromUser(now, user);
     final saat = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
     final uid = now.millisecondsSinceEpoch.toString();
 
@@ -68,9 +70,21 @@ Future<void> notificationTapBackground(NotificationResponse response) async {
         .collection('gunler')
         .doc(dateKey);
 
+    // Günlük hedefi de bulalım (Background'da veri tutarlılığı için)
+    int dailyGoal = 2000;
+    if (user.customGoal != null && user.customGoal! > 0) {
+      dailyGoal = user.customGoal!;
+    } else {
+      double base = user.weight * 35;
+      int month = now.month;
+      double factor = (month >= 6 && month <= 8) ? 1.2 : 1.0;
+      dailyGoal = (base * factor).round();
+    }
+
     await docRef.set({
       'gunlukMiktar': FieldValue.increment(amount),
       'tarih': dateKey,
+      'hedef': dailyGoal, // Hedef verisini de ekleyelim
       'suIcildi': FieldValue.arrayUnion([
         {'uid': uid, 'saat': saat, 'miktar': amount}
       ]),
@@ -80,10 +94,47 @@ Future<void> notificationTapBackground(NotificationResponse response) async {
     final settingsBox = Hive.box('settings');
     await settingsBox.put('lastWaterTimestamp', now.millisecondsSinceEpoch);
 
-    debugPrint('✅ Arka Plan: $amount ml → Firestore\'a başarıyla yazıldı.');
+    // 🎯 KRİTİK DÜZELTME 2: Bildirimleri yeniden planla (Böylece hemen tekrar hatırlatmaz)
+    await NotificationService().scheduleEscalatingReminders();
+
+    debugPrint('✅ Arka Plan: $amount ml → $dateKey tarihine başarıyla yazıldı.');
   } catch (e) {
     debugPrint('🚨 Arka Plan Hatası: $e');
   }
+}
+
+// Mantıksal tarih hesaplama yardımcısı (Arka plan için)
+String _getLogicalDateKeyFromUser(DateTime now, UserModel user) {
+  final parts = user.sleepTime.split(':');
+  final sleepHour = int.parse(parts[0]);
+  final sleepMinute = int.parse(parts[1]);
+
+  final toleranceEnd = DateTime(now.year, now.month, now.day, sleepHour, sleepMinute)
+      .add(const Duration(hours: 2));
+
+  final isSleepAfterMidnight = sleepHour < 6;
+
+  if (isSleepAfterMidnight) {
+    if (now.isBefore(toleranceEnd)) {
+      return _formatDateSimple(now.subtract(const Duration(days: 1)));
+    }
+  } else {
+    final midnight = DateTime(now.year, now.month, now.day);
+    if (now.isAfter(midnight) && now.isBefore(toleranceEnd) && sleepHour > 20) {
+      return _formatDateSimple(now.subtract(const Duration(days: 1)));
+    }
+  }
+  return _formatDateSimple(now);
+}
+
+String _formatDateSimple(DateTime d) =>
+    "${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}";
+
+// 🔥 FCM Arka plan mesaj yakalayıcı
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  debugPrint("📩 Arka plan FCM mesajı alındı: ${message.messageId}");
 }
 
 class NotificationService {
@@ -181,9 +232,88 @@ class NotificationService {
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
 
+    // 🔥 Firebase Messaging Kurulumu
+    await _setupFirebaseMessaging();
+
     _isInitialized = true;
     _initCompleter!.complete();
-    debugPrint('🔔 Bildirim Servisi Hazır (Production Mode)');
+    debugPrint('🔔 Bildirim Servisi Hazır (Production Mode + FCM)');
+  }
+
+  // 🔥 Firebase Messaging Kurulumu
+  Future<void> _setupFirebaseMessaging() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+    // 1. İzin İste
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+      provisional: false,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      debugPrint('✅ FCM İzni Verildi');
+    } else {
+      debugPrint('⚠️ FCM İzni Reddedildi veya Sınırlı');
+    }
+
+    // 2. Token Al (Panelden manuel gönderim için lazım)
+    String? token = await messaging.getToken();
+    debugPrint('🔑 FCM TOKEN: $token');
+    // Not: Bu token'ı buluta kaydedip oradan da otomatik bildirim çıkabilirsiniz.
+
+    // 3. Apple için ön plan ayarları
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: true, 
+      badge: true,
+      sound: true,
+    );
+
+    // 4. Arka plan mesaj dinleyicisi
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    // 5. Ön plan mesaj dinleyicisi
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      debugPrint('📩 Ön planda FCM mesajı alındı: ${message.notification?.title}');
+      
+      // Eğer mesajın bir bildirimi varsa, bunu yerel bildirim olarak gösterelim
+      if (message.notification != null) {
+        _notifications.show(
+          message.hashCode,
+          message.notification!.title,
+          message.notification!.body,
+          _buildNotifDetails(
+            channelId: 'fcm_default',
+            channelName: 'Genel Bildirimler',
+            importance: Importance.max,
+            priority: Priority.high,
+            withActions: false,
+          ),
+        );
+      }
+    });
+
+    // 6. Bildirime tıklandığında uygulamayı açma (Arka plandan gelince)
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      debugPrint('🖱️ FCM Bildirimine tıklandı: ${message.messageId}');
+    });
+  }
+
+  /// 🎯 Kullanıcıyı kendi özel konusuna (Topic) abone yapar.
+  /// Örnek: userId 'ardaaskin' ise 'user_ardaaskin' konusuna abone olur.
+  Future<void> subscribeToUserTopic(String userId) async {
+    await initialize();
+    try {
+      // FCM Topic'leri boşluk içeremez ve özel karakter kısıtlaması vardır.
+      final cleanId = userId.trim().toLowerCase().replaceAll(RegExp(r'[^\w\s-]'), '').replaceAll(RegExp(r'\s+'), '_');
+      final topicName = 'user_$cleanId';
+      
+      await FirebaseMessaging.instance.subscribeToTopic(topicName);
+      debugPrint('🔔 Topic Aboneliği Başarılı: $topicName');
+    } catch (e) {
+      debugPrint('🚨 Topic Abonelik Hatası: $e');
+    }
   }
 
   // ─── ÖN PLAN TIKLAMA YÖNETİMİ ───────────────────────────────
