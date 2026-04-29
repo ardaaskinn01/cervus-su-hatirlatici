@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/user_model.dart';
 import '../providers/user_provider.dart';
 import '../providers/water_provider.dart';
 
@@ -66,7 +65,7 @@ class TodayRecordsScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEF4444).withOpacity(0.1),
+                          color: const Color(0xFFEF4444).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(24),
                         ),
                         child: const Icon(Icons.delete_sweep_rounded, color: Color(0xFFEF4444), size: 28),
@@ -117,7 +116,7 @@ class TodayRecordsScreen extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.opacity_rounded, size: 80, color: secondaryText.withOpacity(0.1)),
+          Icon(Icons.opacity_rounded, size: 80, color: secondaryText.withValues(alpha: 0.1)),
           const SizedBox(height: 16),
           Text(
             'Henüz su içmedin.\nBugünün ilk bardağını içmeye ne dersin? 💧',

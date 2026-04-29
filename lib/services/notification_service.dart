@@ -37,9 +37,14 @@ Future<void> notificationTapBackground(NotificationResponse response) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   int amount = 0;
-  if (response.actionId == NotificationService.action100ml) amount = 100;
-  else if (response.actionId == NotificationService.action200ml) amount = 200;
-  if (amount <= 0) return;
+  if (response.actionId == NotificationService.action100ml) {
+    amount = 100;
+  } else if (response.actionId == NotificationService.action200ml) {
+    amount = 200;
+  }
+  if (amount <= 0) {
+    return;
+  }
 
   try {
     if (Firebase.apps.isEmpty) {
@@ -139,12 +144,41 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
-  factory NotificationService() => _instance;
+  factory NotificationService() {
+    return _instance;
+  }
   NotificationService._internal();
 
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
   Completer<void>? _initCompleter;
   bool _isInitialized = false;
+
+  /// Firestore'dan çekilen metinleri önbelleğe alır
+  final Map<String, Map<String, dynamic>> _textCache = {};
+
+  /// Firestore 'texts' koleksiyonundaki tüm dökümanları çeker
+  Future<void> _loadAllTexts() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance.collection('texts').get();
+      for (var doc in snapshot.docs) {
+        _textCache[doc.id] = doc.data();
+      }
+      debugPrint('✅ Firestore bildirim metinleri yüklendi (${_textCache.length} döküman)');
+    } catch (e) {
+      debugPrint('⚠️ Firestore metinleri yüklenemedi, yerel metinler kullanılacak: $e');
+    }
+  }
+
+  /// Önbellekten veya varsayılan değerlerden metin döndürür
+  Map<String, String> _getText(String docId, String fallbackTitle, String fallbackBody) {
+    if (_textCache.containsKey(docId)) {
+      return {
+        'title': _textCache[docId]!['title']?.toString() ?? fallbackTitle,
+        'body': _textCache[docId]!['body']?.toString() ?? fallbackBody,
+      };
+    }
+    return {'title': fallbackTitle, 'body': fallbackBody};
+  }
 
   // --- Action IDs ---
   static const String action100ml = 'DRINK_100ML';
@@ -181,8 +215,12 @@ class NotificationService {
 
   // ─── INIT ────────────────────────────────────────────────────
   Future<void> initialize() async {
-    if (_isInitialized) return;
-    if (_initCompleter != null) return _initCompleter!.future;
+    if (_isInitialized) {
+      return;
+    }
+    if (_initCompleter != null) {
+      return _initCompleter!.future;
+    }
     _initCompleter = Completer<void>();
 
     tz.initializeTimeZones();
@@ -330,14 +368,21 @@ class NotificationService {
   Future<void> scheduleEscalatingReminders() async {
     await initialize();
     bool isEnabled = Hive.box('settings').get('notificationsEnabled', defaultValue: true);
-    if (!isEnabled) return;
+    if (!isEnabled) {
+      return;
+    }
+
+    // Metinleri Firestore'dan çek
+    await _loadAllTexts();
 
     // Tüm eskalasyon ID'lerini temizle
     await _cancelReminderIds([_id1st, _id2nd, _id3rd, _id4th, _id5th, _id24h]);
 
     final userBox = Hive.box<UserModel>('userBox');
     final user = userBox.get('currentUser');
-    if (user == null) return;
+    if (user == null) {
+      return;
+    }
 
     final now = DateTime.now();
     await Hive.box('settings').put('lastWaterTimestamp', now.millisecondsSinceEpoch);
@@ -359,59 +404,81 @@ class NotificationService {
     switch (preset) {
       case 'half':
         // 30dk → 1s → 2s → 4s → 8s → 24s
+        var t1 = _getText('half_1', '💧 Su İçme Vakti!', 'Yarım saatte bir hatırlatıyorum — bir yudum al!');
         await _scheduleReminder(_id1st, from, const Duration(minutes: 30), user,
-            '💧 Su İçme Vakti!', 'Yarım saatte bir hatırlatıyorum — bir yudum al!',
+            t1['title']!, t1['body']!,
             Importance.high, Priority.defaultPriority);
+
+        var t2 = _getText('half_2', '💧 Hâlâ Su İçmedin', 'Bir saattir bekliyor. Küçük bir yudum büyük fark yapar!');
         await _scheduleReminder(_id2nd, from, const Duration(hours: 1), user,
-            '💧 Hâlâ Su İçmedin', 'Bir saattir bekliyor. Küçük bir yudum büyük fark yapar!',
+            t2['title']!, t2['body']!,
             Importance.high, Priority.high);
+
+        var t3 = _getText('half_3', '⚠️ 2 Saattir Su Yok', 'Vücudun su dengesini korumak için şimdi içebilirsin.');
         await _scheduleReminder(_id3rd, from, const Duration(hours: 2), user,
-            '⚠️ 2 Saattir Su Yok', 'Vücudun su dengesini korumak için şimdi içebilirsin.',
+            t3['title']!, t3['body']!,
             Importance.high, Priority.high);
+
+        var t4 = _getText('half_4', '🚨 4 Saattir Su İçmedin!', 'Susuzluk belirtileri başlayabilir. Hemen bir bardak su iç!');
         await _scheduleReminder(_id4th, from, const Duration(hours: 4), user,
-            '🚨 4 Saattir Su İçmedin!', 'Susuzluk belirtileri başlayabilir. Hemen bir bardak su iç!',
+            t4['title']!, t4['body']!,
             Importance.max, Priority.max);
+
+        var t5 = _getText('half_5', '🔴 8 Saat! Acil Uyarı', 'Ciddi susuzluk riski! Yorgunluk ve baş ağrısı başlamış olabilir.');
         await _scheduleReminder(_id5th, from, const Duration(hours: 8), user,
-            '🔴 8 Saat! Acil Uyarı', 'Ciddi susuzluk riski! Yorgunluk ve baş ağrısı başlamış olabilir.',
+            t5['title']!, t5['body']!,
             Importance.max, Priority.max);
         await _schedule24hReminderAdaptive(from, user);
         break;
 
       case '1h':
         // 1s → 2s → 4s → 8s → 24s
+        var t1 = _getText('1h_1', '💧 Su İçme Vakti!', 'Bir saattir su kaydın yok. Bir bardak su hem zihnini hem bedenini tazeleyecek.');
         await _scheduleReminder(_id1st, from, const Duration(hours: 1), user,
-            '💧 Su İçme Vakti!', 'Bir saattir su kaydın yok. Bir bardak su hem zihnini hem bedenini tazeleyecek.',
+            t1['title']!, t1['body']!,
             Importance.high, Priority.defaultPriority);
+
+        var t2 = _getText('1h_2', '⚠️ 2 Saattir Su Yok', 'Vücudun su dengesini korumak için şimdi iç!');
         await _scheduleReminder(_id2nd, from, const Duration(hours: 2), user,
-            '⚠️ 2 Saattir Su Yok', 'Vücudun su dengesini korumak için şimdi iç!',
+            t2['title']!, t2['body']!,
             Importance.high, Priority.high);
+
+        var t3 = _getText('1h_3', '🚨 4 Saattir Su İçmedin!', 'Susuzluk belirtileri başlayabilir. Hemen bir bardak su iç!');
         await _scheduleReminder(_id3rd, from, const Duration(hours: 4), user,
-            '🚨 4 Saattir Su İçmedin!', 'Susuzluk belirtileri başlayabilir. Hemen bir bardak su iç!',
+            t3['title']!, t3['body']!,
             Importance.max, Priority.high);
+
+        var t4 = _getText('1h_4', '🔴 8 Saat! Ciddi Uyarı', 'Ciddi susuzluk riski! Yorgunluk, baş ağrısı yaşıyor olabilirsin.');
         await _scheduleReminder(_id4th, from, const Duration(hours: 8), user,
-            '🔴 8 Saat! Ciddi Uyarı', 'Ciddi susuzluk riski! Yorgunluk, baş ağrısı yaşıyor olabilirsin.',
+            t4['title']!, t4['body']!,
             Importance.max, Priority.max);
         await _schedule24hReminderAdaptive(from, user);
         break;
 
       case '3h':
         // 3s → 6s → 24s
+        var t1 = _getText('3h_1', '💧 Su Vakti Geldi', '3 saattir su içmedin. Bir bardak su içmek için güzel bir an!');
         await _scheduleReminder(_id1st, from, const Duration(hours: 3), user,
-            '💧 Su Vakti Geldi', '3 saattir su içmedin. Bir bardak su içmek için güzel bir an!',
+            t1['title']!, t1['body']!,
             Importance.high, Priority.defaultPriority);
+
+        var t2 = _getText('3h_2', '🚨 6 Saattir Su Yok!', 'Artık ciddi bir süre geçti. Hemen bir bardak su iç!');
         await _scheduleReminder(_id2nd, from, const Duration(hours: 6), user,
-            '🚨 6 Saattir Su Yok!', 'Artık ciddi bir süre geçti. Hemen bir bardak su iç!',
+            t2['title']!, t2['body']!,
             Importance.max, Priority.high);
         await _schedule24hReminderAdaptive(from, user);
         break;
 
       case '4h':
         // 4s → 8s → 24s
+        var t1 = _getText('4h_1', '💧 Su Vakti', '4 saattir su kaydın yok. Bir bardak su hem zihnini hem bedenini tazeleyecek.');
         await _scheduleReminder(_id1st, from, const Duration(hours: 4), user,
-            '💧 Su Vakti', '4 saattir su kaydın yok. Bir bardak su hem zihnini hem bedenini tazeleyecek.',
+            t1['title']!, t1['body']!,
             Importance.high, Priority.defaultPriority);
+
+        var t2 = _getText('4h_2', '🚨 8 Saattir Su İçmedin!', 'Ciddi susuzluk sinyali! Yorgunluk ve baş ağrısı başlamış olabilir.');
         await _scheduleReminder(_id2nd, from, const Duration(hours: 8), user,
-            '🚨 8 Saattir Su İçmedin!', 'Ciddi susuzluk sinyali! Yorgunluk ve baş ağrısı başlamış olabilir.',
+            t2['title']!, t2['body']!,
             Importance.max, Priority.max);
         await _schedule24hReminderAdaptive(from, user);
         break;
@@ -419,14 +486,19 @@ class NotificationService {
       case '2h':
       default:
         // 2s → 4s → 8s → 24s  (varsayılan / eski davranış)
+        var t1 = _getText('2h_1', '💧 Su Vakti Geldi', 'Son 2 saattir su içmedin. Bir yudum su hem zihnini hem bedenini tazeleyecek.');
         await _scheduleReminder(_id1st, from, const Duration(hours: 2), user,
-            '💧 Su Vakti Geldi', 'Son 2 saattir su içmedin. Bir yudum su hem zihnini hem bedenini tazeleyecek.',
+            t1['title']!, t1['body']!,
             Importance.high, Priority.defaultPriority);
+
+        var t2 = _getText('2h_2', '⚠️ Su İçmeyi Unuttun mu?', '4 saattir su kaydın yok. Vücudun yavaş yavaş susuz kalmaya başlıyor!');
         await _scheduleReminder(_id2nd, from, const Duration(hours: 4), user,
-            '⚠️ Su İçmeyi Unuttun mu?', '4 saattir su kaydın yok. Vücudun yavaş yavaş susuz kalmaya başlıyor!',
+            t2['title']!, t2['body']!,
             Importance.high, Priority.high);
+
+        var t3 = _getText('2h_3', '🚨 8 Saattir Su Yok!', 'Ciddi susuzluk sinyali! Yorgunluk, baş ağrısı, konsantrasyon kaybı olabilir.');
         await _scheduleReminder(_id3rd, from, const Duration(hours: 8), user,
-            '🚨 8 Saattir Su Yok!', 'Ciddi susuzluk sinyali! Yorgunluk, baş ağrısı, konsantrasyon kaybı olabilir.',
+            t3['title']!, t3['body']!,
             Importance.max, Priority.max);
         await _schedule24hReminderAdaptive(from, user);
         break;
@@ -439,11 +511,18 @@ class NotificationService {
   Future<void> scheduleMorningGreeting() async {
     await initialize();
     bool isEnabled = Hive.box('settings').get('notificationsEnabled', defaultValue: true);
-    if (!isEnabled) return;
+    if (!isEnabled) {
+      return;
+    }
 
     final userBox = Hive.box<UserModel>('userBox');
     final user = userBox.get('currentUser');
-    if (user == null) return;
+    if (user == null) {
+      return;
+    }
+
+    // Metinleri Firestore'dan çek
+    await _loadAllTexts();
 
     await _cancelReminderIds([_idMorning]);
 
@@ -487,7 +566,7 @@ class NotificationService {
       matchDateTimeComponents: DateTimeComponents.time, // Her gün tekrar et
     );
 
-    debugPrint('🌅 Günaydın bildirimi planlandı: $scheduledToday (${greetings['title']})');
+    debugPrint('🌅 Günaydın bildirimi planlandı: $scheduledToday');
   }
 
   // ─── RE-ENGAGEMENT BİLDİRİMLERİ ─────────────────────────────
@@ -496,7 +575,12 @@ class NotificationService {
   Future<void> scheduleReEngagementNotifications() async {
     await initialize();
     bool isEnabled = Hive.box('settings').get('notificationsEnabled', defaultValue: true);
-    if (!isEnabled) return;
+    if (!isEnabled) {
+      return;
+    }
+
+    // Metinleri Firestore'dan çek
+    await _loadAllTexts();
 
     await _cancelReminderIds([_id3day, _id7day]);
 
@@ -510,10 +594,11 @@ class NotificationService {
     final date7d = now.add(const Duration(days: 7));
     final scheduled7d = DateTime(date7d.year, date7d.month, date7d.day, 12, 0);
 
+    var t3d = _getText('reengagement_3d', '💧 Seni özledik!', '3 gündür su içme kaydın yok. Vücudun seni bekliyor — hadi bir bardak suyla başla!');
     await _notifications.zonedSchedule(
       _id3day,
-      '💧 Seni özledik!',
-      '3 gündür su içme kaydın yok. Vücudun seni bekliyor — hadi bir bardak suyla başla!',
+      t3d['title']!,
+      t3d['body']!,
       tz.TZDateTime.from(scheduled3d, tz.local),
       _buildNotifDetails(
         channelId: 'reengagement',
@@ -526,10 +611,11 @@ class NotificationService {
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
     );
 
+    var t7d = _getText('reengagement_7d', '🚨 Bir haftadır görünmedin!', '7 gündür su kaydın yok. Sağlıklı kalmak için Drinkly\'ye geri dönme zamanı! 💪');
     await _notifications.zonedSchedule(
       _id7day,
-      '🚨 Bir haftadır görünmedin!',
-      '7 gündür su kaydın yok. Sağlıklı kalmak için Drinkly\'ye geri dönme zamanı! 💪',
+      t7d['title']!,
+      t7d['body']!,
       tz.TZDateTime.from(scheduled7d, tz.local),
       _buildNotifDetails(
         channelId: 'reengagement',
@@ -597,10 +683,12 @@ class NotificationService {
           ? wakeToday.add(const Duration(days: 1))
           : wakeToday;
     }
+    
+    var t24h = _getText('critical_24h', '🔴 24 Saattir Su Kaydın Yok!', 'Tüm gün boyunca hiç su eklemedin. Drinkly\'yi aç ve küçük bir adımla yeniden başla — vücudun teşekkür edecek.');
     await _notifications.zonedSchedule(
       _id24h,
-      '🔴 24 Saattir Su Kaydın Yok!',
-      'Tüm gün boyunca hiç su eklemedin. Drinkly\'yi aç ve küçük bir adımla yeniden başla — vücudun teşekkür edecek.',
+      t24h['title']!,
+      t24h['body']!,
       tz.TZDateTime.from(adjusted, tz.local),
       _buildNotifDetails(
         channelId: 'water_critical',
@@ -653,8 +741,11 @@ class NotificationService {
   }
 
   Map<String, String> _morningMessages() {
-    // Çeşitlilik için haftanın gününe göre rotasyon
     final idx = DateTime.now().weekday % 5;
+    // idx 0..4 arası gelir, morning_1..morning_5 e eşle
+    final docId = 'morning_${idx + 1}';
+    
+    // Varsayılan metinler (Firestore'dan çekilemezse kullanılacak)
     const titles = [
       '🌅 Günaydın! Güne Su ile Başla',
       '☀️ Yeni Gün, Taze Başlangıç!',
@@ -669,7 +760,8 @@ class NotificationService {
       'Bugün de hedefine ulaşmak için ilk adımı at — bir bardak su içerek!',
       'Gece boyunca kaybettiğin suyu yerine koy. Günaydın, şampiyon! 🏆',
     ];
-    return {'title': titles[idx], 'body': bodies[idx]};
+    
+    return _getText(docId, titles[idx], bodies[idx]);
   }
 
   bool _isUserSleeping(DateTime time, String wakeUp, String sleep) {

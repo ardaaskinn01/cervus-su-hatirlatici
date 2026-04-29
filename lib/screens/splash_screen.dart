@@ -3,8 +3,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../models/user_model.dart';
-import 'package:provider/provider.dart';
-import '../providers/locale_provider.dart';
 import '../services/notification_service.dart';
 import '../firebase_options.dart';
 import 'onboarding_screen.dart';

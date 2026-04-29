@@ -285,7 +285,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             title: context.watch<LocaleProvider>().translate('settings_notif'),
                             subtitle: '',
                             trailing: CupertinoSwitch(
-                              activeColor: const Color(0xFF22C55E),
+                              activeTrackColor: const Color(0xFF22C55E),
                               value: _notificationsEnabled,
                               onChanged: _toggleNotifications,
                             ),
@@ -298,7 +298,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               children: [
                                 Container(
                                   padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(color: accentColor.withOpacity(0.1), borderRadius: BorderRadius.circular(14)),
+                                  decoration: BoxDecoration(color: accentColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
                                   child: Icon(Icons.timer_outlined, color: accentColor, size: 22),
                                 ),
                                 const SizedBox(width: 16),
@@ -315,9 +315,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: accentColor.withOpacity(0.08),
+                                    color: accentColor.withValues(alpha: 0.08),
                                     borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: accentColor.withOpacity(0.2)),
+                                    border: Border.all(color: accentColor.withValues(alpha: 0.2)),
                                   ),
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<String>(
@@ -418,7 +418,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: accentColor.withOpacity(0.1), borderRadius: BorderRadius.circular(14)),
+            decoration: BoxDecoration(color: accentColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
             child: Icon(icon, color: accentColor, size: 22),
           ),
           const SizedBox(width: 16),
@@ -452,7 +452,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: iconColor.withOpacity(0.1), borderRadius: BorderRadius.circular(14)),
+              decoration: BoxDecoration(color: iconColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
               child: Icon(icon, color: iconColor, size: 22),
             ),
             const SizedBox(width: 16),
@@ -487,7 +487,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       trailing: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.blueAccent.withOpacity(0.1),
+          color: Colors.blueAccent.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(
@@ -508,7 +508,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: accentColor.withOpacity(0.1), borderRadius: BorderRadius.circular(14)),
+              decoration: BoxDecoration(color: accentColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
               child: Icon(icon, color: accentColor, size: 22),
             ),
             const SizedBox(width: 16),
@@ -551,12 +551,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       customGoal: customGoal,
     );
 
-    if (result) {
+    if (result && mounted) {
       context.read<WaterProvider>().recalculateGoal();
       setState(() => _isEditing = false);
-      // Uyanış saati değişmiş olabilir → günaydın bildirimini yeniden planla
       NotificationService().scheduleMorningGreeting();
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.read<LocaleProvider>().translate('prof_success'), style: const TextStyle(color: Colors.white)), backgroundColor: const Color(0xFF22C55E)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.read<LocaleProvider>().translate('prof_success'), style: const TextStyle(color: Colors.white)), backgroundColor: const Color(0xFF22C55E)));
     }
   }
 }

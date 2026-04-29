@@ -1,0 +1,22 @@
+﻿Analyzing suhatirlatici...                                      
+
+warning - The value of the field '_dayStream' isn't used - lib\providers\water_provider.dart:33:29 - unused_field
+warning - The value of the local variable 'toleranceEnd' isn't used - lib\providers\water_provider.dart:64:11 - unused_local_variable
+  error - Too many positional arguments: 0 expected, but 1 found - lib\screens\history_screen.dart:394:184 - extra_positional_arguments_could_be_named
+   info - Unnecessary use of 'toList' in a spread - lib\screens\history_screen.dart:570:22 - unnecessary_to_list_in_spreads
+warning - The value of the local variable 'accentColor' isn't used - lib\screens\home_screen.dart:36:11 - unused_local_variable
+warning - The value of the local variable 'lightOrange' isn't used - lib\screens\home_screen.dart:41:11 - unused_local_variable
+warning - The value of the local variable 'orangeGradientEnd' isn't used - lib\screens\home_screen.dart:43:11 - unused_local_variable
+   info - Use interpolation to compose strings and values - lib\screens\home_screen.dart:216:36 - prefer_interpolation_to_compose_strings
+  error - Undefined name 'lp' - lib\screens\home_screen.dart:333:14 - undefined_identifier
+  error - Undefined name 'lp' - lib\screens\home_screen.dart:340:25 - undefined_identifier
+warning - The left operand can't be null, so the right operand is never executed - lib\screens\onboarding_screen.dart:40:86 - dead_null_aware_expression
+   info - Statements in an if should be enclosed in a block - lib\screens\onboarding_screen.dart:119:21 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\onboarding_screen.dart:120:14 - curly_braces_in_flow_control_structures
+warning - The left operand can't be null, so the right operand is never executed - lib\screens\onboarding_screen.dart:291:60 - dead_null_aware_expression
+   info - Unnecessary 'const' keyword - lib\screens\onboarding_screen.dart:447:88 - unnecessary_const
+   info - Unnecessary 'const' keyword - lib\screens\onboarding_screen.dart:496:94 - unnecessary_const
+   info - Don't use 'BuildContext's across async gaps - lib\screens\profile_screen.dart:555:7 - use_build_context_synchronously
+warning - Unused import: 'package:provider/provider.dart' - lib\screens\splash_screen.dart:6:8 - unused_import
+warning - Unused import: '../providers/locale_provider.dart' - lib\screens\splash_screen.dart:7:8 - unused_import
+

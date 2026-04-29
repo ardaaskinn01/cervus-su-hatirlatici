@@ -55,7 +55,7 @@ class _WaterWaveProgressState extends State<WaterWaveProgress> with TickerProvid
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: (isOverflow ? Colors.blue : const Color(0xFF0EA5E9)).withOpacity(0.1),
+                  color: (isOverflow ? Colors.blue : const Color(0xFF0EA5E9)).withValues(alpha: 0.1),
                   blurRadius: 40,
                   spreadRadius: 10,
                 ),
@@ -81,7 +81,7 @@ class _WaterWaveProgressState extends State<WaterWaveProgress> with TickerProvid
                     progress: widget.progress.clamp(0.0, 1.0),
                     animationValue: _waveController.value,
                     primaryColor: const Color(0xFF0EA5E9),
-                    secondaryColor: const Color(0xFF7DD3FC).withOpacity(0.5),
+                    secondaryColor: const Color(0xFF7DD3FC).withValues(alpha: 0.5),
                   ),
                 );
               },
@@ -119,7 +119,7 @@ class OverflowPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
-    final paint = Paint()..color = color.withOpacity(0.8)..style = PaintingStyle.fill;
+    final paint = Paint()..color = color.withValues(alpha: 0.8)..style = PaintingStyle.fill;
     
     // Sürahinin ağız ucu (Spout Tip): w * 0.15, h * 0.15
     final spoutX = w * 0.15;
@@ -155,7 +155,7 @@ class OverflowPainter extends CustomPainter {
     leakPath.quadraticBezierTo(spoutX - 5, spoutY + 10, spoutX - 8, spoutY + 25);
     
     final leakPaint = Paint()
-      ..color = color.withOpacity(0.6)
+      ..color = color.withValues(alpha: 0.6)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
@@ -179,12 +179,12 @@ class PitcherOutlinePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final path = _getPitcherPath(size);
     final paint = Paint()
-      ..color = const Color(0xFF0EA5E9).withOpacity(0.08)
+      ..color = const Color(0xFF0EA5E9).withValues(alpha: 0.08)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
 
-    final fillPaint = Paint()..color = Colors.white.withOpacity(0.3)..style = PaintingStyle.fill;
+    final fillPaint = Paint()..color = Colors.white.withValues(alpha: 0.3)..style = PaintingStyle.fill;
 
     canvas.drawPath(path, fillPaint);
     canvas.drawPath(path, paint);

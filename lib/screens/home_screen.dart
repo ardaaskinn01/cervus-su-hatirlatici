@@ -1,32 +1,58 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/water_provider.dart';
-import '../providers/user_provider.dart';
 import '../providers/locale_provider.dart';
+import '../providers/user_provider.dart';
+import '../providers/water_provider.dart';
 import '../widgets/water_wave_progress.dart';
+import '../widgets/drinks_entry_sheet.dart';
+import '../widgets/drink_gauge_widget.dart';
+import '../providers/drink_provider.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  bool _isSoftDrinkMode = false;
 
   @override
   Widget build(BuildContext context) {
     var waterProvider = context.watch<WaterProvider>();
     var userProvider = context.watch<UserProvider>();
+    var dp = context.watch<DrinkProvider>();
     final lp = context.watch<LocaleProvider>();
     
     String displayName = userProvider.currentUser?.displayName ?? 'Kullanıcı';
     double progress = waterProvider.dailyGoal > 0 ? (waterProvider.currentIntake / waterProvider.dailyGoal).clamp(0.0, 99.0) : 0.0;
     
-    // Design System Colors
+    return _isSoftDrinkMode
+        ? _buildSoftDrinkBody(context, dp, lp, displayName)
+        : _buildWaterBody(context, waterProvider, lp, displayName, progress);
+  }
+
+  // ─── WATER BODY ──────────────────────────────────────────────────
+  Widget _buildWaterBody(BuildContext context, WaterProvider waterProvider, LocaleProvider lp, String displayName, double progress) {
     const primaryText = Color(0xFF0F172A);
     const secondaryText = Color(0xFF64748B);
     const primaryColor = Color(0xFF0EA5E9);
-    const accentColor = Color(0xFF22C55E);
-    const scaffoldBg = Color(0xFFF8FAFC);
 
     return Scaffold(
-      backgroundColor: scaffoldBg,
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF8FAFC),
+        elevation: 0,
+        title: const Text(""),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.local_cafe_outlined, color: primaryColor, size: 28),
+            onPressed: () => setState(() => _isSoftDrinkMode = true),
+          )
+        ],
+      ),
       body: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
@@ -37,141 +63,76 @@ class HomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 24),
-                // ─── Özel Header ─────────────────────────────────
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      '${context.watch<LocaleProvider>().translate('onb_welcome')}, $displayName',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          fontSize: 28, height: 1.2, fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5),
-                    ),
+                    Text('${lp.translate('onb_welcome')}, $displayName', textAlign: TextAlign.center, style: const TextStyle(fontSize: 28, height: 1.2, fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5)),
                     const SizedBox(height: 6),
-                    Text(
-                      context.watch<LocaleProvider>().translate('home_mot_mid'),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500),
-                    ),
+                    Text(lp.translate('home_mot_mid'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500)),
                   ],
                 ),
                 const SizedBox(height: 48),
-
-                // ─── Su Göstergesi (Sürahi Formu) ────────────────────
                 Center(
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      // Arkaplan yumuşak parıltı (Sürahiye uyumlu)
                       Container(
-                        width: 300,
-                        height: 300,
+                        width: 300, height: 300,
                         decoration: BoxDecoration(
                           shape: BoxShape.rectangle,
                           borderRadius: BorderRadius.circular(150),
-                          boxShadow: [
-                            BoxShadow(color: primaryColor.withOpacity(0.08), blurRadius: 60, spreadRadius: 20),
-                          ],
+                          boxShadow: [BoxShadow(color: primaryColor.withValues(alpha: 0.08), blurRadius: 60, spreadRadius: 20)],
                         ),
                       ),
                       WaterWaveProgress(progress: progress, size: 280),
-                      // Yazıları sürahi gövdesine ortalamak için hafif aşağı kaydırıyoruz
                       Padding(
                         padding: const EdgeInsets.only(top: 40.0),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              '${waterProvider.currentIntake}',
-                              style: const TextStyle(
-                                fontSize: 60, fontWeight: FontWeight.w900, color: primaryText,
-                                letterSpacing: -2,
-                              ),
-                            ),
-                            Text(
-                              '/ ${waterProvider.dailyGoal} ml',
-                              style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold, color: secondaryText.withOpacity(0.7),
-                              ),
-                            ),
+                            Text('${waterProvider.currentIntake}', style: const TextStyle(fontSize: 60, fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -2)),
+                            Text('/ ${waterProvider.dailyGoal} ml', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: secondaryText.withValues(alpha: 0.7))),
                           ],
                         ),
                       ),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 48),
-
-                // ─── Hedef Banner ─────────────────────────────────────
                 if (progress >= 1.0)
                   Container(
                     padding: const EdgeInsets.all(24),
                     margin: const EdgeInsets.only(bottom: 32),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
-                        begin: Alignment.topLeft, end: Alignment.bottomRight
-                      ),
+                      gradient: const LinearGradient(colors: [Color(0xFF22C55E), Color(0xFF16A34A)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                       borderRadius: BorderRadius.circular(28),
-                      boxShadow: [BoxShadow(color: const Color(0xFF22C55E).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
+                      boxShadow: [BoxShadow(color: const Color(0xFF22C55E).withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10))],
                     ),
                     child: Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(20)),
-                          child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 32),
-                        ),
+                        Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)), child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 32)),
                         const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(context.watch<LocaleProvider>().translate('home_mot_done').split('!')[0] + '!', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: -0.5)),
-                              const SizedBox(height: 4),
-                              Text(context.watch<LocaleProvider>().translate('home_mot_done'), style: const TextStyle(color: Colors.white70, fontSize: 14)),
-                            ],
-                          ),
-                        ),
+                        Expanded(child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("${context.watch<LocaleProvider>().translate('home_mot_done').split('!')[0]}!", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: -0.5)),
+                            const SizedBox(height: 4),
+                            Text(context.watch<LocaleProvider>().translate('home_mot_done'), style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                          ],
+                        )),
                       ],
                     ),
                   ),
-
-                // ─── Su Ekleme Butonları (Kategori Bazlı) ───────────────────────────────
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildWaterCard(
-                      context, 
-                      icon: Icons.local_drink_rounded, 
-                      label: lp.translate('home_container_glass'), 
-                      amount: null, 
-                      onTap: () => _showContainerSelection(context, isGlass: true)
-                    ),
-                    _buildWaterCard(
-                      context, 
-                      icon: Icons.liquor_rounded, 
-                      label: lp.translate('home_container_bottle'), 
-                      amount: null, 
-                      onTap: () => _showContainerSelection(context, isGlass: false)
-                    ),
-                    _buildWaterCard(
-                      context, 
-                      icon: Icons.add_rounded, 
-                      label: lp.translate('home_btn_add'), 
-                      amount: null, 
-                      isFeatured: true, 
-                      onTap: () => _showCustomAmountDialog(context)
-                    ),
+                    _buildActionCard(context, icon: Icons.local_drink_rounded, label: lp.translate('home_container_glass'), amount: null, themeColor: primaryColor, onTap: () => _showContainerSelection(context, isGlass: true)),
+                    _buildActionCard(context, icon: Icons.liquor_rounded, label: lp.translate('home_container_bottle'), amount: null, themeColor: primaryColor, onTap: () => _showContainerSelection(context, isGlass: false)),
+                    _buildActionCard(context, icon: Icons.add_rounded, label: lp.translate('home_btn_add'), amount: null, isFeatured: true, themeColor: primaryColor, onTap: () => _showCustomAmountDialog(context)),
                   ],
                 ),
-
                 const SizedBox(height: 48),
-
-                // ─── Son 5 İçme Listesi ────────────────────────────────
                 _buildLastFiveSection(context, waterProvider),
-
                 const SizedBox(height: 40),
               ],
             ),
@@ -180,6 +141,90 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+
+  // ─── SOFT DRINK BODY ───────────────────────────────────────────────
+  Widget _buildSoftDrinkBody(BuildContext context, DrinkProvider dp, LocaleProvider lp, String displayName) {
+    const primaryText = Color(0xFF0F172A);
+    const secondaryText = Color(0xFF64748B);
+    const primaryOrange = Color(0xFFE8590C);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF8FAFC),
+        elevation: 0,
+        title: const Text(""),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.water_drop_outlined, color: primaryOrange, size: 28),
+            onPressed: () => setState(() => _isSoftDrinkMode = false),
+          )
+        ],
+      ),
+      body: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 24),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('${lp.translate('onb_welcome')}, $displayName', textAlign: TextAlign.center, style: const TextStyle(fontSize: 28, height: 1.2, fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5)),
+                    const SizedBox(height: 6),
+                    Text(lp.translate('home_mot_mid'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500)),
+                  ],
+                ),
+                const SizedBox(height: 72),
+                if (dp.drinkStreakCount > 0) ...[_buildDrinkStreakCard(dp.drinkStreakCount), const SizedBox(height: 32)],
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    DrinkGaugeWidget(label: lp.translate('drink_caffeine'), currentValue: dp.dailyCaffeine, maxValue: DrinkProvider.caffeineLimit, unit: "mg", icon: Icons.coffee_rounded, color: primaryOrange),
+                    const SizedBox(width: 8),
+                    DrinkGaugeWidget(label: lp.translate('drink_sugar'), currentValue: dp.dailySugar, maxValue: DrinkProvider.sugarLimit, unit: "g", icon: Icons.cake_rounded, color: Colors.amber.shade700),
+                  ],
+                ),
+                const SizedBox(height: 72),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: _buildCategoryCard(
+                        context, 
+                        icon: Icons.local_fire_department_rounded,
+                        label: "Sıcak\nİçecekler", 
+                        onTap: () {
+                          showModalBottomSheet(context: context, backgroundColor: Colors.transparent, isScrollControlled: true, builder: (context) => const DrinksEntrySheet(isHotCategory: true));
+                        }
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildCategoryCard(
+                        context, 
+                        icon: Icons.ac_unit_rounded,
+                        label: "Soğuk\nİçecekler", 
+                        onTap: () {
+                          showModalBottomSheet(context: context, backgroundColor: Colors.transparent, isScrollControlled: true, builder: (context) => const DrinksEntrySheet(isHotCategory: false));
+                        }
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 48),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildLastFiveSection(BuildContext context, WaterProvider waterProvider) {
     final records = waterProvider.lastFiveRecords;
@@ -197,7 +242,7 @@ class HomeScreen extends StatelessWidget {
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.symmetric(horizontal: 24),
             margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(color: const Color(0xFFEF4444).withOpacity(0.1), borderRadius: BorderRadius.circular(24)),
+            decoration: BoxDecoration(color: const Color(0xFFEF4444).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(24)),
             child: const Icon(Icons.delete_sweep_rounded, color: Color(0xFFEF4444), size: 28),
           ),
           confirmDismiss: (_) async {
@@ -239,9 +284,9 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildWaterCard(BuildContext context, {required IconData icon, required String label, required int? amount, bool isFeatured = false, required VoidCallback onTap}) {
-    const primaryColor = Color(0xFF0EA5E9);
-    const accentColor = Color(0xFF22C55E);
+
+
+  Widget _buildActionCard(BuildContext context, {required IconData icon, required String label, required int? amount, bool isFeatured = false, Color themeColor = const Color(0xFF0EA5E9), required VoidCallback onTap}) {
     const primaryText = Color(0xFF0F172A);
 
     return Expanded(
@@ -255,17 +300,17 @@ class HomeScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 20),
               decoration: BoxDecoration(
-                color: isFeatured ? accentColor : Colors.white,
+                color: isFeatured ? themeColor : Colors.white,
                 borderRadius: BorderRadius.circular(32),
                 border: Border.all(
-                  color: isFeatured ? accentColor : const Color(0xFFE2E8F0),
+                  color: isFeatured ? themeColor : const Color(0xFFE2E8F0),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: isFeatured 
-                        ? accentColor.withOpacity(0.25) 
-                        : const Color(0xFFE2E8F0).withOpacity(0.3),
+                        ? themeColor.withValues(alpha: 0.25) 
+                        : const Color(0xFFE2E8F0).withValues(alpha: 0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   )
@@ -278,19 +323,19 @@ class HomeScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: isFeatured 
-                          ? Colors.white.withOpacity(0.2) 
-                          : primaryColor.withOpacity(0.08),
+                          ? Colors.white.withValues(alpha: 0.2) 
+                          : themeColor.withValues(alpha: 0.08),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       icon, 
                       size: 24, 
-                      color: isFeatured ? Colors.white : primaryColor
+                      color: isFeatured ? Colors.white : themeColor
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    label, // Asıl başlık burası (Bardak, Şişe, Özel) ✅🎯
+                    label,
                     style: TextStyle(
                       fontWeight: FontWeight.w900, 
                       fontSize: 18, 
@@ -299,7 +344,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    amount != null ? '$amount ML' : 'ML', // Alt miktar ✅🎯
+                    amount != null ? '$amount ML' : 'ML',
                     style: TextStyle(
                       fontSize: 10, 
                       fontWeight: FontWeight.w800, 
@@ -459,4 +504,91 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildCategoryCard(BuildContext context, {IconData? icon, required String label, required VoidCallback onTap}) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(28),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+            boxShadow: [BoxShadow(color: const Color(0xFFE2E8F0).withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10))],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8590C).withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: const Color(0xFFE8590C), size: 24),
+                ),
+                const SizedBox(height: 10),
+              ],
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: const Color(0xFF0F172A), letterSpacing: -0.3, height: 1.2),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrinkStreakCard(int streak) {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      margin: const EdgeInsets.only(bottom: 32),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFF6B35), Color(0xFFE8590C)], 
+          begin: Alignment.topLeft, 
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(36),
+        boxShadow: [
+          BoxShadow(color: const Color(0xFFE8590C).withValues(alpha: 0.4), blurRadius: 24, offset: const Offset(0, 12)),
+          BoxShadow(color: Colors.white.withValues(alpha: 0.2), blurRadius: 20, offset: const Offset(-5, -5)),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(100)),
+                  child: Text(context.watch<LocaleProvider>().translate('drink_streak').toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text('$streak', style: const TextStyle(fontSize: 56, color: Colors.white, fontWeight: FontWeight.w900, height: 1.0, letterSpacing: -3)),
+                    const SizedBox(width: 8),
+                    Text(context.watch<LocaleProvider>().translate('home_streak_days'), style: TextStyle(fontSize: 18, color: Colors.white.withValues(alpha: 0.8), fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.local_fire_department_rounded, size: 88, color: Colors.white.withValues(alpha: 0.25)),
+        ],
+      ),
+    );
+  }
 }
+

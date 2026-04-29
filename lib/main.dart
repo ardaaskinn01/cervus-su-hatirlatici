@@ -11,16 +11,10 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'models/user_model.dart';
 import 'providers/user_provider.dart';
 import 'providers/water_provider.dart';
+import 'providers/drink_provider.dart';
 import 'providers/locale_provider.dart';
 import 'screens/splash_screen.dart';
-import 'services/notification_service.dart';
 
-/// ==========================================================
-/// 🚀 ABSOLUTE ZERO-BLOCKING STARTUP (ZIRHLI MOD V2)
-/// Eğer main() içerisinde Hive patlarsa, runApp() hiç çağrılmaz
-/// ve uygulama SONSUZA KADAR BEYAZ EKRANDA kalır.
-/// Bu yüzden main() devasa bir try-catch ile korunmalıdır!
-/// ==========================================================
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('🚀 main() başladı');
@@ -31,24 +25,22 @@ void main() async {
     
     debugPrint('🔧 Servisler başlatılıyor...');
     try {
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-      
-      // 🛡️ iOS İZİN YÖNETİMİ (ATT)
-      // İlk 6 reklamdan sonra iOS'da reklamların kesilme sebebi IDFA erişimi olmamasıdır.
-      // Bu adım kullanıcıya "İzin Ver" veya "Takip Etme" seçeneği sunar.
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      }
+      debugPrint('✅ Firebase hazır.');
+
       if (Platform.isIOS) {
-        // İzin durumunu kontrol et
         final status = await AppTrackingTransparency.trackingAuthorizationStatus;
         if (status == TrackingStatus.notDetermined) {
-          // İzin henüz istenmemişse popup'ı göster
           await AppTrackingTransparency.requestTrackingAuthorization();
         }
       }
 
       await MobileAds.instance.initialize();
-      debugPrint('✅ Servisler hazır');
+      debugPrint('✅ Servisler hazır.');
     } catch (e) {
-      debugPrint('⚠️ Servis başlatma uyarısı (Bazı özellikler çalışmayabilir): $e');
+      debugPrint('⚠️ Servis başlatma hatası: $e');
     }
 
   try {
@@ -123,6 +115,7 @@ class MyApp extends StatelessWidget {
           return userProvider;
         }),
         ChangeNotifierProvider(create: (_) => WaterProvider()),
+        ChangeNotifierProvider(create: (_) => DrinkProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
       ],
       child: Consumer<LocaleProvider>(

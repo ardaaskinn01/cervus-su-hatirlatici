@@ -1,0 +1,5 @@
+﻿Analyzing suhatirlatici...                                      
+
+   info - Unnecessary 'const' keyword - lib\screens\onboarding_screen.dart:450:88 - unnecessary_const
+   info - Unnecessary 'const' keyword - lib\screens\onboarding_screen.dart:499:94 - unnecessary_const
+

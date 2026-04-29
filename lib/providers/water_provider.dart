@@ -29,8 +29,6 @@ class WaterProvider extends ChangeNotifier {
   int _dailyGoal = 2000;
   List<SuKaydi> _todayRecords = [];
 
-  // Firebase gerçek zamanlı stream aboneliği
-  Stream<DocumentSnapshot>? _dayStream;
 
   int get currentIntake => _currentIntake;
   int get dailyGoal => _dailyGoal;
@@ -60,9 +58,6 @@ class WaterProvider extends ChangeNotifier {
     final sleepHour = int.parse(parts[0]);
     final sleepMinute = int.parse(parts[1]);
 
-    // Tolerans: uyku + 2 saat
-    final toleranceEnd = DateTime(now.year, now.month, now.day, sleepHour, sleepMinute)
-        .add(const Duration(hours: 2));
 
     // Gece yarısını geçen uyku (örn 23:00 - toleransEnd 01:00 sonraki gün)
     final isSleepAfterMidnight = sleepHour < 6; // 00:00–05:59 arası "gece geç"

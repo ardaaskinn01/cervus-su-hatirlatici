@@ -57,7 +57,7 @@ class _MainShellState extends State<MainShell> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF0EA5E9).withOpacity(0.08),
+              color: const Color(0xFF0EA5E9).withValues(alpha: 0.08),
               blurRadius: 24,
               offset: const Offset(0, -6),
             ),
@@ -122,7 +122,7 @@ class _NavItem extends StatelessWidget {
         curve: Curves.easeOutCubic,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? accentColor.withOpacity(0.08) : Colors.transparent,
+          color: isActive ? accentColor.withValues(alpha: 0.08) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(

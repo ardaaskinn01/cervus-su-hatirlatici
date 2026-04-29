@@ -12,7 +12,6 @@ class AdBannerWidget extends StatefulWidget {
 class _AdBannerWidgetState extends State<AdBannerWidget> {
   BannerAd? _bannerAd;
   bool _isLoaded = false;
-  String? _error; // Hata mesajını tutacak değişken
 
   // —— Reklam Birimi ID'leri ——————————————————————————————
   static const String _androidAdUnitId =
@@ -39,7 +38,7 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
 
     if (size == null) return;
 
-    final ad = BannerAd(
+    _bannerAd = BannerAd(
       adUnitId: _adUnitId,
       size: size,
       request: const AdRequest(),
@@ -49,7 +48,6 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
           if (mounted) {
             setState(() {
               _isLoaded = true;
-              _error = null;
             });
           }
         },
@@ -58,8 +56,6 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
           if (mounted) {
             setState(() {
               _isLoaded = false;
-              // Hatayı ekranda görebilmek için kaydediyoruz
-              _error = 'Ad Error: ${error.code} - ${error.message}';
             });
           }
           ad.dispose();
@@ -67,7 +63,7 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
       ),
     );
 
-    return ad.load();
+    return _bannerAd!.load();
   }
 
   @override

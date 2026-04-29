@@ -37,7 +37,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
     // 1. Gizlilik Politikası Doğrulaması
     if (_currentIndex == 1 && !_isPrivacyAccepted) {
-      _showSnackbar(context.read<LocaleProvider>().translate('onb_privacy_error') ?? 'Devam etmek için gizliliği kabul edin.');
+      _showSnackbar(context.read<LocaleProvider>().translate('onb_privacy_error'));
       return;
     }
     // 2. Sayfa Doğrulaması (İsim)
@@ -116,8 +116,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     if (picked != null) {
       setState(() {
-        if (isWake) _wakeTime = picked;
-        else _sleepTime = picked;
+        if (isWake) {
+          _wakeTime = picked;
+        } else {
+          _sleepTime = picked;
+        }
       });
     }
   }
@@ -140,7 +143,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 height: 300,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: RadialGradient(colors: [const Color(0xFF38BDF8).withOpacity(0.4), Colors.transparent]),
+                  gradient: RadialGradient(colors: [const Color(0xFF38BDF8).withValues(alpha: 0.4), Colors.transparent]),
                 ),
               ),
             ),
@@ -152,7 +155,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 height: 250,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: RadialGradient(colors: [const Color(0xFF0EA5E9).withOpacity(0.3), Colors.transparent]),
+                  gradient: RadialGradient(colors: [const Color(0xFF0EA5E9).withValues(alpha: 0.3), Colors.transparent]),
                 ),
               ),
             ),
@@ -210,7 +213,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF0EA5E9),
                                 elevation: 5,
-                                shadowColor: const Color(0xFF0EA5E9).withOpacity(0.5),
+                                shadowColor: const Color(0xFF0EA5E9).withValues(alpha: 0.5),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               ),
                               child: Text(
@@ -258,7 +261,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0EA5E9).withOpacity(0.1) : Colors.white,
+          color: isSelected ? const Color(0xFF0EA5E9).withValues(alpha: 0.1) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? const Color(0xFF0EA5E9) : Colors.grey.shade200,
@@ -288,7 +291,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // ADIM 0: GİZLİLİK POLİTİKASI
   Widget _buildPrivacyStep() {
     final lp = context.watch<LocaleProvider>();
-    final fullText = lp.translate('onb_privacy_accept') ?? "";
+    final fullText = lp.translate('onb_privacy_accept');
     final String linkPart = _selectedLanguage == 'tr' ? "Gizlilik Politikası" : "Privacy Policy";
     
     final parts = fullText.split(linkPart);
@@ -305,7 +308,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: [BoxShadow(color: const Color(0xFF0F172A).withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))],
+              boxShadow: [BoxShadow(color: const Color(0xFF0F172A).withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, 10))],
             ),
             child: Column(
               children: [
@@ -351,7 +354,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             _selectedLanguage == 'tr' 
               ? "Devam etmek için kutucuğu işaretleyin."
               : "Please check the box to continue.",
-            style: TextStyle(color: const Color(0xFF0F172A).withOpacity(0.5), fontSize: 13),
+            style: TextStyle(color: const Color(0xFF0F172A).withValues(alpha: 0.5), fontSize: 13),
           ),
         ],
       ),
@@ -409,7 +412,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5))],
+        boxShadow: [BoxShadow(color: Colors.blue.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 5))],
       ),
       child: TextField(
         controller: controller,
@@ -434,8 +437,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFF0EA5E9).withOpacity(0.3), width: 2),
-          boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5))],
+          border: Border.all(color: const Color(0xFF0EA5E9).withValues(alpha: 0.3), width: 2),
+          boxShadow: [BoxShadow(color: Colors.blue.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 5))],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -444,7 +447,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             const SizedBox(width: 12),
             Text(
               "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}",
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
             )
           ],
         ),
@@ -482,7 +485,7 @@ class _StepContentCard extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF0EA5E9).withOpacity(0.2),
+                          color: const Color(0xFF0EA5E9).withValues(alpha: 0.2),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         )
@@ -493,7 +496,7 @@ class _StepContentCard extends StatelessWidget {
                   const SizedBox(height: 32),
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: const Color(0xFF0F172A)),
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
                     textAlign: TextAlign.center,
                   ),
                   if (subtitle.isNotEmpty) ...[

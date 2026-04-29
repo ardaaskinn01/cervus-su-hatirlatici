@@ -151,7 +151,7 @@ class UserProvider extends ChangeNotifier {
       notifyListeners();
       return true; // Başarılı
     } catch (e) {
-      print("Firebase veya Hive Kayıt Hatası: $e");
+      debugPrint("Firebase veya Hive Kayıt Hatası: $e");
       _isLoading = false;
       notifyListeners();
       return false; // Başarısız
@@ -197,7 +197,7 @@ class UserProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      print("Profil Güncelleme Hatası: $e");
+      debugPrint("Profil Güncelleme Hatası: $e");
       _isLoading = false;
       notifyListeners();
       return false;

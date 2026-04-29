@@ -36,7 +36,7 @@ class _AdContainerState extends State<AdContainer> {
           });
         },
         onAdFailedToLoad: (ad, error) {
-          print('Banner Ad Yükleme Hatası: $error');
+          debugPrint('Banner Ad Yükleme Hatası: $error');
           ad.dispose();
         },
       ),
@@ -64,7 +64,7 @@ class _AdContainerState extends State<AdContainer> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)
         ],
       ),
       child: AdWidget(ad: _bannerAd!),

@@ -1,0 +1,8 @@
+﻿Analyzing suhatirlatici...                                      
+
+   info - Unnecessary use of 'toList' in a spread - lib\screens\history_screen.dart:570:22 - unnecessary_to_list_in_spreads
+warning - The value of the local variable 'accentColor' isn't used - lib\screens\home_screen.dart:36:11 - unused_local_variable
+   info - Use interpolation to compose strings and values - lib\screens\home_screen.dart:214:36 - prefer_interpolation_to_compose_strings
+   info - Unnecessary 'const' keyword - lib\screens\onboarding_screen.dart:450:88 - unnecessary_const
+   info - Unnecessary 'const' keyword - lib\screens\onboarding_screen.dart:499:94 - unnecessary_const
+
