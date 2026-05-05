@@ -119,6 +119,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _openOtherApps() async {
+    const String iosDevUrl = 'https://apps.apple.com/tr/developer/cervus-digital/id1889669486';
+    const String androidDevUrl = 'https://play.google.com/store/apps/developer?id=Cervus+App+Studio';
+    
+    final Uri url = Uri.parse(Platform.isIOS ? iosDevUrl : androidDevUrl);
+    
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('Launch other apps failed: $e');
+    }
+  }
+
   TimeOfDay _parseTime(String timeStr) {
     if (timeStr.isEmpty) return const TimeOfDay(hour: 8, minute: 0);
     List<String> parts = timeStr.split(':');
@@ -352,6 +367,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             title: context.watch<LocaleProvider>().translate('sett_btn_rate'),
                             subtitle: context.watch<LocaleProvider>().translate('sett_subtitle_rate'),
                             onTap: _rateApp,
+                            trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFFCBD5E1)),
+                          ),
+                          const Divider(height: 1, color: Color(0xFFF1F5F9), indent: 70),
+                          _buildSettingRow(
+                            icon: Icons.apps_rounded,
+                            iconColor: Colors.purple,
+                            title: context.watch<LocaleProvider>().translate('sett_btn_other_apps'),
+                            subtitle: context.watch<LocaleProvider>().translate('sett_subtitle_other_apps'),
+                            onTap: _openOtherApps,
                             trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFFCBD5E1)),
                           ),
                         ],

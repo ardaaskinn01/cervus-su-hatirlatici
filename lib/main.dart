@@ -14,10 +14,14 @@ import 'providers/water_provider.dart';
 import 'providers/drink_provider.dart';
 import 'providers/locale_provider.dart';
 import 'screens/splash_screen.dart';
+import 'services/dashboard_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('🚀 main() başladı');
+
+  // Dashboard projesini başlat
+  await DashboardService().init();
   
     // Tarih formatlama yerelleştirmesini garantiye alalım (Hereden bağımsız)
     await initializeDateFormatting('tr_TR', null);

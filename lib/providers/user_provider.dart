@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../models/user_model.dart';
 import '../services/notification_service.dart';
+import '../services/dashboard_service.dart';
 
 class UserProvider extends ChangeNotifier {
   UserModel? _currentUser;
@@ -20,6 +21,9 @@ class UserProvider extends ChangeNotifier {
     if (box.isNotEmpty) {
       _currentUser = box.get('currentUser');
       if (_currentUser != null) {
+        // Merkezi Dashboard Senkronizasyonu (Sessizce)
+        DashboardService().syncExistingUser(_currentUser!.firebaseId, _currentUser!.toMap());
+        
         // 1. Uygulama her açıldığında girişi kaydet
         recordVisit(_currentUser!.firebaseId);
         // 2. Kullanıcıyı kendi özel konusuna (Topic) abone yap
@@ -34,8 +38,8 @@ class UserProvider extends ChangeNotifier {
     try {
       final now = DateTime.now();
       final String docId = DateFormat('yyyy-MM-dd_HH-mm-ss').format(now);
-      final String date = DateFormat('yyyy-MM-dd').format(now);
-      final String time = DateFormat('HH:mm:ss').format(now);
+      // final String date = DateFormat('yyyy-MM-dd').format(now);
+      // final String time = DateFormat('HH:mm:ss').format(now);
       final String platform = Platform.isAndroid ? 'Android' : (Platform.isIOS ? 'iOS' : 'Other');
       
       final packageInfo = await PackageInfo.fromPlatform();
@@ -66,7 +70,15 @@ class UserProvider extends ChangeNotifier {
         'lastSeen': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      // 2. 'visits' alt koleksiyonuna detaylı döküman ekle
+      // 2. 'visits' dökümanını ARTIK ANA PROJEYE DEĞİL, DASHBOARD'A YAZIYORUZ 🚀
+      await DashboardService().logVisit(
+        userId: userId,
+        visitId: docId,
+        appVersion: appVersion,
+        platform: platform,
+      );
+
+      /* Eski Sistem (Yedek olarak kalsın diye yorum satırı yapıldı)
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
@@ -79,6 +91,7 @@ class UserProvider extends ChangeNotifier {
         'appVersion': appVersion,
         'timestamp': FieldValue.serverTimestamp(),
       });
+      */
 
       debugPrint("✅ Giriş kaydedildi | FCM: ${fcmToken?.substring(0, 20)}...");
     } catch (e) {
@@ -144,6 +157,9 @@ class UserProvider extends ChangeNotifier {
 
       _currentUser = newUser;
       
+      // Merkezi Dashboard Senkronizasyonu
+      DashboardService().syncExistingUser(uniqueId, newUser.toMap());
+
       // İlk kayıtta da girişi işle
       await recordVisit(uniqueId);
 
@@ -193,6 +209,10 @@ class UserProvider extends ChangeNotifier {
       await box.put('currentUser', updatedUser);
 
       _currentUser = updatedUser;
+
+      // Merkezi Dashboard Güncellemesi
+      DashboardService().syncExistingUser(updatedUser.firebaseId, updatedUser.toMap());
+
       _isLoading = false;
       notifyListeners();
       return true;

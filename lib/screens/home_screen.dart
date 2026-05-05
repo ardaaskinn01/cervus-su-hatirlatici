@@ -16,8 +16,23 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  bool _isSoftDrinkMode = false;
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,196 +44,195 @@ class _HomeScreenState extends State<HomeScreen> {
     String displayName = userProvider.currentUser?.displayName ?? 'Kullanıcı';
     double progress = waterProvider.dailyGoal > 0 ? (waterProvider.currentIntake / waterProvider.dailyGoal).clamp(0.0, 99.0) : 0.0;
     
-    return _isSoftDrinkMode
-        ? _buildSoftDrinkBody(context, dp, lp, displayName)
-        : _buildWaterBody(context, waterProvider, lp, displayName, progress);
-  }
-
-  // ─── WATER BODY ──────────────────────────────────────────────────
-  Widget _buildWaterBody(BuildContext context, WaterProvider waterProvider, LocaleProvider lp, String displayName, double progress) {
-    const primaryText = Color(0xFF0F172A);
-    const secondaryText = Color(0xFF64748B);
-    const primaryColor = Color(0xFF0EA5E9);
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: const Color(0xFFF8FAFC),
         elevation: 0,
-        title: const Text(""),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.local_cafe_outlined, color: primaryColor, size: 28),
-            onPressed: () => setState(() => _isSoftDrinkMode = true),
-          )
+        title: Text(
+          lp.translate(_tabController.index == 0 ? 'drink_water_history' : 'drink_title').split(' ')[0],
+          style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.w900, letterSpacing: -0.5),
+        ),
+        centerTitle: true,
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: const Color(0xFF0F172A),
+          unselectedLabelColor: const Color(0xFF64748B),
+          indicatorColor: _tabController.index == 0 ? const Color(0xFF0EA5E9) : const Color(0xFFE8590C),
+          indicatorWeight: 3,
+          tabs: [
+            Tab(text: lp.translate('drink_water_history').split(' ')[0]),
+            Tab(text: lp.translate('drink_title').split(' ')[0]),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildWaterContent(context, waterProvider, lp, displayName, progress),
+          _buildSoftDrinkContent(context, dp, lp, displayName),
         ],
       ),
-      body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 24),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+    );
+  }
+
+  // ─── WATER CONTENT ───────────────────────────────────────────────
+  Widget _buildWaterContent(BuildContext context, WaterProvider waterProvider, LocaleProvider lp, String displayName, double progress) {
+    const primaryText = Color(0xFF0F172A);
+    const secondaryText = Color(0xFF64748B);
+    const primaryColor = Color(0xFF0EA5E9);
+
+    return SafeArea(
+      bottom: false,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 24),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text('${lp.translate('onb_welcome')}, $displayName', textAlign: TextAlign.center, style: const TextStyle(fontSize: 28, height: 1.2, fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5)),
+                  const SizedBox(height: 6),
+                  Text(lp.translate('home_mot_mid'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500)),
+                ],
+              ),
+              const SizedBox(height: 48),
+              Center(
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    Text('${lp.translate('onb_welcome')}, $displayName', textAlign: TextAlign.center, style: const TextStyle(fontSize: 28, height: 1.2, fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5)),
-                    const SizedBox(height: 6),
-                    Text(lp.translate('home_mot_mid'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500)),
+                    Container(
+                      width: 300, height: 300,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.rectangle,
+                        borderRadius: BorderRadius.circular(150),
+                        boxShadow: [BoxShadow(color: primaryColor.withValues(alpha: 0.08), blurRadius: 60, spreadRadius: 20)],
+                      ),
+                    ),
+                    WaterWaveProgress(progress: progress, size: 280),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 40.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('${waterProvider.currentIntake}', style: const TextStyle(fontSize: 60, fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -2)),
+                          Text('/ ${waterProvider.dailyGoal} ml', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: secondaryText.withValues(alpha: 0.7))),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 48),
-                Center(
-                  child: Stack(
-                    alignment: Alignment.center,
+              ),
+              const SizedBox(height: 48),
+              if (progress >= 1.0)
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  margin: const EdgeInsets.only(bottom: 32),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [Color(0xFF22C55E), Color(0xFF16A34A)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [BoxShadow(color: const Color(0xFF22C55E).withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10))],
+                  ),
+                  child: Row(
                     children: [
-                      Container(
-                        width: 300, height: 300,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.rectangle,
-                          borderRadius: BorderRadius.circular(150),
-                          boxShadow: [BoxShadow(color: primaryColor.withValues(alpha: 0.08), blurRadius: 60, spreadRadius: 20)],
-                        ),
-                      ),
-                      WaterWaveProgress(progress: progress, size: 280),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 40.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('${waterProvider.currentIntake}', style: const TextStyle(fontSize: 60, fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -2)),
-                            Text('/ ${waterProvider.dailyGoal} ml', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: secondaryText.withValues(alpha: 0.7))),
-                          ],
-                        ),
-                      ),
+                      Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)), child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 32)),
+                      const SizedBox(width: 16),
+                      Expanded(child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("${context.watch<LocaleProvider>().translate('home_mot_done').split('!')[0]}!", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: -0.5)),
+                          const SizedBox(height: 4),
+                          Text(context.watch<LocaleProvider>().translate('home_mot_done'), style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                        ],
+                      )),
                     ],
                   ),
                 ),
-                const SizedBox(height: 48),
-                if (progress >= 1.0)
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    margin: const EdgeInsets.only(bottom: 32),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [Color(0xFF22C55E), Color(0xFF16A34A)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: [BoxShadow(color: const Color(0xFF22C55E).withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10))],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)), child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 32)),
-                        const SizedBox(width: 16),
-                        Expanded(child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("${context.watch<LocaleProvider>().translate('home_mot_done').split('!')[0]}!", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: -0.5)),
-                            const SizedBox(height: 4),
-                            Text(context.watch<LocaleProvider>().translate('home_mot_done'), style: const TextStyle(color: Colors.white70, fontSize: 14)),
-                          ],
-                        )),
-                      ],
-                    ),
-                  ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildActionCard(context, icon: Icons.local_drink_rounded, label: lp.translate('home_container_glass'), amount: null, themeColor: primaryColor, onTap: () => _showContainerSelection(context, isGlass: true)),
-                    _buildActionCard(context, icon: Icons.liquor_rounded, label: lp.translate('home_container_bottle'), amount: null, themeColor: primaryColor, onTap: () => _showContainerSelection(context, isGlass: false)),
-                    _buildActionCard(context, icon: Icons.add_rounded, label: lp.translate('home_btn_add'), amount: null, isFeatured: true, themeColor: primaryColor, onTap: () => _showCustomAmountDialog(context)),
-                  ],
-                ),
-                const SizedBox(height: 48),
-                _buildLastFiveSection(context, waterProvider),
-                const SizedBox(height: 40),
-              ],
-            ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildActionCard(context, icon: Icons.local_drink_rounded, label: lp.translate('home_container_glass'), amount: null, themeColor: primaryColor, onTap: () => _showContainerSelection(context, isGlass: true)),
+                  _buildActionCard(context, icon: Icons.liquor_rounded, label: lp.translate('home_container_bottle'), amount: null, themeColor: primaryColor, onTap: () => _showContainerSelection(context, isGlass: false)),
+                  _buildActionCard(context, icon: Icons.add_rounded, label: lp.translate('home_btn_add'), amount: null, isFeatured: true, themeColor: primaryColor, onTap: () => _showCustomAmountDialog(context)),
+                ],
+              ),
+              const SizedBox(height: 48),
+              _buildLastFiveSection(context, waterProvider),
+              const SizedBox(height: 40),
+            ],
           ),
         ),
       ),
     );
   }
 
-  // ─── SOFT DRINK BODY ───────────────────────────────────────────────
-  Widget _buildSoftDrinkBody(BuildContext context, DrinkProvider dp, LocaleProvider lp, String displayName) {
+  // ─── SOFT DRINK CONTENT ──────────────────────────────────────────
+  Widget _buildSoftDrinkContent(BuildContext context, DrinkProvider dp, LocaleProvider lp, String displayName) {
     const primaryText = Color(0xFF0F172A);
     const secondaryText = Color(0xFF64748B);
     const primaryOrange = Color(0xFFE8590C);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF8FAFC),
-        elevation: 0,
-        title: const Text(""),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.water_drop_outlined, color: primaryOrange, size: 28),
-            onPressed: () => setState(() => _isSoftDrinkMode = false),
-          )
-        ],
-      ),
-      body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 24),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text('${lp.translate('onb_welcome')}, $displayName', textAlign: TextAlign.center, style: const TextStyle(fontSize: 28, height: 1.2, fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5)),
-                    const SizedBox(height: 6),
-                    Text(lp.translate('home_mot_mid'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500)),
-                  ],
-                ),
-                const SizedBox(height: 72),
-                if (dp.drinkStreakCount > 0) ...[_buildDrinkStreakCard(dp.drinkStreakCount), const SizedBox(height: 32)],
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    DrinkGaugeWidget(label: lp.translate('drink_caffeine'), currentValue: dp.dailyCaffeine, maxValue: DrinkProvider.caffeineLimit, unit: "mg", icon: Icons.coffee_rounded, color: primaryOrange),
-                    const SizedBox(width: 8),
-                    DrinkGaugeWidget(label: lp.translate('drink_sugar'), currentValue: dp.dailySugar, maxValue: DrinkProvider.sugarLimit, unit: "g", icon: Icons.cake_rounded, color: Colors.amber.shade700),
-                  ],
-                ),
-                const SizedBox(height: 72),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Expanded(
-                      child: _buildCategoryCard(
-                        context, 
-                        icon: Icons.local_fire_department_rounded,
-                        label: "Sıcak\nİçecekler", 
-                        onTap: () {
-                          showModalBottomSheet(context: context, backgroundColor: Colors.transparent, isScrollControlled: true, builder: (context) => const DrinksEntrySheet(isHotCategory: true));
-                        }
-                      ),
+    return SafeArea(
+      bottom: false,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 24),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text('${lp.translate('onb_welcome')}, $displayName', textAlign: TextAlign.center, style: const TextStyle(fontSize: 28, height: 1.2, fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5)),
+                  const SizedBox(height: 6),
+                  Text(lp.translate('home_mot_mid'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: secondaryText, fontWeight: FontWeight.w500)),
+                ],
+              ),
+              const SizedBox(height: 72),
+              if (dp.drinkStreakCount > 0) ...[_buildDrinkStreakCard(dp.drinkStreakCount), const SizedBox(height: 32)],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  DrinkGaugeWidget(label: lp.translate('drink_caffeine'), currentValue: dp.dailyCaffeine, maxValue: DrinkProvider.caffeineLimit, unit: "mg", icon: Icons.coffee_rounded, color: primaryOrange),
+                  const SizedBox(width: 8),
+                  DrinkGaugeWidget(label: lp.translate('drink_sugar'), currentValue: dp.dailySugar, maxValue: DrinkProvider.sugarLimit, unit: "g", icon: Icons.cake_rounded, color: Colors.amber.shade700),
+                ],
+              ),
+              const SizedBox(height: 72),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: _buildCategoryCard(
+                      context, 
+                      icon: Icons.local_fire_department_rounded,
+                      label: "Sıcak\nİçecekler", 
+                      onTap: () {
+                        showModalBottomSheet(context: context, backgroundColor: Colors.transparent, isScrollControlled: true, builder: (context) => const DrinksEntrySheet(isHotCategory: true));
+                      }
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildCategoryCard(
-                        context, 
-                        icon: Icons.ac_unit_rounded,
-                        label: "Soğuk\nİçecekler", 
-                        onTap: () {
-                          showModalBottomSheet(context: context, backgroundColor: Colors.transparent, isScrollControlled: true, builder: (context) => const DrinksEntrySheet(isHotCategory: false));
-                        }
-                      ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildCategoryCard(
+                      context, 
+                      icon: Icons.ac_unit_rounded,
+                      label: "Soğuk\nİçecekler", 
+                      onTap: () {
+                        showModalBottomSheet(context: context, backgroundColor: Colors.transparent, isScrollControlled: true, builder: (context) => const DrinksEntrySheet(isHotCategory: false));
+                      }
                     ),
-                  ],
-                ),
-                const SizedBox(height: 48),
-              ],
-            ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 48),
+            ],
           ),
         ),
       ),

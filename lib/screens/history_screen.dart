@@ -441,8 +441,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
         entries.sort((a,b) => b.saat.compareTo(a.saat)); // En yeni en üstte
 
         bool isOver = totalCaf > DrinkProvider.caffeineLimit || totalSug > DrinkProvider.sugarLimit;
-        Color cardColor = isOver ? Colors.red.shade50 : const Color(0xFFFFF3EE);
-        Color textColor = isOver ? Colors.red : const Color(0xFFE8590C);
+        // Color cardColor = isOver ? Colors.red.shade50 : const Color(0xFFFFF3EE);
+        // Color textColor = isOver ? Colors.red : const Color(0xFFE8590C);
 
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
