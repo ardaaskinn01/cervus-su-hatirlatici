@@ -12,6 +12,7 @@ class DashboardService with WidgetsBindingObserver {
   FirebaseApp? _dashboardApp;
   FirebaseFirestore? _firestore;
   bool _isInitialized = false;
+  bool _isInitializing = false;
 
   // Oturum takibi değişkenleri
   DateTime? _sessionStartTime;
@@ -21,7 +22,8 @@ class DashboardService with WidgetsBindingObserver {
   Timer? _heartbeatTimer;
 
   Future<void> init() async {
-    if (_isInitialized) return;
+    if (_isInitialized || _isInitializing) return;
+    _isInitializing = true;
     
     // Ana servisin (Default Firebase) tamamen ayağa kalktığından emin olmak için gecikme ekliyoruz
     await Future.delayed(const Duration(seconds: 2));
@@ -58,6 +60,8 @@ class DashboardService with WidgetsBindingObserver {
       debugPrint('✅ Merkezi Dashboard Projesi Bağlandı (ID: dashboard-baf3f)');
     } catch (e) {
       debugPrint('❌ Dashboard Başlatma Hatası: $e');
+    } finally {
+      _isInitializing = false;
     }
   }
 

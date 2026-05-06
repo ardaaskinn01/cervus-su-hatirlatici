@@ -20,20 +20,20 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('🚀 main() başladı');
 
-  // Dashboard projesini başlat (Await kaldırıldı çakışmayı önlemek için)
-  DashboardService().init();
-  
-    // Tarih formatlama yerelleştirmesini garantiye alalım (Hereden bağımsız)
-    await initializeDateFormatting('tr_TR', null);
-    await initializeDateFormatting('en_US', null);
+  // Tarih formatlama yerelleştirmesini garantiye alalım (Hereden bağımsız)
+  await initializeDateFormatting('tr_TR', null);
+  await initializeDateFormatting('en_US', null);
     
     debugPrint('🔧 Servisler başlatılıyor...');
     try {
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
       }
-      debugPrint('✅ Firebase hazır.');
+      debugPrint('✅ Firebase hazır (Default).');
 
+      // Dashboard projesini DEFAULT başlatıldıktan sonra güvenle başlatalım
+      DashboardService().init();
+      
       if (Platform.isIOS) {
         final status = await AppTrackingTransparency.trackingAuthorizationStatus;
         if (status == TrackingStatus.notDetermined) {
