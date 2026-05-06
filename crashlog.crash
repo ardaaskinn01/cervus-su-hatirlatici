@@ -1,10 +1,10 @@
-Incident Identifier: 4C3EC3B9-0749-49F6-A3BE-95436FA04F47
+Incident Identifier: 105DFB9D-E0E4-4159-B25B-53D59ADA156D
 Distributor ID:      com.apple.TestFlight
 Hardware Model:      iPhone17,4
-Process:             Runner [72244]
-Path:                /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Runner
+Process:             Runner [72346]
+Path:                /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Runner
 Identifier:          com.cervus.suhatirlatici
-Version:             2.0.3 (98)
+Version:             2.0.4 (99)
 AppStoreTools:       17F41
 AppVariant:          1:iPhone17,4:26
 Beta:                YES
@@ -13,8 +13,8 @@ Role:                Foreground
 Parent Process:      launchd [1]
 Coalition:           com.cervus.suhatirlatici [23266]
 
-Date/Time:           2026-05-06 19:55:54.3025 +0300
-Launch Time:         2026-05-06 19:55:54.0739 +0300
+Date/Time:           2026-05-06 20:22:07.0834 +0300
+Launch Time:         2026-05-06 20:22:06.4144 +0300
 OS Version:          iPhone OS 26.3.1 (23D8133)
 Release Type:        User
 Baseband Version:    2.40.01
@@ -23,7 +23,7 @@ Report Version:      104
 Exception Type:  EXC_CRASH (SIGABRT)
 Exception Codes: 0x0000000000000000, 0x0000000000000000
 Termination Reason: SIGNAL 6 Abort trap: 6
-Terminating Process: Runner [72244]
+Terminating Process: Runner [72346]
 
 Triggered by Thread:  0
 
@@ -31,69 +31,153 @@ Last Exception Backtrace:
 0   CoreFoundation                	0x193ba8964 __exceptionPreprocess + 164 (NSException.m:249)
 1   libobjc.A.dylib               	0x190a85814 objc_exception_throw + 88 (objc-exception.mm:356)
 2   CoreFoundation                	0x193c31e0c +[NSException raise:format:] + 128 (NSException.m:0)
-3   FirebaseCore                  	0x100c64dec +[FIRApp addAppToAppDictionary:] + 168 (FIRApp.m:307)
-4   FirebaseCore                  	0x100c64640 +[FIRApp configureWithName:options:] + 652 (FIRApp.m:187)
-5   Runner                        	0x100a6d19c -[FLTFirebaseCorePlugin initializeAppAppName:initializeAppRequest:completion:] + 1036 (FLTFirebaseCorePlugin.m:185)
-6   Runner                        	0x100a6f660 __SetUpFirebaseCoreHostApiWithSuffix_block_invoke + 188 (messages.g.m:236)
-7   Flutter                       	0x1032cbcfc __48-[FlutterBasicMessageChannel setMessageHandler:]_block_invoke + 160 (FlutterChannels.mm:139)
-8   Flutter                       	0x102d2c088 invocation function for block in flutter::PlatformMessageHandlerIos::HandlePlatformMessage(std::__fl::unique_ptr<flutter::PlatformMessage, std::__fl::default_delete<flutter::PlatformMessage>>) + 116 (platform_message_handler_ios.mm:70)
-9   libdispatch.dylib             	0x1cc80cadc _dispatch_call_block_and_release + 32 (init.c:1575)
-10  libdispatch.dylib             	0x1cc8267fc _dispatch_client_callout + 16 (client_callout.mm:85)
-11  libdispatch.dylib             	0x1cc843b10 _dispatch_main_queue_drain.cold.5 + 812 (queue.c:8181)
-12  libdispatch.dylib             	0x1cc81bec8 _dispatch_main_queue_drain + 180 (queue.c:8162)
-13  libdispatch.dylib             	0x1cc81be04 _dispatch_main_queue_callback_4CF + 44 (queue.c:8341)
-14  CoreFoundation                	0x193b4d2b4 __CFRUNLOOP_IS_SERVICING_THE_MAIN_DISPATCH_QUEUE__ + 16 (CFRunLoop.c:1820)
-15  CoreFoundation                	0x193b00b3c __CFRunLoopRun + 1944 (CFRunLoop.c:3177)
-16  CoreFoundation                	0x193affa6c _CFRunLoopRunSpecificWithOptions + 532 (CFRunLoop.c:3462)
-17  GraphicsServices              	0x238499498 GSEventRunModal + 120 (GSEvent.c:2049)
-18  UIKitCore                     	0x1995afdf8 -[UIApplication _run] + 792 (UIApplication.m:3904)
-19  UIKitCore                     	0x199558e54 UIApplicationMain + 336 (UIApplication.m:5579)
-20  UIKitCore                     	0x199684938 UIApplicationMain(_:_:_:_:) + 104 (UIApplication.swift:13)
-21  Runner                        	0x1008d45bc specialized static UIApplicationDelegate.main() + 28 (/<compiler-generated>:5)
-22  Runner                        	0x1008d45bc static AppDelegate.$main() + 28 (AppDelegate.swift:0)
-23  Runner                        	0x1008d45bc main + 120
-24  dyld                          	0x190adae28 start + 7116 (dyldMain.cpp:1477)
+3   FirebaseCore                  	0x10251c290 +[FIRApp configure] + 84 (FIRApp.m:110)
+4   Runner                        	0x10207831c AppDelegate.application(_:didFinishLaunchingWithOptions:) + 76 (AppDelegate.swift:16)
+5   Runner                        	0x1020784d8 @objc AppDelegate.application(_:didFinishLaunchingWithOptions:) + 132 (/<compiler-generated>:0)
+6   UIKitCore                     	0x19a932384 -[UIApplication _handleDelegateCallbacksWithOptions:isSuspended:restoreState:] + 340 (UIApplication.m:2590)
+7   UIKitCore                     	0x19a933928 -[UIApplication _callInitializationDelegatesWithActions:forScene:payload:fromOriginatingProcess:] + 3108 (UIApplication.m:3038)
+8   UIKitCore                     	0x19a93794c -[UIApplication _runWithMainScene:transitionContext:completion:] + 788 (UIApplication.m:4958)
+9   UIKitCore                     	0x199f3fce8 -[_UISceneLifecycleMultiplexer completeApplicationLaunchWithFBSScene:transitionContext:] + 116 (_UISceneLifecycleMultiplexer.m:456)
+10  UIKitCore                     	0x1995eaeb0 _UIScenePerformActionsWithLifecycleActionMask + 112 (_UISceneLifecycleState.m:109)
+11  UIKitCore                     	0x199f40564 __101-[_UISceneLifecycleMultiplexer _evalTransitionToSettings:fromSettings:forceExit:withTransitionStore:]_block_invoke + 252 (_UISceneLifecycleMultiplexer.m:572)
+12  UIKitCore                     	0x199f40070 -[_UISceneLifecycleMultiplexer _performBlock:withApplicationOfDeactivationReasons:fromReasons:] + 212 (_UISceneLifecycleMultiplexer.m:521)
+13  UIKitCore                     	0x199f4037c -[_UISceneLifecycleMultiplexer _evalTransitionToSettings:fromSettings:forceExit:withTransitionStore:] + 608 (_UISceneLifecycleMultiplexer.m:571)
+14  UIKitCore                     	0x199f3fe08 -[_UISceneLifecycleMultiplexer uiScene:transitionedFromState:withTransitionContext:] + 244 (_UISceneLifecycleMultiplexer.m:474)
+15  UIKitCore                     	0x199f4b288 __186-[_UIWindowSceneFBSSceneTransitionContextDrivenLifecycleSettingsDiffAction _performActionsForUIScene:withUpdatedFBSScene:settingsDiff:fromSettings:transitionContext:lifecycleActionType:]_block... + 148 (_UIWindowSceneFBSSceneTransitionContextDrivenLifecycleSettingsDiffAction.m:73)
+16  UIKitCore                     	0x19a3bdec4 +[BSAnimationSettings(UIKit) tryAnimatingWithSettings:fromCurrentState:actions:completion:] + 736 (BSAnimationSettings+UIKit.m:54)
+17  UIKitCore                     	0x1995ebcc8 _UISceneSettingsDiffActionPerformChangesWithTransitionContextAndCompletion + 224 (_UISceneSettingsDiffAction.m:27)
+18  UIKitCore                     	0x199f4af84 -[_UIWindowSceneFBSSceneTransitionContextDrivenLifecycleSettingsDiffAction _performActionsForUIScene:withUpdatedFBSScene:settingsDiff:fromSettings:transitionContext:lifecycleActionType:] + 316 (_UIWindowSceneFBSSceneTransitionContextDrivenLifecycleSettingsDiffAction.m:58)
+19  UIKitCore                     	0x199d8a1e4 __64-[UIScene scene:didUpdateWithDiff:transitionContext:completion:]_block_invoke.218 + 616 (UIScene.m:2180)
+20  UIKitCore                     	0x199d89278 -[UIScene _emitSceneSettingsUpdateResponseForCompletion:afterSceneUpdateWork:] + 208 (UIScene.m:1831)
+21  UIKitCore                     	0x199d89e50 -[UIScene scene:didUpdateWithDiff:transitionContext:completion:] + 244 (UIScene.m:2139)
+22  UIKitCore                     	0x19a936918 -[UIApplication workspace:didCreateScene:withTransitionContext:completion:] + 476 (UIApplication.m:4382)
+23  UIKitCore                     	0x19a3e6cb4 -[UIApplicationSceneClientAgent scene:didInitializeWithEvent:completion:] + 288 (UIApplicationSceneClientAgent.m:46)
+24  FrontBoardServices            	0x1b3cbb3ec __95-[FBSScene _callOutQueue_didCreateWithTransitionContext:alternativeCreationCallout:completion:]_block_invoke + 364 (FBSScene.m:670)
+25  FrontBoardServices            	0x1b3cbb8a4 -[FBSScene _callOutQueue_maybeCoalesceClientSettingsUpdates:] + 128 (FBSScene.m:738)
+26  FrontBoardServices            	0x1b3cbb204 -[FBSScene _callOutQueue_didCreateWithTransitionContext:alternativeCreationCallout:completion:] + 436 (FBSScene.m:655)
+27  FrontBoardServices            	0x1b3d29bcc __93-[FBSWorkspaceScenesClient _callOutQueue_sendDidCreateForScene:transitionContext:completion:]_block_invoke.349 + 288 (FBSWorkspaceScenesClient.m:1137)
+28  FrontBoardServices            	0x1b3cc8f64 -[FBSWorkspace _calloutQueue_executeCalloutFromSource:withBlock:] + 168 (FBSWorkspace.m:579)
+29  FrontBoardServices            	0x1b3ce5e04 -[FBSWorkspaceScenesClient _callOutQueue_sendDidCreateForScene:transitionContext:completion:] + 480 (FBSWorkspaceScenesClient.m:1134)
+30  FrontBoardServices            	0x1b3ce7768 __92-[FBSWorkspaceScenesClient createSceneWithIdentity:parameters:transitionContext:completion:]_block_invoke_2 + 268 (FBSWorkspaceScenesClient.m:841)
+31  FrontBoardServices            	0x1b3cc8f64 -[FBSWorkspace _calloutQueue_executeCalloutFromSource:withBlock:] + 168 (FBSWorkspace.m:579)
+32  libdispatch.dylib             	0x1cc8267fc _dispatch_client_callout + 16 (client_callout.mm:85)
+33  libdispatch.dylib             	0x1cc811bb4 _dispatch_block_invoke_direct + 284 (queue.c:539)
+34  BoardServices                 	0x1ab3ba1d4 __BSSERVICEMAINRUNLOOPQUEUE_IS_CALLING_OUT_TO_A_BLOCK__ + 52 (BSServiceQueue.m:307)
+35  BoardServices                 	0x1ab3ba054 BSServiceMainRunLoopSourceHandler + 224 (BSServiceQueue.m:215)
+36  CoreFoundation                	0x193b4bf10 __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__ + 28 (CFRunLoop.c:2021)
+37  CoreFoundation                	0x193b4be84 __CFRunLoopDoSource0 + 172 (CFRunLoop.c:2065)
+38  CoreFoundation                	0x193b29b30 __CFRunLoopDoSources0 + 332 (CFRunLoop.c:2110)
+39  CoreFoundation                	0x193b006d8 __CFRunLoopRun + 820 (CFRunLoop.c:2983)
+40  CoreFoundation                	0x193affa6c _CFRunLoopRunSpecificWithOptions + 532 (CFRunLoop.c:3462)
+41  GraphicsServices              	0x238499498 GSEventRunModal + 120 (GSEvent.c:2049)
+42  UIKitCore                     	0x1995afdf8 -[UIApplication _run] + 792 (UIApplication.m:3904)
+43  UIKitCore                     	0x199558e54 UIApplicationMain + 336 (UIApplication.m:5579)
+44  UIKitCore                     	0x199684938 UIApplicationMain(_:_:_:_:) + 104 (UIApplication.swift:13)
+45  Runner                        	0x1020785ec specialized static UIApplicationDelegate.main() + 28 (/<compiler-generated>:6)
+46  Runner                        	0x1020785ec static AppDelegate.$main() + 28 (AppDelegate.swift:0)
+47  Runner                        	0x1020785ec main + 120
+48  dyld                          	0x190adae28 start + 7116 (dyldMain.cpp:1477)
 
 Thread 0 name:
 Thread 0 Crashed:
 0   libsystem_kernel.dylib        	0x00000002415120cc __pthread_kill + 8 (:-1)
 1   libsystem_pthread.dylib       	0x00000001f065f810 pthread_kill + 268 (pthread.c:1721)
-2   libsystem_c.dylib             	0x000000019f484ff4 __abort + 132 (abort.c:163)
-3   libsystem_c.dylib             	0x000000019f484f70 abort + 136 (abort.c:130)
-4   libc++abi.dylib               	0x0000000190b88808 __abort_message + 132 (abort_message.cpp:66)
-5   libc++abi.dylib               	0x0000000190b77484 demangling_terminate_handler() + 304 (cxa_default_handlers.cpp:76)
-6   libobjc.A.dylib               	0x0000000190a87f78 _objc_terminate() + 156 (objc-exception.mm:496)
-7   libc++abi.dylib               	0x0000000190b87bdc std::__terminate(void (*)()) + 16 (cxa_handlers.cpp:59)
-8   libc++abi.dylib               	0x0000000190b8b314 __cxxabiv1::failed_throw(__cxxabiv1::__cxa_exception*) + 88 (cxa_exception.cpp:152)
-9   libc++abi.dylib               	0x0000000190b8b2bc __cxa_throw + 92 (cxa_exception.cpp:299)
-10  libobjc.A.dylib               	0x0000000190a8597c objc_exception_throw + 448 (objc-exception.mm:385)
-11  CoreFoundation                	0x0000000193c31e0c +[NSException raise:format:] + 128 (NSException.m:0)
-12  FirebaseCore                  	0x0000000100c64dec +[FIRApp addAppToAppDictionary:] + 168 (FIRApp.m:307)
-13  FirebaseCore                  	0x0000000100c64640 +[FIRApp configureWithName:options:] + 652 (FIRApp.m:187)
-14  Runner                        	0x0000000100a6d19c -[FLTFirebaseCorePlugin initializeAppAppName:initializeAppRequest:completion:] + 1036 (FLTFirebaseCorePlugin.m:185)
-15  Runner                        	0x0000000100a6f660 __SetUpFirebaseCoreHostApiWithSuffix_block_invoke + 188 (messages.g.m:236)
-16  Flutter                       	0x00000001032cbcfc __48-[FlutterBasicMessageChannel setMessageHandler:]_block_invoke + 160 (FlutterChannels.mm:139)
-17  Flutter                       	0x0000000102d2c088 invocation function for block in flutter::PlatformMessageHandlerIos::HandlePlatformMessage(std::__fl::unique_ptr<flutter::PlatformMessage, std::__fl::default_delete<flutter::PlatformMessage>>) + 116 (platform_message_handler_ios.mm:70)
-18  libdispatch.dylib             	0x00000001cc80cadc _dispatch_call_block_and_release + 32 (init.c:1575)
-19  libdispatch.dylib             	0x00000001cc8267fc _dispatch_client_callout + 16 (client_callout.mm:85)
-20  libdispatch.dylib             	0x00000001cc843b10 _dispatch_main_queue_drain.cold.5 + 812 (queue.c:8181)
-21  libdispatch.dylib             	0x00000001cc81bec8 _dispatch_main_queue_drain + 180 (queue.c:8162)
-22  libdispatch.dylib             	0x00000001cc81be04 _dispatch_main_queue_callback_4CF + 44 (queue.c:8341)
-23  CoreFoundation                	0x0000000193b4d2b4 __CFRUNLOOP_IS_SERVICING_THE_MAIN_DISPATCH_QUEUE__ + 16 (CFRunLoop.c:1820)
-24  CoreFoundation                	0x0000000193b00b3c __CFRunLoopRun + 1944 (CFRunLoop.c:3177)
-25  CoreFoundation                	0x0000000193affa6c _CFRunLoopRunSpecificWithOptions + 532 (CFRunLoop.c:3462)
-26  GraphicsServices              	0x0000000238499498 GSEventRunModal + 120 (GSEvent.c:2049)
-27  UIKitCore                     	0x00000001995afdf8 -[UIApplication _run] + 792 (UIApplication.m:3904)
-28  UIKitCore                     	0x0000000199558e54 UIApplicationMain + 336 (UIApplication.m:5579)
-29  UIKitCore                     	0x0000000199684938 UIApplicationMain(_:_:_:_:) + 104 (UIApplication.swift:13)
-30  Runner                        	0x00000001008d45bc specialized static UIApplicationDelegate.main() + 28 (/<compiler-generated>:5)
-31  Runner                        	0x00000001008d45bc static AppDelegate.$main() + 28 (AppDelegate.swift:0)
-32  Runner                        	0x00000001008d45bc main + 120
-33  dyld                          	0x0000000190adae28 start + 7116 (dyldMain.cpp:1477)
+2   libsystem_c.dylib             	0x000000019f484f64 abort + 124 (abort.c:122)
+3   libc++abi.dylib               	0x0000000190b88808 __abort_message + 132 (abort_message.cpp:66)
+4   libc++abi.dylib               	0x0000000190b77484 demangling_terminate_handler() + 304 (cxa_default_handlers.cpp:76)
+5   libobjc.A.dylib               	0x0000000190a87f78 _objc_terminate() + 156 (objc-exception.mm:496)
+6   libc++abi.dylib               	0x0000000190b87bdc std::__terminate(void (*)()) + 16 (cxa_handlers.cpp:59)
+7   libc++abi.dylib               	0x0000000190b8b314 __cxxabiv1::failed_throw(__cxxabiv1::__cxa_exception*) + 88 (cxa_exception.cpp:152)
+8   libc++abi.dylib               	0x0000000190b8b2bc __cxa_throw + 92 (cxa_exception.cpp:299)
+9   libobjc.A.dylib               	0x0000000190a8597c objc_exception_throw + 448 (objc-exception.mm:385)
+10  CoreFoundation                	0x0000000193c31e0c +[NSException raise:format:] + 128 (NSException.m:0)
+11  FirebaseCore                  	0x000000010251c290 +[FIRApp configure] + 84 (FIRApp.m:110)
+12  Runner                        	0x000000010207831c AppDelegate.application(_:didFinishLaunchingWithOptions:) + 76 (AppDelegate.swift:16)
+13  Runner                        	0x00000001020784d8 @objc AppDelegate.application(_:didFinishLaunchingWithOptions:) + 132 (/<compiler-generated>:0)
+14  UIKitCore                     	0x000000019a932384 -[UIApplication _handleDelegateCallbacksWithOptions:isSuspended:restoreState:] + 340 (UIApplication.m:2590)
+15  UIKitCore                     	0x000000019a933928 -[UIApplication _callInitializationDelegatesWithActions:forScene:payload:fromOriginatingProcess:] + 3108 (UIApplication.m:3038)
+16  UIKitCore                     	0x000000019a93794c -[UIApplication _runWithMainScene:transitionContext:completion:] + 788 (UIApplication.m:4958)
+17  UIKitCore                     	0x0000000199f3fce8 -[_UISceneLifecycleMultiplexer completeApplicationLaunchWithFBSScene:transitionContext:] + 116 (_UISceneLifecycleMultiplexer.m:456)
+18  UIKitCore                     	0x00000001995eaeb0 _UIScenePerformActionsWithLifecycleActionMask + 112 (_UISceneLifecycleState.m:109)
+19  UIKitCore                     	0x0000000199f40564 __101-[_UISceneLifecycleMultiplexer _evalTransitionToSettings:fromSettings:forceExit:withTransitionStore:]_block_invoke + 252 (_UISceneLifecycleMultiplexer.m:572)
+20  UIKitCore                     	0x0000000199f40070 -[_UISceneLifecycleMultiplexer _performBlock:withApplicationOfDeactivationReasons:fromReasons:] + 212 (_UISceneLifecycleMultiplexer.m:521)
+21  UIKitCore                     	0x0000000199f4037c -[_UISceneLifecycleMultiplexer _evalTransitionToSettings:fromSettings:forceExit:withTransitionStore:] + 608 (_UISceneLifecycleMultiplexer.m:571)
+22  UIKitCore                     	0x0000000199f3fe08 -[_UISceneLifecycleMultiplexer uiScene:transitionedFromState:withTransitionContext:] + 244 (_UISceneLifecycleMultiplexer.m:474)
+23  UIKitCore                     	0x0000000199f4b288 __186-[_UIWindowSceneFBSSceneTransitionContextDrivenLifecycleSettingsDiffAction _performActionsForUIScene:withUpdatedFBSScene:settingsDiff:fromSettings:transitionContext:lifecycleActionType:]_block... + 148 (_UIWindowSceneFBSSceneTransitionContextDrivenLifecycleSettingsDiffAction.m:73)
+24  UIKitCore                     	0x000000019a3bdec4 +[BSAnimationSettings(UIKit) tryAnimatingWithSettings:fromCurrentState:actions:completion:] + 736 (BSAnimationSettings+UIKit.m:54)
+25  UIKitCore                     	0x00000001995ebcc8 _UISceneSettingsDiffActionPerformChangesWithTransitionContextAndCompletion + 224 (_UISceneSettingsDiffAction.m:27)
+26  UIKitCore                     	0x0000000199f4af84 -[_UIWindowSceneFBSSceneTransitionContextDrivenLifecycleSettingsDiffAction _performActionsForUIScene:withUpdatedFBSScene:settingsDiff:fromSettings:transitionContext:lifecycleActionType:] + 316 (_UIWindowSceneFBSSceneTransitionContextDrivenLifecycleSettingsDiffAction.m:58)
+27  UIKitCore                     	0x0000000199d8a1e4 __64-[UIScene scene:didUpdateWithDiff:transitionContext:completion:]_block_invoke.218 + 616 (UIScene.m:2180)
+28  UIKitCore                     	0x0000000199d89278 -[UIScene _emitSceneSettingsUpdateResponseForCompletion:afterSceneUpdateWork:] + 208 (UIScene.m:1831)
+29  UIKitCore                     	0x0000000199d89e50 -[UIScene scene:didUpdateWithDiff:transitionContext:completion:] + 244 (UIScene.m:2139)
+30  UIKitCore                     	0x000000019a936918 -[UIApplication workspace:didCreateScene:withTransitionContext:completion:] + 476 (UIApplication.m:4382)
+31  UIKitCore                     	0x000000019a3e6cb4 -[UIApplicationSceneClientAgent scene:didInitializeWithEvent:completion:] + 288 (UIApplicationSceneClientAgent.m:46)
+32  FrontBoardServices            	0x00000001b3cbb3ec __95-[FBSScene _callOutQueue_didCreateWithTransitionContext:alternativeCreationCallout:completion:]_block_invoke + 364 (FBSScene.m:670)
+33  FrontBoardServices            	0x00000001b3cbb8a4 -[FBSScene _callOutQueue_maybeCoalesceClientSettingsUpdates:] + 128 (FBSScene.m:738)
+34  FrontBoardServices            	0x00000001b3cbb204 -[FBSScene _callOutQueue_didCreateWithTransitionContext:alternativeCreationCallout:completion:] + 436 (FBSScene.m:655)
+35  FrontBoardServices            	0x00000001b3d29bcc __93-[FBSWorkspaceScenesClient _callOutQueue_sendDidCreateForScene:transitionContext:completion:]_block_invoke.349 + 288 (FBSWorkspaceScenesClient.m:1137)
+36  FrontBoardServices            	0x00000001b3cc8f64 -[FBSWorkspace _calloutQueue_executeCalloutFromSource:withBlock:] + 168 (FBSWorkspace.m:579)
+37  FrontBoardServices            	0x00000001b3ce5e04 -[FBSWorkspaceScenesClient _callOutQueue_sendDidCreateForScene:transitionContext:completion:] + 480 (FBSWorkspaceScenesClient.m:1134)
+38  FrontBoardServices            	0x00000001b3ce7768 __92-[FBSWorkspaceScenesClient createSceneWithIdentity:parameters:transitionContext:completion:]_block_invoke_2 + 268 (FBSWorkspaceScenesClient.m:841)
+39  FrontBoardServices            	0x00000001b3cc8f64 -[FBSWorkspace _calloutQueue_executeCalloutFromSource:withBlock:] + 168 (FBSWorkspace.m:579)
+40  libdispatch.dylib             	0x00000001cc8267fc _dispatch_client_callout + 16 (client_callout.mm:85)
+41  libdispatch.dylib             	0x00000001cc811bb4 _dispatch_block_invoke_direct + 284 (queue.c:539)
+42  BoardServices                 	0x00000001ab3ba1d4 __BSSERVICEMAINRUNLOOPQUEUE_IS_CALLING_OUT_TO_A_BLOCK__ + 52 (BSServiceQueue.m:307)
+43  BoardServices                 	0x00000001ab3ba054 BSServiceMainRunLoopSourceHandler + 224 (BSServiceQueue.m:215)
+44  CoreFoundation                	0x0000000193b4bf10 __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__ + 28 (CFRunLoop.c:2021)
+45  CoreFoundation                	0x0000000193b4be84 __CFRunLoopDoSource0 + 172 (CFRunLoop.c:2065)
+46  CoreFoundation                	0x0000000193b29b30 __CFRunLoopDoSources0 + 332 (CFRunLoop.c:2110)
+47  CoreFoundation                	0x0000000193b006d8 __CFRunLoopRun + 820 (CFRunLoop.c:2983)
+48  CoreFoundation                	0x0000000193affa6c _CFRunLoopRunSpecificWithOptions + 532 (CFRunLoop.c:3462)
+49  GraphicsServices              	0x0000000238499498 GSEventRunModal + 120 (GSEvent.c:2049)
+50  UIKitCore                     	0x00000001995afdf8 -[UIApplication _run] + 792 (UIApplication.m:3904)
+51  UIKitCore                     	0x0000000199558e54 UIApplicationMain + 336 (UIApplication.m:5579)
+52  UIKitCore                     	0x0000000199684938 UIApplicationMain(_:_:_:_:) + 104 (UIApplication.swift:13)
+53  Runner                        	0x00000001020785ec specialized static UIApplicationDelegate.main() + 28 (/<compiler-generated>:6)
+54  Runner                        	0x00000001020785ec static AppDelegate.$main() + 28 (AppDelegate.swift:0)
+55  Runner                        	0x00000001020785ec main + 120
+56  dyld                          	0x0000000190adae28 start + 7116 (dyldMain.cpp:1477)
 
+Thread 1 name:
 Thread 1:
+0   libsystem_kernel.dylib        	0x000000024150e10c __ulock_wait + 8 (:-1)
+1   libdispatch.dylib             	0x00000001cc80ec6c _dlock_wait + 56 (lock.c:326)
+2   libdispatch.dylib             	0x00000001cc80ea8c _dispatch_thread_event_wait_slow + 56 (lock.c:558)
+3   libdispatch.dylib             	0x00000001cc81cba0 __DISPATCH_WAIT_FOR_QUEUE__ + 368 (queue.c:1726)
+4   libdispatch.dylib             	0x00000001cc81c758 _dispatch_sync_f_slow + 148 (queue.c:1823)
+5   libsystem_trace.dylib         	0x00000001b8a251dc ___os_state_request_for_self_block_invoke + 372 (state.c:327)
+6   libdispatch.dylib             	0x00000001cc80cadc _dispatch_call_block_and_release + 32 (init.c:1575)
+7   libdispatch.dylib             	0x00000001cc8267fc _dispatch_client_callout + 16 (client_callout.mm:85)
+8   libdispatch.dylib             	0x00000001cc815468 _dispatch_lane_serial_drain + 740 (queue.c:3991)
+9   libdispatch.dylib             	0x00000001cc815f78 _dispatch_lane_invoke + 440 (queue.c:4082)
+10  libdispatch.dylib             	0x00000001cc8203ec _dispatch_root_queue_drain_deferred_wlh + 292 (queue.c:7265)
+11  libdispatch.dylib             	0x00000001cc81fce4 _dispatch_workloop_worker_thread + 692 (queue.c:6859)
+12  libsystem_pthread.dylib       	0x00000001f06593b8 _pthread_wqthread + 292 (pthread.c:2696)
+13  libsystem_pthread.dylib       	0x00000001f06588c0 start_wqthread + 8 (:-1)
 
+Thread 2 name:
 Thread 2:
+0   libsystem_kernel.dylib        	0x000000024150e10c __ulock_wait + 8 (:-1)
+1   libdispatch.dylib             	0x00000001cc80ec6c _dlock_wait + 56 (lock.c:326)
+2   libdispatch.dylib             	0x00000001cc80ea8c _dispatch_thread_event_wait_slow + 56 (lock.c:558)
+3   libdispatch.dylib             	0x00000001cc81cba0 __DISPATCH_WAIT_FOR_QUEUE__ + 368 (queue.c:1726)
+4   libdispatch.dylib             	0x00000001cc81c758 _dispatch_sync_f_slow + 148 (queue.c:1823)
+5   UIKitCore                     	0x000000019a769a48 __37-[_UIRemoteKeyboards startConnection]_block_invoke.448 + 144 (_UIRemoteKeyboards.m:1337)
+6   CoreFoundation                	0x0000000193b286c4 __invoking___ + 148
+7   CoreFoundation                	0x0000000193b28550 -[NSInvocation invoke] + 424 (NSForwarding.m:3411)
+8   Foundation                    	0x0000000191145a10 <deduplicated_symbol> + 16
+9   Foundation                    	0x0000000191b8ab68 -[NSXPCConnection _decodeAndInvokeReplyBlockWithEvent:sequence:replyInfo:] + 528 (NSXPCConnection.m:314)
+10  Foundation                    	0x0000000191b8e8d4 __88-[NSXPCConnection _sendInvocation:orArguments:count:methodSignature:selector:withProxy:]_block_invoke_5 + 188 (NSXPCConnection.m:1658)
+11  libxpc.dylib                  	0x00000001a7ed8e90 _xpc_connection_reply_callout + 124 (serializer.c:119)
+12  libxpc.dylib                  	0x00000001a7eca584 _xpc_connection_call_reply_async + 96 (connection.c:940)
+13  libdispatch.dylib             	0x00000001cc82682c <deduplicated_symbol> + 16 (:-1)
+14  libdispatch.dylib             	0x00000001cc82a820 _dispatch_mach_msg_async_reply_invoke + 340 (mach.c:3111)
+15  libdispatch.dylib             	0x00000001cc8152d0 _dispatch_lane_serial_drain + 332 (queue.c:3991)
+16  libdispatch.dylib             	0x00000001cc815f78 _dispatch_lane_invoke + 440 (queue.c:4082)
+17  libdispatch.dylib             	0x00000001cc8203ec _dispatch_root_queue_drain_deferred_wlh + 292 (queue.c:7265)
+18  libdispatch.dylib             	0x00000001cc81fce4 _dispatch_workloop_worker_thread + 692 (queue.c:6859)
+19  libsystem_pthread.dylib       	0x00000001f06593b8 _pthread_wqthread + 292 (pthread.c:2696)
+20  libsystem_pthread.dylib       	0x00000001f06588c0 start_wqthread + 8 (:-1)
 
 Thread 3:
 
@@ -126,33 +210,32 @@ Thread 9:
 Thread 10:
 
 Thread 11:
-0   libsystem_kernel.dylib        	0x000000024150d62c __recvfrom + 8 (:-1)
-1   Flutter                       	0x0000000102c4f910 _RNvMNtNtNtNtNtCskZn6J6i4cQL_3std3sys3net10connection6socket4unixNtB2_6Socket15recv_with_flags + 8 (udp.rs:729)
-2   Flutter                       	0x0000000102c4f910 _RNvMNtNtNtNtNtCskZn6J6i4cQL_3std3sys3net10connection6socket4unixNtB2_6Socket4read + 8
-3   Flutter                       	0x0000000102c4f910 _RNvMsa_NtNtNtNtCskZn6J6i4cQL_3std3sys3net10connection6socketNtB5_9UdpSocket4recv + 8
-4   Flutter                       	0x0000000102c4f910 _RNvXs_NtNtCskZn6J6i4cQL_3std3net3tcpNtB4_9TcpStreamNtNtB8_2io4Read4read + 20
-5   Flutter                       	0x0000000102afb140 _$LT$ureq..unversioned..transport..tcp..TcpTransport$u20$as$u20$ureq..unversioned..transport..Transport$GT$::await_input::h438676f497960018 + 156
-6   Flutter                       	0x0000000102b12220 _$LT$ureq..unversioned..transport..io..TransportAdapter$LT$T$GT$$u20$as$u20$std..io..Read$GT$::read::h365808bddde83beb + 60
-7   Flutter                       	0x0000000102b40eb0 rustls::msgs::deframer::buffers::DeframerVecBuffer::read::h58b9648283981a09 + 180
-8   Flutter                       	0x0000000102b35e88 rustls::conn::ConnectionCommon$LT$Data$GT$::read_tls::h2b732fb271d5731b + 84
-9   Flutter                       	0x0000000102b0f5a0 rustls::conn::ConnectionCommon$LT$Data$GT$::complete_io::hd15834c57b15514f + 248
-10  Flutter                       	0x0000000102b0f8e8 rustls::stream::Stream$LT$C$C$T$GT$::prepare_read::h9c1f47a36fe10e09 + 56
-11  Flutter                       	0x0000000102b0eadc _$LT$rustls..stream..Stream$LT$C$C$T$GT$$u20$as$u20$std..io..Read$GT$::read::h19e41b6fe1df218c + 28
-12  Flutter                       	0x0000000102b10c88 _$LT$rustls..stream..StreamOwned$LT$C$C$T$GT$$u20$as$u20$std..io..Read$GT$::read::h8c55870ed89bcef7 + 16
-13  Flutter                       	0x0000000102b12328 _$LT$ureq..tls..rustls..RustlsTransport$u20$as$u20$ureq..unversioned..transport..Transport$GT$::await_input::h9d7cf2d5da857f1c + 60
-14  Flutter                       	0x0000000102b05674 ureq::middleware::MiddlewareNext::handle::h54b30f18ea10ce96 + 4548
-15  Flutter                       	0x0000000102b0927c ureq::agent::Agent::run_via_middleware::h536400a2c217cbc6 + 80
-16  Flutter                       	0x0000000102b0a870 ureq::request::do_call::h9b0f7e67369208d7 + 972
-17  Flutter                       	0x0000000102ade888 ureq::request::RequestBuilder$LT$ureq..request..WithBody$GT$::send::h6b45b8e4acf326c2 + 364
-18  Flutter                       	0x0000000102ade8f8 ureq::request::RequestBuilder$LT$ureq..request..WithBody$GT$::send_json::h09e245d02e357b98 + 84
-19  Flutter                       	0x0000000102ae5f44 updater::network::patch_check_request_default::h0375a263e61ddfb0 + 148
-20  Flutter                       	0x0000000102ae7264 updater::updater::update::h66edff74071591f5 + 620
-21  Flutter                       	0x0000000102adaddc std::sys::backtrace::__rust_begin_short_backtrace::h1c038efc2bf64a17 + 28
-22  Flutter                       	0x0000000102adbe48 core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::h1954b0b89e90aa07 + 28
-23  Flutter                       	0x0000000102c725d0 _RNvXst_NtCsnHwmPk0DZL_5alloc5boxedINtB5_3BoxDINtNtNtCs4C5O66Rcvz4_4core3ops8function6FnOnceuEp6OutputuNtNtBO_6marker4SendEL_EIBI_uE9call_onceCskZn6J6i4cQL_3std + 12 (unix.rs:118)
-24  Flutter                       	0x0000000102c725d0 _RNvNvMs0_NtNtNtCskZn6J6i4cQL_3std3sys6thread4unixNtB7_6Thread3new12thread_start + 408
-25  libsystem_pthread.dylib       	0x00000001f065c44c _pthread_start + 136 (pthread.c:931)
-26  libsystem_pthread.dylib       	0x00000001f06588cc thread_start + 8 (:-1)
+0   libsystem_kernel.dylib        	0x000000024150e8d0 kevent + 8 (:-1)
+1   libsystem_info.dylib          	0x00000001aac438e0 _mdns_search_ex + 1300 (mdns_module.c:1929)
+2   libsystem_info.dylib          	0x00000001aac42df4 mdns_addrinfo + 404 (mdns_module.c:811)
+3   libsystem_info.dylib          	0x00000001aac45ac8 search_addrinfo + 176 (search_module.c:822)
+4   libsystem_info.dylib          	0x00000001aac39c34 si_addrinfo + 1352 (si_getaddrinfo.c:1644)
+5   libsystem_info.dylib          	0x00000001aac392c8 getaddrinfo + 168 (libinfo.c:2507)
+6   Flutter                       	0x0000000105e1d848 _RNCNvNtNtNtNtCskZn6J6i4cQL_3std3sys3net10connection6socket11lookup_host0Bb_ + 72 (mod.rs:350)
+7   Flutter                       	0x0000000105e39fdc _RINvNtNtNtCskZn6J6i4cQL_3std3sys7helpers14small_c_string19run_with_cstr_stackNtNtNtNtB6_3net10connection6socket10LookupHostEB8_ + 16 (socket_addr.rs:193)
+8   Flutter                       	0x0000000105e39fdc _RINvNtNtNtCskZn6J6i4cQL_3std3sys7helpers14small_c_string13run_with_cstrNtNtNtNtB6_3net10connection6socket10LookupHostEB8_ + 16
+9   Flutter                       	0x0000000105e39fdc _RNvNtNtNtNtCskZn6J6i4cQL_3std3sys3net10connection6socket11lookup_host + 16
+10  Flutter                       	0x0000000105e39fdc _RNvNtNtCskZn6J6i4cQL_3std3net11socket_addr11lookup_host + 148
+11  Flutter                       	0x0000000105e4b1b8 _RNvXs6_NtNtCskZn6J6i4cQL_3std3net11socket_addreNtB5_13ToSocketAddrs15to_socket_addrs + 332 (socket_addr.rs:241)
+12  Flutter                       	0x0000000105cca3d8 _$LT$ureq..unversioned..resolver..DefaultResolver$u20$as$u20$ureq..unversioned..resolver..Resolver$GT$::resolve::h264332f3a9ae19d4 + 228
+13  Flutter                       	0x0000000105cd4b80 ureq::middleware::MiddlewareNext::handle::h54b30f18ea10ce96 + 1744
+14  Flutter                       	0x0000000105cd927c ureq::agent::Agent::run_via_middleware::h536400a2c217cbc6 + 80
+15  Flutter                       	0x0000000105cda870 ureq::request::do_call::h9b0f7e67369208d7 + 972
+16  Flutter                       	0x0000000105cae888 ureq::request::RequestBuilder$LT$ureq..request..WithBody$GT$::send::h6b45b8e4acf326c2 + 364
+17  Flutter                       	0x0000000105cae8f8 ureq::request::RequestBuilder$LT$ureq..request..WithBody$GT$::send_json::h09e245d02e357b98 + 84
+18  Flutter                       	0x0000000105cb5f44 updater::network::patch_check_request_default::h0375a263e61ddfb0 + 148
+19  Flutter                       	0x0000000105cb7264 updater::updater::update::h66edff74071591f5 + 620
+20  Flutter                       	0x0000000105caaddc std::sys::backtrace::__rust_begin_short_backtrace::h1c038efc2bf64a17 + 28
+21  Flutter                       	0x0000000105cabe48 core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::h1954b0b89e90aa07 + 28
+22  Flutter                       	0x0000000105e425d0 _RNvXst_NtCsnHwmPk0DZL_5alloc5boxedINtB5_3BoxDINtNtNtCs4C5O66Rcvz4_4core3ops8function6FnOnceuEp6OutputuNtNtBO_6marker4SendEL_EIBI_uE9call_onceCskZn6J6i4cQL_3std + 12 (unix.rs:118)
+23  Flutter                       	0x0000000105e425d0 _RNvNvMs0_NtNtNtCskZn6J6i4cQL_3std3sys6thread4unixNtB7_6Thread3new12thread_start + 408
+24  libsystem_pthread.dylib       	0x00000001f065c44c _pthread_start + 136 (pthread.c:931)
+25  libsystem_pthread.dylib       	0x00000001f06588cc thread_start + 8 (:-1)
 
 Thread 12 name:
 Thread 12:
@@ -163,19 +246,19 @@ Thread 12:
 4   CoreFoundation                	0x0000000193b29868 __CFRunLoopServiceMachPort + 160 (CFRunLoop.c:2650)
 5   CoreFoundation                	0x0000000193b00848 __CFRunLoopRun + 1188 (CFRunLoop.c:3035)
 6   CoreFoundation                	0x0000000193affa6c _CFRunLoopRunSpecificWithOptions + 532 (CFRunLoop.c:3462)
-7   Flutter                       	0x0000000102d5882c fml::MessageLoopDarwin::Run() + 92 (message_loop_darwin.mm:51)
-8   Flutter                       	0x0000000102d57e80 fml::MessageLoopImpl::DoRun() + 16 (function.h:319)
-9   Flutter                       	0x0000000102d57e80 fml::MessageLoop::Run() + 16
-10  Flutter                       	0x0000000102d57e80 fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0::operator()() const + 16
-11  Flutter                       	0x0000000102d57e80 decltype(std::declval<fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0&>()()) std::__fl::__invoke[abi:nn210000]<fml::T... + 16
-12  Flutter                       	0x0000000102d57e80 void std::__fl::__invoke_void_return_wrapper<void, true>::__call[abi:nn210000]<fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig con... + 16
-13  Flutter                       	0x0000000102d57e80 void std::__fl::__invoke_r[abi:nn210000]<void, fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0&>(fml::Thread::Thread(... + 16
-14  Flutter                       	0x0000000102d57e80 std::__fl::__function::__alloc_func<fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0, std::__fl::allocator<fml::Thread... + 16
-15  Flutter                       	0x0000000102d57e80 std::__fl::__function::__func<fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0, std::__fl::allocator<fml::Thread::Thre... + 196
-16  Flutter                       	0x0000000102d57b8c std::__fl::__function::__value_func<void ()>::operator()[abi:nn210000]() const + 20 (thread.cc:73)
-17  Flutter                       	0x0000000102d57b8c std::__fl::function<void ()>::operator()() const + 20
-18  Flutter                       	0x0000000102d57b8c fml::ThreadHandle::ThreadHandle(std::__fl::function<void ()>&&)::$_0::operator()(void*) const + 20
-19  Flutter                       	0x0000000102d57b8c fml::ThreadHandle::ThreadHandle(std::__fl::function<void ()>&&)::$_0::__invoke(void*) + 36
+7   Flutter                       	0x0000000105f2882c fml::MessageLoopDarwin::Run() + 92 (message_loop_darwin.mm:51)
+8   Flutter                       	0x0000000105f27e80 fml::MessageLoopImpl::DoRun() + 16 (function.h:319)
+9   Flutter                       	0x0000000105f27e80 fml::MessageLoop::Run() + 16
+10  Flutter                       	0x0000000105f27e80 fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0::operator()() const + 16
+11  Flutter                       	0x0000000105f27e80 decltype(std::declval<fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0&>()()) std::__fl::__invoke[abi:nn210000]<fml::T... + 16
+12  Flutter                       	0x0000000105f27e80 void std::__fl::__invoke_void_return_wrapper<void, true>::__call[abi:nn210000]<fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig con... + 16
+13  Flutter                       	0x0000000105f27e80 void std::__fl::__invoke_r[abi:nn210000]<void, fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0&>(fml::Thread::Thread(... + 16
+14  Flutter                       	0x0000000105f27e80 std::__fl::__function::__alloc_func<fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0, std::__fl::allocator<fml::Thread... + 16
+15  Flutter                       	0x0000000105f27e80 std::__fl::__function::__func<fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0, std::__fl::allocator<fml::Thread::Thre... + 196
+16  Flutter                       	0x0000000105f27b8c std::__fl::__function::__value_func<void ()>::operator()[abi:nn210000]() const + 20 (thread.cc:73)
+17  Flutter                       	0x0000000105f27b8c std::__fl::function<void ()>::operator()() const + 20
+18  Flutter                       	0x0000000105f27b8c fml::ThreadHandle::ThreadHandle(std::__fl::function<void ()>&&)::$_0::operator()(void*) const + 20
+19  Flutter                       	0x0000000105f27b8c fml::ThreadHandle::ThreadHandle(std::__fl::function<void ()>&&)::$_0::__invoke(void*) + 36
 20  libsystem_pthread.dylib       	0x00000001f065c44c _pthread_start + 136 (pthread.c:931)
 21  libsystem_pthread.dylib       	0x00000001f06588cc thread_start + 8 (:-1)
 
@@ -188,19 +271,19 @@ Thread 13:
 4   CoreFoundation                	0x0000000193b29868 __CFRunLoopServiceMachPort + 160 (CFRunLoop.c:2650)
 5   CoreFoundation                	0x0000000193b00848 __CFRunLoopRun + 1188 (CFRunLoop.c:3035)
 6   CoreFoundation                	0x0000000193affa6c _CFRunLoopRunSpecificWithOptions + 532 (CFRunLoop.c:3462)
-7   Flutter                       	0x0000000102d5882c fml::MessageLoopDarwin::Run() + 92 (message_loop_darwin.mm:51)
-8   Flutter                       	0x0000000102d57e80 fml::MessageLoopImpl::DoRun() + 16 (function.h:319)
-9   Flutter                       	0x0000000102d57e80 fml::MessageLoop::Run() + 16
-10  Flutter                       	0x0000000102d57e80 fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0::operator()() const + 16
-11  Flutter                       	0x0000000102d57e80 decltype(std::declval<fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0&>()()) std::__fl::__invoke[abi:nn210000]<fml::T... + 16
-12  Flutter                       	0x0000000102d57e80 void std::__fl::__invoke_void_return_wrapper<void, true>::__call[abi:nn210000]<fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig con... + 16
-13  Flutter                       	0x0000000102d57e80 void std::__fl::__invoke_r[abi:nn210000]<void, fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0&>(fml::Thread::Thread(... + 16
-14  Flutter                       	0x0000000102d57e80 std::__fl::__function::__alloc_func<fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0, std::__fl::allocator<fml::Thread... + 16
-15  Flutter                       	0x0000000102d57e80 std::__fl::__function::__func<fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0, std::__fl::allocator<fml::Thread::Thre... + 196
-16  Flutter                       	0x0000000102d57b8c std::__fl::__function::__value_func<void ()>::operator()[abi:nn210000]() const + 20 (thread.cc:73)
-17  Flutter                       	0x0000000102d57b8c std::__fl::function<void ()>::operator()() const + 20
-18  Flutter                       	0x0000000102d57b8c fml::ThreadHandle::ThreadHandle(std::__fl::function<void ()>&&)::$_0::operator()(void*) const + 20
-19  Flutter                       	0x0000000102d57b8c fml::ThreadHandle::ThreadHandle(std::__fl::function<void ()>&&)::$_0::__invoke(void*) + 36
+7   Flutter                       	0x0000000105f2882c fml::MessageLoopDarwin::Run() + 92 (message_loop_darwin.mm:51)
+8   Flutter                       	0x0000000105f27e80 fml::MessageLoopImpl::DoRun() + 16 (function.h:319)
+9   Flutter                       	0x0000000105f27e80 fml::MessageLoop::Run() + 16
+10  Flutter                       	0x0000000105f27e80 fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0::operator()() const + 16
+11  Flutter                       	0x0000000105f27e80 decltype(std::declval<fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0&>()()) std::__fl::__invoke[abi:nn210000]<fml::T... + 16
+12  Flutter                       	0x0000000105f27e80 void std::__fl::__invoke_void_return_wrapper<void, true>::__call[abi:nn210000]<fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig con... + 16
+13  Flutter                       	0x0000000105f27e80 void std::__fl::__invoke_r[abi:nn210000]<void, fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0&>(fml::Thread::Thread(... + 16
+14  Flutter                       	0x0000000105f27e80 std::__fl::__function::__alloc_func<fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0, std::__fl::allocator<fml::Thread... + 16
+15  Flutter                       	0x0000000105f27e80 std::__fl::__function::__func<fml::Thread::Thread(std::__fl::function<void (fml::Thread::ThreadConfig const&)> const&, fml::Thread::ThreadConfig const&)::$_0, std::__fl::allocator<fml::Thread::Thre... + 196
+16  Flutter                       	0x0000000105f27b8c std::__fl::__function::__value_func<void ()>::operator()[abi:nn210000]() const + 20 (thread.cc:73)
+17  Flutter                       	0x0000000105f27b8c std::__fl::function<void ()>::operator()() const + 20
+18  Flutter                       	0x0000000105f27b8c fml::ThreadHandle::ThreadHandle(std::__fl::function<void ()>&&)::$_0::operator()(void*) const + 20
+19  Flutter                       	0x0000000105f27b8c fml::ThreadHandle::ThreadHandle(std::__fl::function<void ()>&&)::$_0::__invoke(void*) + 36
 20  libsystem_pthread.dylib       	0x00000001f065c44c _pthread_start + 136 (pthread.c:931)
 21  libsystem_pthread.dylib       	0x00000001f06588cc thread_start + 8 (:-1)
 
@@ -208,14 +291,14 @@ Thread 14 name:
 Thread 14:
 0   libsystem_kernel.dylib        	0x000000024150d5d4 __psynch_cvwait + 8 (:-1)
 1   libsystem_pthread.dylib       	0x00000001f065ab58 _pthread_cond_wait + 984 (pthread_cond.c:862)
-2   Flutter                       	0x0000000102d5188c std::__fl::__libcpp_condvar_wait[abi:nn210000](_opaque_pthread_cond_t*, _opaque_pthread_mutex_t*) + 12 (thread.h:209)
-3   Flutter                       	0x0000000102d5188c std::__fl::condition_variable::wait(std::__fl::unique_lock<std::__fl::mutex>&) + 12
-4   Flutter                       	0x0000000102d5188c void std::__fl::condition_variable::wait<fml::ConcurrentMessageLoop::WorkerMain()::$_0>(std::__fl::unique_lock<std::__fl::mutex>&, fml::ConcurrentMessageLoop::WorkerMain()::$_0) + 40
-5   Flutter                       	0x0000000102d5188c fml::ConcurrentMessageLoop::WorkerMain() + 48
-6   Flutter                       	0x0000000102d5188c fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long)::$_0::operator()() const + 224
-7   Flutter                       	0x0000000102d5188c decltype(std::declval<fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long)::$_0>()()) std::__fl::__invoke[abi:nn210000]<fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long):... + 224
-8   Flutter                       	0x0000000102d5188c void std::__fl::__thread_execute[abi:nn210000]<std::__fl::unique_ptr<std::__fl::__thread_struct, std::__fl::default_delete<std::__fl::__thread_struct>>, fml::ConcurrentMessageLoop::ConcurrentMessag... + 224
-9   Flutter                       	0x0000000102d5188c void* std::__fl::__thread_proxy[abi:nn210000]<std::__fl::tuple<std::__fl::unique_ptr<std::__fl::__thread_struct, std::__fl::default_delete<std::__fl::__thread_struct>>, fml::ConcurrentMessageLoop::... + 320
+2   Flutter                       	0x0000000105f2188c std::__fl::__libcpp_condvar_wait[abi:nn210000](_opaque_pthread_cond_t*, _opaque_pthread_mutex_t*) + 12 (thread.h:209)
+3   Flutter                       	0x0000000105f2188c std::__fl::condition_variable::wait(std::__fl::unique_lock<std::__fl::mutex>&) + 12
+4   Flutter                       	0x0000000105f2188c void std::__fl::condition_variable::wait<fml::ConcurrentMessageLoop::WorkerMain()::$_0>(std::__fl::unique_lock<std::__fl::mutex>&, fml::ConcurrentMessageLoop::WorkerMain()::$_0) + 40
+5   Flutter                       	0x0000000105f2188c fml::ConcurrentMessageLoop::WorkerMain() + 48
+6   Flutter                       	0x0000000105f2188c fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long)::$_0::operator()() const + 224
+7   Flutter                       	0x0000000105f2188c decltype(std::declval<fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long)::$_0>()()) std::__fl::__invoke[abi:nn210000]<fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long):... + 224
+8   Flutter                       	0x0000000105f2188c void std::__fl::__thread_execute[abi:nn210000]<std::__fl::unique_ptr<std::__fl::__thread_struct, std::__fl::default_delete<std::__fl::__thread_struct>>, fml::ConcurrentMessageLoop::ConcurrentMessag... + 224
+9   Flutter                       	0x0000000105f2188c void* std::__fl::__thread_proxy[abi:nn210000]<std::__fl::tuple<std::__fl::unique_ptr<std::__fl::__thread_struct, std::__fl::default_delete<std::__fl::__thread_struct>>, fml::ConcurrentMessageLoop::... + 320
 10  libsystem_pthread.dylib       	0x00000001f065c44c _pthread_start + 136 (pthread.c:931)
 11  libsystem_pthread.dylib       	0x00000001f06588cc thread_start + 8 (:-1)
 
@@ -223,14 +306,14 @@ Thread 15 name:
 Thread 15:
 0   libsystem_kernel.dylib        	0x000000024150d5d4 __psynch_cvwait + 8 (:-1)
 1   libsystem_pthread.dylib       	0x00000001f065ab58 _pthread_cond_wait + 984 (pthread_cond.c:862)
-2   Flutter                       	0x0000000102d5188c std::__fl::__libcpp_condvar_wait[abi:nn210000](_opaque_pthread_cond_t*, _opaque_pthread_mutex_t*) + 12 (thread.h:209)
-3   Flutter                       	0x0000000102d5188c std::__fl::condition_variable::wait(std::__fl::unique_lock<std::__fl::mutex>&) + 12
-4   Flutter                       	0x0000000102d5188c void std::__fl::condition_variable::wait<fml::ConcurrentMessageLoop::WorkerMain()::$_0>(std::__fl::unique_lock<std::__fl::mutex>&, fml::ConcurrentMessageLoop::WorkerMain()::$_0) + 40
-5   Flutter                       	0x0000000102d5188c fml::ConcurrentMessageLoop::WorkerMain() + 48
-6   Flutter                       	0x0000000102d5188c fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long)::$_0::operator()() const + 224
-7   Flutter                       	0x0000000102d5188c decltype(std::declval<fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long)::$_0>()()) std::__fl::__invoke[abi:nn210000]<fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long):... + 224
-8   Flutter                       	0x0000000102d5188c void std::__fl::__thread_execute[abi:nn210000]<std::__fl::unique_ptr<std::__fl::__thread_struct, std::__fl::default_delete<std::__fl::__thread_struct>>, fml::ConcurrentMessageLoop::ConcurrentMessag... + 224
-9   Flutter                       	0x0000000102d5188c void* std::__fl::__thread_proxy[abi:nn210000]<std::__fl::tuple<std::__fl::unique_ptr<std::__fl::__thread_struct, std::__fl::default_delete<std::__fl::__thread_struct>>, fml::ConcurrentMessageLoop::... + 320
+2   Flutter                       	0x0000000105f2188c std::__fl::__libcpp_condvar_wait[abi:nn210000](_opaque_pthread_cond_t*, _opaque_pthread_mutex_t*) + 12 (thread.h:209)
+3   Flutter                       	0x0000000105f2188c std::__fl::condition_variable::wait(std::__fl::unique_lock<std::__fl::mutex>&) + 12
+4   Flutter                       	0x0000000105f2188c void std::__fl::condition_variable::wait<fml::ConcurrentMessageLoop::WorkerMain()::$_0>(std::__fl::unique_lock<std::__fl::mutex>&, fml::ConcurrentMessageLoop::WorkerMain()::$_0) + 40
+5   Flutter                       	0x0000000105f2188c fml::ConcurrentMessageLoop::WorkerMain() + 48
+6   Flutter                       	0x0000000105f2188c fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long)::$_0::operator()() const + 224
+7   Flutter                       	0x0000000105f2188c decltype(std::declval<fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long)::$_0>()()) std::__fl::__invoke[abi:nn210000]<fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long):... + 224
+8   Flutter                       	0x0000000105f2188c void std::__fl::__thread_execute[abi:nn210000]<std::__fl::unique_ptr<std::__fl::__thread_struct, std::__fl::default_delete<std::__fl::__thread_struct>>, fml::ConcurrentMessageLoop::ConcurrentMessag... + 224
+9   Flutter                       	0x0000000105f2188c void* std::__fl::__thread_proxy[abi:nn210000]<std::__fl::tuple<std::__fl::unique_ptr<std::__fl::__thread_struct, std::__fl::default_delete<std::__fl::__thread_struct>>, fml::ConcurrentMessageLoop::... + 320
 10  libsystem_pthread.dylib       	0x00000001f065c44c _pthread_start + 136 (pthread.c:931)
 11  libsystem_pthread.dylib       	0x00000001f06588cc thread_start + 8 (:-1)
 
@@ -238,108 +321,70 @@ Thread 16 name:
 Thread 16:
 0   libsystem_kernel.dylib        	0x000000024150d5d4 __psynch_cvwait + 8 (:-1)
 1   libsystem_pthread.dylib       	0x00000001f065ab58 _pthread_cond_wait + 984 (pthread_cond.c:862)
-2   Flutter                       	0x0000000102d5188c std::__fl::__libcpp_condvar_wait[abi:nn210000](_opaque_pthread_cond_t*, _opaque_pthread_mutex_t*) + 12 (thread.h:209)
-3   Flutter                       	0x0000000102d5188c std::__fl::condition_variable::wait(std::__fl::unique_lock<std::__fl::mutex>&) + 12
-4   Flutter                       	0x0000000102d5188c void std::__fl::condition_variable::wait<fml::ConcurrentMessageLoop::WorkerMain()::$_0>(std::__fl::unique_lock<std::__fl::mutex>&, fml::ConcurrentMessageLoop::WorkerMain()::$_0) + 40
-5   Flutter                       	0x0000000102d5188c fml::ConcurrentMessageLoop::WorkerMain() + 48
-6   Flutter                       	0x0000000102d5188c fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long)::$_0::operator()() const + 224
-7   Flutter                       	0x0000000102d5188c decltype(std::declval<fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long)::$_0>()()) std::__fl::__invoke[abi:nn210000]<fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long):... + 224
-8   Flutter                       	0x0000000102d5188c void std::__fl::__thread_execute[abi:nn210000]<std::__fl::unique_ptr<std::__fl::__thread_struct, std::__fl::default_delete<std::__fl::__thread_struct>>, fml::ConcurrentMessageLoop::ConcurrentMessag... + 224
-9   Flutter                       	0x0000000102d5188c void* std::__fl::__thread_proxy[abi:nn210000]<std::__fl::tuple<std::__fl::unique_ptr<std::__fl::__thread_struct, std::__fl::default_delete<std::__fl::__thread_struct>>, fml::ConcurrentMessageLoop::... + 320
+2   Flutter                       	0x0000000105f2188c std::__fl::__libcpp_condvar_wait[abi:nn210000](_opaque_pthread_cond_t*, _opaque_pthread_mutex_t*) + 12 (thread.h:209)
+3   Flutter                       	0x0000000105f2188c std::__fl::condition_variable::wait(std::__fl::unique_lock<std::__fl::mutex>&) + 12
+4   Flutter                       	0x0000000105f2188c void std::__fl::condition_variable::wait<fml::ConcurrentMessageLoop::WorkerMain()::$_0>(std::__fl::unique_lock<std::__fl::mutex>&, fml::ConcurrentMessageLoop::WorkerMain()::$_0) + 40
+5   Flutter                       	0x0000000105f2188c fml::ConcurrentMessageLoop::WorkerMain() + 48
+6   Flutter                       	0x0000000105f2188c fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long)::$_0::operator()() const + 224
+7   Flutter                       	0x0000000105f2188c decltype(std::declval<fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long)::$_0>()()) std::__fl::__invoke[abi:nn210000]<fml::ConcurrentMessageLoop::ConcurrentMessageLoop(unsigned long):... + 224
+8   Flutter                       	0x0000000105f2188c void std::__fl::__thread_execute[abi:nn210000]<std::__fl::unique_ptr<std::__fl::__thread_struct, std::__fl::default_delete<std::__fl::__thread_struct>>, fml::ConcurrentMessageLoop::ConcurrentMessag... + 224
+9   Flutter                       	0x0000000105f2188c void* std::__fl::__thread_proxy[abi:nn210000]<std::__fl::tuple<std::__fl::unique_ptr<std::__fl::__thread_struct, std::__fl::default_delete<std::__fl::__thread_struct>>, fml::ConcurrentMessageLoop::... + 320
 10  libsystem_pthread.dylib       	0x00000001f065c44c _pthread_start + 136 (pthread.c:931)
 11  libsystem_pthread.dylib       	0x00000001f06588cc thread_start + 8 (:-1)
 
 Thread 17 name:
 Thread 17:
 0   libsystem_kernel.dylib        	0x000000024150e8d0 kevent + 8 (:-1)
-1   Flutter                       	0x0000000103164a44 dart::bin::EventHandlerImplementation::EventHandlerEntry(unsigned long) + 368 (eventhandler_macos.cc:459)
-2   Flutter                       	0x0000000103190c18 dart::bin::ThreadStart(void*) + 88 (thread_macos.cc:65)
+1   Flutter                       	0x0000000106334a44 dart::bin::EventHandlerImplementation::EventHandlerEntry(unsigned long) + 368 (eventhandler_macos.cc:459)
+2   Flutter                       	0x0000000106360c18 dart::bin::ThreadStart(void*) + 88 (thread_macos.cc:65)
 3   libsystem_pthread.dylib       	0x00000001f065c44c _pthread_start + 136 (pthread.c:931)
 4   libsystem_pthread.dylib       	0x00000001f06588cc thread_start + 8 (:-1)
-
-Thread 18:
-
-Thread 19:
-
-Thread 20 name:
-Thread 20:
-0   libsystem_kernel.dylib        	0x000000024150d5d4 __psynch_cvwait + 8 (:-1)
-1   libsystem_pthread.dylib       	0x00000001f065ab58 _pthread_cond_wait + 984 (pthread_cond.c:862)
-2   JavaScriptCore                	0x00000001a8bcf274 scavenger_thread_main + 1440 (pas_scavenger.c:397)
-3   libsystem_pthread.dylib       	0x00000001f065c44c _pthread_start + 136 (pthread.c:931)
-4   libsystem_pthread.dylib       	0x00000001f06588cc thread_start + 8 (:-1)
-
-Thread 21 name:
-Thread 21:
-0   libsystem_kernel.dylib        	0x000000024150d5d4 __psynch_cvwait + 8 (:-1)
-1   libsystem_pthread.dylib       	0x00000001f065ab84 _pthread_cond_wait + 1028 (pthread_cond.c:862)
-2   Flutter                       	0x00000001031b0964 dart::TimedWait(_opaque_pthread_cond_t*, _opaque_pthread_mutex_t*, long long) + 60 (synchronization_posix.cc:147)
-3   Flutter                       	0x00000001031b0964 dart::ConditionVariable::WaitMicros(dart::Mutex*, long long) + 116
-4   Flutter                       	0x000000010327e48c dart::ThreadPool::Worker::Sleep(long long) + 16 (thread_pool.cc:367)
-5   Flutter                       	0x000000010327e48c dart::ThreadPool::WorkerLoop(dart::ThreadPool::Worker*) + 460
-6   Flutter                       	0x000000010327e48c dart::ThreadPool::Worker::Main(unsigned long) + 668
-7   Flutter                       	0x0000000103252794 dart::ThreadStart(void*) + 272 (os_thread_macos.cc:94)
-8   libsystem_pthread.dylib       	0x00000001f065c44c _pthread_start + 136 (pthread.c:931)
-9   libsystem_pthread.dylib       	0x00000001f06588cc thread_start + 8 (:-1)
-
-Thread 22 name:
-Thread 22:
-0   libsystem_kernel.dylib        	0x000000024150d5d4 __psynch_cvwait + 8 (:-1)
-1   libsystem_pthread.dylib       	0x00000001f065ab84 _pthread_cond_wait + 1028 (pthread_cond.c:862)
-2   Flutter                       	0x00000001031b0964 dart::TimedWait(_opaque_pthread_cond_t*, _opaque_pthread_mutex_t*, long long) + 60 (synchronization_posix.cc:147)
-3   Flutter                       	0x00000001031b0964 dart::ConditionVariable::WaitMicros(dart::Mutex*, long long) + 116
-4   Flutter                       	0x000000010327e48c dart::ThreadPool::Worker::Sleep(long long) + 16 (thread_pool.cc:367)
-5   Flutter                       	0x000000010327e48c dart::ThreadPool::WorkerLoop(dart::ThreadPool::Worker*) + 460
-6   Flutter                       	0x000000010327e48c dart::ThreadPool::Worker::Main(unsigned long) + 668
-7   Flutter                       	0x0000000103252794 dart::ThreadStart(void*) + 272 (os_thread_macos.cc:94)
-8   libsystem_pthread.dylib       	0x00000001f065c44c _pthread_start + 136 (pthread.c:931)
-9   libsystem_pthread.dylib       	0x00000001f06588cc thread_start + 8 (:-1)
 
 
 Thread 0 crashed with ARM Thread State (64-bit):
     x0: 0x0000000000000000   x1: 0x0000000000000000   x2: 0x0000000000000000   x3: 0x0000000000000000
-    x4: 0x0000000000000000   x5: 0x0000000000989680   x6: 0x000000000000006e   x7: 0xfffff0003ffff800
-    x8: 0xd3adcdb841f17acd   x9: 0xd3adcdb9bcd1d8cd  x10: 0x00000000000003e8  x11: 0x0000010000000000
+    x4: 0x0000000190b8cf43   x5: 0x000000016dd87ae0   x6: 0x000000000000006e   x7: 0xfffff0003ffff800
+    x8: 0x5fce2ba0703d3853   x9: 0x5fce2ba18d1d9a53  x10: 0x0000000000000002  x11: 0x0000010000000000
    x12: 0x00000000fffffffd  x13: 0x0000000000000000  x14: 0x0000000000000000  x15: 0x0000000000000000
    x16: 0x0000000000000148  x17: 0x00000001fd20a200  x18: 0x0000000000000000  x19: 0x0000000000000006
    x20: 0x0000000000000103  x21: 0x00000001fd20a2e0  x22: 0x00000001fa16c000  x23: 0x0000000000000000
-   x24: 0x0000000100c79000  x25: 0x000000014afbd140  x26: 0x000000014afd8140  x27: 0x00000001fece9158
-   x28: 0x0000000000000000   fp: 0x000000016f52cf30   lr: 0x00000001f065f810
-    sp: 0x000000016f52cf10   pc: 0x00000002415120cc cpsr: 0x40000000
+   x24: 0x0000000000000001  x25: 0x00000001fd28b000  x26: 0x00000001fa2fb000  x27: 0x000000002b870064
+   x28: 0x0000000000000010   fp: 0x000000016dd87a50   lr: 0x00000001f065f810
+    sp: 0x000000016dd87a30   pc: 0x00000002415120cc cpsr: 0x40000000
    esr: 0x56000080 (Syscall)
 
 
 Binary Images:
-        0x1008d0000 -         0x100b17fff Runner arm64  <065c1c9a1c8e38678915d35507963c76> /var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Runner
-        0x100c1c000 -         0x100c2bfff FBLPromises arm64  <d792542d0e863b5fb3273e2e901e769b> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/FBLPromises.framework/FBLPromises
-        0x100c48000 -         0x100c4ffff FirebaseAppCheckInterop arm64  <f2c4aef287ed3026a665b5b851af9c54> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/FirebaseAppCheckInterop.framework/FirebaseAppCheckInterop
-        0x100c60000 -         0x100c73fff FirebaseCore arm64  <b3745eeb498436a590d5bcd6899788e9> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/FirebaseCore.framework/FirebaseCore
-        0x100c94000 -         0x100c9bfff FirebaseCoreExtension arm64  <37fe69efe1db339c9574c44444438b3f> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/FirebaseCoreExtension.framework/FirebaseCoreExtension
-        0x100cac000 -         0x100cc7fff FirebaseCoreInternal arm64  <2c07b580650d3752bfa367fe93c2b202> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/FirebaseCoreInternal.framework/FirebaseCoreInternal
-        0x100d08000 -         0x100d83fff FirebaseFirestore arm64  <e1706d65870a341093bf208b72feba2b> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/FirebaseFirestore.framework/FirebaseFirestore
-        0x100f38000 -         0x100f43fff app_tracking_transparency arm64  <a9096fb0b0373c968cb4f42280c1e60f> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/app_tracking_transparency.framework/app_tracking_transparency
-        0x100fd0000 -         0x10121ffff FirebaseFirestoreInternal arm64  <0d50dd48cc6b3a838356698abfb58357> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/FirebaseFirestoreInternal.framework/FirebaseFirestoreInternal
-        0x101550000 -         0x101567fff FirebaseInstallations arm64  <1226abfe847838689b3d478fcb5d64f0> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/FirebaseInstallations.framework/FirebaseInstallations
-        0x101590000 -         0x1015c3fff FirebaseMessaging arm64  <ba2492031e4639598ad6b5f36153a4fe> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/FirebaseMessaging.framework/FirebaseMessaging
-        0x101610000 -         0x10163ffff FirebaseSharedSwift arm64  <97370403ca3637b5a4e7438b788bd326> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/FirebaseSharedSwift.framework/FirebaseSharedSwift
-        0x101694000 -         0x1016bbfff GoogleDataTransport arm64  <f46d53cb16383ffda9155ab990205ad6> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/GoogleDataTransport.framework/GoogleDataTransport
-        0x1016f8000 -         0x101717fff GoogleUtilities arm64  <71fc076accad3273820605ccaf3eb0d5> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/GoogleUtilities.framework/GoogleUtilities
-        0x101740000 -         0x1017c3fff absl arm64  <8762474366ed3fadbee8870b677edb57> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/absl.framework/absl
-        0x101890000 -         0x10189ffff flutter_local_notifications arm64  <e6ef1f3a21763c18b905ebc3a14138bf> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/flutter_local_notifications.framework/flutter_local_notifications
-        0x1018b8000 -         0x1018bffff flutter_timezone arm64  <4a7b5ba32f4e34aeb7f96f5a8d6adc6f> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/flutter_timezone.framework/flutter_timezone
-        0x1018d0000 -         0x101daffff grpc arm64  <6e920e479877302e9a431e8ad2e0844f> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/grpc.framework/grpc
-        0x10258c000 -         0x1025cffff grpcpp arm64  <016f7c3ee7343ab0b188dab38f3cc33c> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/grpcpp.framework/grpcpp
-        0x102670000 -         0x10267bfff in_app_review arm64  <b696f0ba768d3bbb8c35a2a67da0ece2> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/in_app_review.framework/in_app_review
-        0x102698000 -         0x1026c7fff leveldb arm64  <c238879733093c99bdf13e5e92bc20e7> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/leveldb.framework/leveldb
-        0x10270c000 -         0x102713fff nanopb arm64  <442442a9d01b33a8ac1b6e96756521e0> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/nanopb.framework/nanopb
-        0x102720000 -         0x102827fff openssl_grpc arm64  <7deb6f6f89c43596bee0d2d2e60d904b> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/openssl_grpc.framework/openssl_grpc
-        0x102938000 -         0x10293ffff package_info_plus arm64  <8a1846a7b7fb356b8ba3074ade0a7799> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/package_info_plus.framework/package_info_plus
-        0x102950000 -         0x10295bfff path_provider_foundation arm64  <9c30c3892e433bfcb06aaafde442890d> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/path_provider_foundation.framework/path_provider_foundation
-        0x102978000 -         0x102987fff url_launcher_ios arm64  <448782cc56203c72b89ea675abd051bf> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/url_launcher_ios.framework/url_launcher_ios
-        0x1029ac000 -         0x102a03fff webview_flutter_wkwebview arm64  <9a0ead9271af332e872e8a436e93b679> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/webview_flutter_wkwebview.framework/webview_flutter_wkwebview
-        0x102ac0000 -         0x103567fff Flutter arm64  <4c4c448c55553144a199c6e64ca03677> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/Flutter.framework/Flutter
-        0x1080fc000 -         0x108107fff libobjc-trampolines.dylib arm64e  <1954b963897d321f88be880ecef5b408> /private/preboot/Cryptexes/OS/usr/lib/libobjc-trampolines.dylib
-        0x10b164000 -         0x10b923fff App arm64  <963f94520e7635dbae7c78940a05c923> /private/var/containers/Bundle/Application/288C96EB-65E4-47D4-9F4E-CB7801B38E1A/Runner.app/Frameworks/App.framework/App
+        0x102074000 -         0x1022bbfff Runner arm64  <d1bc603d91353042a9d605c5cfe7758f> /var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Runner
+        0x102398000 -         0x1023a3fff libobjc-trampolines.dylib arm64e  <1954b963897d321f88be880ecef5b408> /private/preboot/Cryptexes/OS/usr/lib/libobjc-trampolines.dylib
+        0x102488000 -         0x10248ffff nanopb arm64  <442442a9d01b33a8ac1b6e96756521e0> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/nanopb.framework/nanopb
+        0x1024a0000 -         0x1024affff FBLPromises arm64  <d792542d0e863b5fb3273e2e901e769b> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/FBLPromises.framework/FBLPromises
+        0x1024cc000 -         0x1024d3fff FirebaseAppCheckInterop arm64  <f2c4aef287ed3026a665b5b851af9c54> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/FirebaseAppCheckInterop.framework/FirebaseAppCheckInterop
+        0x1024e4000 -         0x1024ebfff FirebaseCoreExtension arm64  <37fe69efe1db339c9574c44444438b3f> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/FirebaseCoreExtension.framework/FirebaseCoreExtension
+        0x1024fc000 -         0x102503fff flutter_timezone arm64  <4a7b5ba32f4e34aeb7f96f5a8d6adc6f> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/flutter_timezone.framework/flutter_timezone
+        0x102518000 -         0x10252bfff FirebaseCore arm64  <b3745eeb498436a590d5bcd6899788e9> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/FirebaseCore.framework/FirebaseCore
+        0x10254c000 -         0x102557fff app_tracking_transparency arm64  <a9096fb0b0373c968cb4f42280c1e60f> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/app_tracking_transparency.framework/app_tracking_transparency
+        0x102570000 -         0x10257ffff flutter_local_notifications arm64  <e6ef1f3a21763c18b905ebc3a14138bf> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/flutter_local_notifications.framework/flutter_local_notifications
+        0x1025a8000 -         0x1025c3fff FirebaseCoreInternal arm64  <2c07b580650d3752bfa367fe93c2b202> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/FirebaseCoreInternal.framework/FirebaseCoreInternal
+        0x102604000 -         0x10261bfff FirebaseInstallations arm64  <1226abfe847838689b3d478fcb5d64f0> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/FirebaseInstallations.framework/FirebaseInstallations
+        0x102644000 -         0x102663fff GoogleUtilities arm64  <71fc076accad3273820605ccaf3eb0d5> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/GoogleUtilities.framework/GoogleUtilities
+        0x102744000 -         0x10274ffff in_app_review arm64  <b696f0ba768d3bbb8c35a2a67da0ece2> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/in_app_review.framework/in_app_review
+        0x1027dc000 -         0x1027e3fff package_info_plus arm64  <8a1846a7b7fb356b8ba3074ade0a7799> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/package_info_plus.framework/package_info_plus
+        0x10281c000 -         0x102827fff path_provider_foundation arm64  <9c30c3892e433bfcb06aaafde442890d> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/path_provider_foundation.framework/path_provider_foundation
+        0x10285c000 -         0x10288ffff FirebaseMessaging arm64  <ba2492031e4639598ad6b5f36153a4fe> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/FirebaseMessaging.framework/FirebaseMessaging
+        0x1028dc000 -         0x102903fff GoogleDataTransport arm64  <f46d53cb16383ffda9155ab990205ad6> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/GoogleDataTransport.framework/GoogleDataTransport
+        0x102964000 -         0x1029dffff FirebaseFirestore arm64  <e1706d65870a341093bf208b72feba2b> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/FirebaseFirestore.framework/FirebaseFirestore
+        0x102aec000 -         0x102b1bfff FirebaseSharedSwift arm64  <97370403ca3637b5a4e7438b788bd326> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/FirebaseSharedSwift.framework/FirebaseSharedSwift
+        0x102b70000 -         0x102b9ffff leveldb arm64  <c238879733093c99bdf13e5e92bc20e7> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/leveldb.framework/leveldb
+        0x102c18000 -         0x102c27fff url_launcher_ios arm64  <448782cc56203c72b89ea675abd051bf> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/url_launcher_ios.framework/url_launcher_ios
+        0x102cbc000 -         0x102d3ffff absl arm64  <8762474366ed3fadbee8870b677edb57> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/absl.framework/absl
+        0x102e0c000 -         0x102e4ffff grpcpp arm64  <016f7c3ee7343ab0b188dab38f3cc33c> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/grpcpp.framework/grpcpp
+        0x10306c000 -         0x1032bbfff FirebaseFirestoreInternal arm64  <0d50dd48cc6b3a838356698abfb58357> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/FirebaseFirestoreInternal.framework/FirebaseFirestoreInternal
+        0x1035ec000 -         0x103643fff webview_flutter_wkwebview arm64  <9a0ead9271af332e872e8a436e93b679> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/webview_flutter_wkwebview.framework/webview_flutter_wkwebview
+        0x1037fc000 -         0x103903fff openssl_grpc arm64  <7deb6f6f89c43596bee0d2d2e60d904b> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/openssl_grpc.framework/openssl_grpc
+        0x104290000 -         0x10476ffff grpc arm64  <6e920e479877302e9a431e8ad2e0844f> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/grpc.framework/grpc
+        0x105c90000 -         0x106737fff Flutter arm64  <4c4c448c55553144a199c6e64ca03677> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/Flutter.framework/Flutter
+        0x10da40000 -         0x10e1fffff App arm64  <deb94cab68a23911a00974b3159937a4> /private/var/containers/Bundle/Application/A8F27049-0C2C-47D6-ACEB-3CAD298FE04C/Runner.app/Frameworks/App.framework/App
         0x190a54000 -         0x190aa5b5f libobjc.A.dylib arm64e  <4358daf977583542a1e19f185534a911> /usr/lib/libobjc.A.dylib
         0x190ad6000 -         0x190b7534b dyld arm64e  <8acdb5808ab738c0a586e667adb1c11c> /usr/lib/dyld
         0x190b76000 -         0x190b906c7 libc++abi.dylib arm64e  <754a4876c71936869d9f2bd3aa38cd9c> /usr/lib/libc++abi.dylib
@@ -347,7 +392,11 @@ Binary Images:
         0x193ae3000 -         0x19406973f CoreFoundation arm64e  <2f32d38446373018843e4fc875b865c4> /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation
         0x199512000 -         0x19b9719bf UIKitCore arm64e  <c768f963a0cc3f5ca1d32e06d53a2381> /System/Library/PrivateFrameworks/UIKitCore.framework/UIKitCore
         0x19f40d000 -         0x19f48d5af libsystem_c.dylib arm64e  <61a33aa9d6683b35a859b6925c4047b9> /usr/lib/system/libsystem_c.dylib
-        0x1a8bc2000 -         0x1aa5f533f JavaScriptCore arm64e  <7c712e087e693fa980a1d1e8a4aa4210> /System/Library/Frameworks/JavaScriptCore.framework/JavaScriptCore
+        0x1a7eb7000 -         0x1a7f0907f libxpc.dylib arm64e  <26e3f9d775bb3384a2bf2628f1dbb2bc> /usr/lib/system/libxpc.dylib
+        0x1aac34000 -         0x1aac5e3e7 libsystem_info.dylib arm64e  <2fd4372746f438c5ae66d5eda3bebee4> /usr/lib/system/libsystem_info.dylib
+        0x1ab3b1000 -         0x1ab43387f BoardServices arm64e  <76c29400a366344e90a3c79063a02bfc> /System/Library/PrivateFrameworks/BoardServices.framework/BoardServices
+        0x1b3c9d000 -         0x1b3d8137f FrontBoardServices arm64e  <a22c8550b61b345d8096a663707aac84> /System/Library/PrivateFrameworks/FrontBoardServices.framework/FrontBoardServices
+        0x1b8a1b000 -         0x1b8a3b31f libsystem_trace.dylib arm64e  <d1d02aad393939dfbb569ad956d67e22> /usr/lib/system/libsystem_trace.dylib
         0x1cc80b000 -         0x1cc85121f libdispatch.dylib arm64e  <904d48a3d99e3962bfa9c3dfb66bba83> /usr/lib/system/libdispatch.dylib
         0x1f0658000 -         0x1f066445f libsystem_pthread.dylib arm64e  <4f94107b94d23e888542f5403c581b50> /usr/lib/system/libsystem_pthread.dylib
         0x238498000 -         0x2384a07ff GraphicsServices arm64e  <12a401ff966436029f17f3047446e62b> /System/Library/PrivateFrameworks/GraphicsServices.framework/GraphicsServices

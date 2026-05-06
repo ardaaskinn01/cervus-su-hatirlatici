@@ -2,7 +2,7 @@ name: suhatirlatici
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 2.0.3+98
+version: 2.0.5+100
 
 environment:
   sdk: ^3.7.2

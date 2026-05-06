@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -10,7 +9,6 @@ import 'dart:io';
 import '../models/user_model.dart';
 import '../services/notification_service.dart';
 import '../services/dashboard_service.dart';
-import '../firebase_options.dart';
 import 'onboarding_screen.dart';
 import 'main_shell.dart';
 import 'dart:async';
@@ -72,14 +70,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     });
 
     try {
-      // 3. Arka Plan Servisleri
-      debugPrint('🔥 Firebase başlatılıyor...');
-      if (Firebase.apps.isEmpty) {
-        await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-        debugPrint('🔥 Firebase başarıyla başlatıldı.');
-      } else {
-        debugPrint('🔥 Firebase zaten başlatılmış, atlanıyor.');
-      }
+      // Firebase main.dart'ta başlatıldı, burada sadece bekliyoruz
+      debugPrint('🔥 Firebase zaten hazır (main.dart’ta başlatıldı).');
+
+      // Dashboard servisini Firebase hazır olduktan SONRA başlatıyoruz
+      DashboardService().init();
 
       debugPrint('🔔 Bildirimler başlatılıyor...');
       await NotificationService().initialize();

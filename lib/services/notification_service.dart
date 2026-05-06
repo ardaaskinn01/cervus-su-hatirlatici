@@ -249,7 +249,7 @@ class NotificationService {
     ];
 
     const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('ic_launcher');
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
     final DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -719,7 +719,7 @@ class NotificationService {
         channelName,
         importance: importance,
         priority: priority,
-        largeIcon: const DrawableResourceAndroidBitmap('ic_launcher'),
+        largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
         actions: withActions
             ? const <AndroidNotificationAction>[
                 AndroidNotificationAction(action100ml, '💧 100 ml İç'),

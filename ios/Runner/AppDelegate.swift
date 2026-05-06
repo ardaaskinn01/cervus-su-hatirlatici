@@ -1,6 +1,5 @@
 import Flutter
 import UIKit
-import FirebaseCore
 import flutter_local_notifications
 
 @main
@@ -10,12 +9,6 @@ import flutter_local_notifications
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     
-    // 🔥 Ana Firebase projesini iOS native seviyesinde, Flutter plugin'den ÖNCE başlatıyoruz.
-    // Bu sayede FLTFirebaseCorePlugin geldiğinde uygulama zaten kayıtlı olur ve çakışma olmaz.
-    if FirebaseApp.app() == nil {
-      FirebaseApp.configure()
-    }
-
     // Arka plan işlemleri (Notification Action) için gerekli
     FlutterLocalNotificationsPlugin.setPluginRegistrantCallback { (registry) in
       GeneratedPluginRegistrant.register(with: registry)

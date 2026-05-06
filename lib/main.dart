@@ -25,12 +25,19 @@ void main() async {
   await initializeDateFormatting('en_US', null);
     
     debugPrint('🔧 Servisler başlatılıyor...');
+
     try {
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
       }
       debugPrint('✅ Firebase hazır (Default).');
-      
+    } catch (e) {
+      if (e.toString().contains('duplicate-app')) {
+        debugPrint('⚠️ Firebase zaten hazır, devam ediliyor.');
+      } else {
+        debugPrint('⚠️ Firebase başlatma hatası: $e');
+      }
+    }
       
       if (Platform.isIOS) {
         final status = await AppTrackingTransparency.trackingAuthorizationStatus;
@@ -41,9 +48,6 @@ void main() async {
 
       await MobileAds.instance.initialize();
       debugPrint('✅ Servisler hazır.');
-    } catch (e) {
-      debugPrint('⚠️ Servis başlatma hatası: $e');
-    }
 
   try {
     await Hive.initFlutter();
@@ -99,9 +103,6 @@ void main() async {
   };
 
   runApp(const MyApp());
-  
-  // Dashboard projesini uygulama ayağa kalktıktan sonra en son başlatalım
-  DashboardService().init();
 }
 
 class MyApp extends StatelessWidget {
