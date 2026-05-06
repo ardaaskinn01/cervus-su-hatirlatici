@@ -1,76 +1,59 @@
 import 'dart:io';
 import 'dart:async';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+// ============================================================
+// 🚀 DASHBOARD SERVICE — REST API MODU
+// ============================================================
+// Firebase.initializeApp(name:'dashboard') yerine doğrudan
+// Firestore REST API kullanıyoruz. Bu sayede iOS'ta oluşan
+// ikinci Firebase başlatma crash'i tamamen ortadan kalkıyor.
+// ============================================================
 
 class DashboardService with WidgetsBindingObserver {
   static final DashboardService _instance = DashboardService._internal();
   factory DashboardService() => _instance;
   DashboardService._internal();
 
-  FirebaseApp? _dashboardApp;
-  FirebaseFirestore? _firestore;
   bool _isInitialized = false;
-  bool _isInitializing = false;
 
-  // Oturum takibi değişkenleri
+  // Dashboard projesi Firestore REST endpoint
+  static const String _projectId = 'dashboard-baf3f';
+  static const String _apiKey = 'AIzaSyBPOS5L2Qdoi0kVXgyQnCoWuAdbUfh_YAo';
+  static const String _baseUrl =
+      'https://firestore.googleapis.com/v1/projects/$_projectId/databases/(default)/documents';
+
+  // Oturum takibi
   DateTime? _sessionStartTime;
   String? _currentUserId;
   String? _currentVisitId;
   int _totalSecondsThisSession = 0;
   Timer? _heartbeatTimer;
 
+  // -----------------------------------------------------------
+  // INIT
+  // -----------------------------------------------------------
   Future<void> init() async {
-    if (_isInitialized || _isInitializing) return;
-    _isInitializing = true;
-    
-    try {
-      // 🎯 YENİ PROJE BİLGİLERİ (dashboard-baf3f)
-      // Önce mevcut bir uygulama var mı diye bakıyoruz
-      try {
-        _dashboardApp = Firebase.app('dashboard');
-      } catch (e) {
-        // Eğer yoksa (hata fırlatırsa), yeni başlatmayı deniyoruz
-        _dashboardApp = await Firebase.initializeApp(
-          name: 'dashboard',
-          options: const FirebaseOptions(
-            apiKey: "AIzaSyBPOS5L2Qdoi0kVXgyQnCoWuAdbUfh_YAo",
-            authDomain: "dashboard-baf3f.firebaseapp.com",
-            projectId: "dashboard-baf3f",
-            storageBucket: "dashboard-baf3f.firebasestorage.app",
-            messagingSenderId: "607527844560",
-            appId: "1:607527844560:web:2415525d9fa986fdc03cd5",
-            measurementId: "G-5CN9G1FZ0B",
-          ),
-        );
-      }
+    if (_isInitialized) return;
+    _isInitialized = true;
 
-      _firestore = FirebaseFirestore.instanceFor(app: _dashboardApp!);
-      _isInitialized = true;
-      
-      if (WidgetsBinding.instance.lifecycleState != null) {
-        WidgetsBinding.instance.addObserver(this);
-      } else {
-        // Observers only work when the binding is fully set up
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          WidgetsBinding.instance.addObserver(this);
-        });
-      }
-      
-      debugPrint('✅ Merkezi Dashboard Projesi Bağlandı (ID: dashboard-baf3f)');
-    } catch (e) {
-      debugPrint('❌ Dashboard Başlatma Hatası: $e');
-    } finally {
-      _isInitializing = false;
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addObserver(this);
+    });
+
+    debugPrint('✅ Dashboard Servisi hazır (REST API modu)');
   }
 
+  // -----------------------------------------------------------
+  // LIFECYCLE
+  // -----------------------------------------------------------
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!_isInitialized) return;
-
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
       _updateCurrentSessionDuration();
       _stopHeartbeat();
     } else if (state == AppLifecycleState.resumed) {
@@ -79,6 +62,9 @@ class DashboardService with WidgetsBindingObserver {
     }
   }
 
+  // -----------------------------------------------------------
+  // SESSION
+  // -----------------------------------------------------------
   void startSession(String userId, String visitId) {
     _currentUserId = userId;
     _currentVisitId = visitId;
@@ -89,7 +75,7 @@ class DashboardService with WidgetsBindingObserver {
 
   void _startHeartbeat() {
     _stopHeartbeat();
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (_) {
       _updateCurrentSessionDuration();
     });
   }
@@ -100,90 +86,115 @@ class DashboardService with WidgetsBindingObserver {
   }
 
   Future<void> _updateCurrentSessionDuration() async {
-    if (_sessionStartTime == null || _currentUserId == null || _currentVisitId == null) return;
+    if (_sessionStartTime == null ||
+        _currentUserId == null ||
+        _currentVisitId == null) return;
 
     final now = DateTime.now();
-    final int elapsedSeconds = now.difference(_sessionStartTime!).inSeconds;
-    _totalSecondsThisSession += elapsedSeconds;
+    final elapsed = now.difference(_sessionStartTime!).inSeconds;
+    _totalSecondsThisSession += elapsed;
     _sessionStartTime = now;
 
-    try {
-      await _firestore!
-          .collection('users')
-          .doc(_currentUserId)
-          .collection('visits')
-          .doc(_currentVisitId)
-          .update({
-        'durationSeconds': _totalSecondsThisSession,
-        'lastUpdate': FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      debugPrint('⚠️ Süre Kaydı Hatası: $e');
-    }
+    await _patchDocument(
+      'users/$_currentUserId/visits/$_currentVisitId',
+      {
+        'durationSeconds': {'integerValue': '$_totalSecondsThisSession'},
+        'lastUpdate': {'timestampValue': now.toUtc().toIso8601String()},
+      },
+    );
   }
 
-  FirebaseFirestore? get firestore => _firestore;
-  bool get isInitialized => _isInitialized;
+  // -----------------------------------------------------------
+  // PUBLIC API
+  // -----------------------------------------------------------
 
-  // SYNC METODU (Kullanıcı verilerini senkronize etmek için)
-  Future<void> syncExistingUser(String userId, Map<dynamic, dynamic> userData) async {
-    if (!_isInitialized || _firestore == null) return;
-    try {
-      // Artık varlık kontrolü yapmadan set(merge: true) ile yazıyoruz ki güncellemeler de yansısın
-      await _firestore!.collection('users').doc(userId).set({
-        'originalName': userData['displayName'], // UserModel'den gelen
-        'age': userData['age'],
-        'registrationDate': userData['createdAt'] is String 
-            ? Timestamp.fromDate(DateTime.parse(userData['createdAt']))
-            : userData['createdAt'],
-        'platform': Platform.isIOS ? 'iOS' : 'Android',
-        'appId': 'drinkly',
-        'isMigrated': true,
-        'migratedAt': FieldValue.serverTimestamp(),
-        'createdAt': userData['createdAt'] is String 
-            ? Timestamp.fromDate(DateTime.parse(userData['createdAt']))
-            : userData['createdAt'],
-      }, SetOptions(merge: true));
-    } catch (e) {
-      debugPrint('⚠️ Sync Hatası: $e');
-    }
+  /// Kullanıcı profil bilgilerini dashboard'a senkronize eder.
+  Future<void> syncExistingUser(
+      String userId, Map<dynamic, dynamic> userData) async {
+    if (!_isInitialized) return;
+    await _patchDocument('users/$userId', {
+      'originalName': {'stringValue': userData['displayName']?.toString() ?? ''},
+      'age': {'integerValue': '${userData['age'] ?? 0}'},
+      'platform': {'stringValue': Platform.isIOS ? 'iOS' : 'Android'},
+      'appId': {'stringValue': 'drinkly'},
+      'isMigrated': {'booleanValue': true},
+      'migratedAt': {
+        'timestampValue': DateTime.now().toUtc().toIso8601String()
+      },
+    });
   }
 
-  // 🚀 ZİYARET KAYIT METODU (Dashboard Projesine)
+  /// Ziyaret kaydeder ve oturumu başlatır.
   Future<void> logVisit({
     required String userId,
     required String visitId,
     required String appVersion,
     required String platform,
   }) async {
-    if (!_isInitialized || _firestore == null) return;
+    if (!_isInitialized) return;
 
-    try {
-      final now = DateTime.now();
-      final String date = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
-      final String time = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
+    final now = DateTime.now();
+    final date =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final time =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
 
-      await _firestore!
-          .collection('users')
-          .doc(userId)
-          .collection('visits')
-          .doc(visitId)
-          .set({
-        'date': date,
-        'time': time,
-        'platform': platform,
-        'appVersion': appVersion,
-        'timestamp': FieldValue.serverTimestamp(),
-        'appId': 'drinkly', // Uygulama ayrımı için
-      });
-      
-      // Oturumu başlat
+    final ok = await _setDocument('users/$userId/visits/$visitId', {
+      'date': {'stringValue': date},
+      'time': {'stringValue': time},
+      'platform': {'stringValue': platform},
+      'appVersion': {'stringValue': appVersion},
+      'timestamp': {'timestampValue': now.toUtc().toIso8601String()},
+      'appId': {'stringValue': 'drinkly'},
+      'durationSeconds': {'integerValue': '0'},
+    });
+
+    if (ok) {
       startSession(userId, visitId);
-      
       debugPrint("📊 Dashboard'a giriş kaydedildi: $visitId");
-    } catch (e) {
-      debugPrint("⚠️ Dashboard Giriş Kaydı Hatası: $e");
     }
   }
 
+  bool get isInitialized => _isInitialized;
+
+  // -----------------------------------------------------------
+  // REST HELPERS
+  // -----------------------------------------------------------
+
+  /// Firestore REST: Belge yazar (override)
+  Future<bool> _setDocument(
+      String path, Map<String, dynamic> fields) async {
+    try {
+      final uri = Uri.parse('$_baseUrl/$path?key=$_apiKey');
+      final body = jsonEncode({'fields': fields});
+      final res = await http
+          .patch(uri,
+              headers: {'Content-Type': 'application/json'}, body: body)
+          .timeout(const Duration(seconds: 10));
+      if (res.statusCode == 200) return true;
+      debugPrint('⚠️ Dashboard set hata ${res.statusCode}: ${res.body}');
+      return false;
+    } catch (e) {
+      debugPrint('⚠️ Dashboard set exception: $e');
+      return false;
+    }
+  }
+
+  /// Firestore REST: Belge günceller (PATCH)
+  Future<void> _patchDocument(
+      String path, Map<String, dynamic> fields) async {
+    try {
+      final updateMask =
+          fields.keys.map((k) => 'updateMask.fieldPaths=$k').join('&');
+      final uri =
+          Uri.parse('$_baseUrl/$path?key=$_apiKey&$updateMask');
+      final body = jsonEncode({'fields': fields});
+      await http
+          .patch(uri,
+              headers: {'Content-Type': 'application/json'}, body: body)
+          .timeout(const Duration(seconds: 10));
+    } catch (e) {
+      debugPrint('⚠️ Dashboard patch exception: $e');
+    }
+  }
 }
