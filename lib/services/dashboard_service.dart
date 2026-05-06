@@ -25,25 +25,26 @@ class DashboardService with WidgetsBindingObserver {
     if (_isInitialized || _isInitializing) return;
     _isInitializing = true;
     
-    // Ana servisin (Default Firebase) tamamen ayağa kalktığından emin olmak için gecikme ekliyoruz
-    await Future.delayed(const Duration(seconds: 2));
-
     try {
       // 🎯 YENİ PROJE BİLGİLERİ (dashboard-baf3f)
-      _dashboardApp = Firebase.apps.any((app) => app.name == 'dashboard')
-          ? Firebase.app('dashboard')
-          : await Firebase.initializeApp(
-              name: 'dashboard',
-              options: const FirebaseOptions(
-                apiKey: "AIzaSyBPOS5L2Qdoi0kVXgyQnCoWuAdbUfh_YAo",
-                authDomain: "dashboard-baf3f.firebaseapp.com",
-                projectId: "dashboard-baf3f",
-                storageBucket: "dashboard-baf3f.firebasestorage.app",
-                messagingSenderId: "607527844560",
-                appId: "1:607527844560:web:2415525d9fa986fdc03cd5", // Web/Universal ID
-                measurementId: "G-5CN9G1FZ0B",
-              ),
-            );
+      // Önce mevcut bir uygulama var mı diye bakıyoruz
+      try {
+        _dashboardApp = Firebase.app('dashboard');
+      } catch (e) {
+        // Eğer yoksa (hata fırlatırsa), yeni başlatmayı deniyoruz
+        _dashboardApp = await Firebase.initializeApp(
+          name: 'dashboard',
+          options: const FirebaseOptions(
+            apiKey: "AIzaSyBPOS5L2Qdoi0kVXgyQnCoWuAdbUfh_YAo",
+            authDomain: "dashboard-baf3f.firebaseapp.com",
+            projectId: "dashboard-baf3f",
+            storageBucket: "dashboard-baf3f.firebasestorage.app",
+            messagingSenderId: "607527844560",
+            appId: "1:607527844560:web:2415525d9fa986fdc03cd5",
+            measurementId: "G-5CN9G1FZ0B",
+          ),
+        );
+      }
 
       _firestore = FirebaseFirestore.instanceFor(app: _dashboardApp!);
       _isInitialized = true;

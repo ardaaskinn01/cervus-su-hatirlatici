@@ -30,9 +30,7 @@ void main() async {
         await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
       }
       debugPrint('✅ Firebase hazır (Default).');
-
-      // Dashboard projesini DEFAULT başlatıldıktan sonra güvenle başlatalım
-      DashboardService().init();
+      
       
       if (Platform.isIOS) {
         final status = await AppTrackingTransparency.trackingAuthorizationStatus;
@@ -101,6 +99,9 @@ void main() async {
   };
 
   runApp(const MyApp());
+  
+  // Dashboard projesini uygulama ayağa kalktıktan sonra en son başlatalım
+  DashboardService().init();
 }
 
 class MyApp extends StatelessWidget {
