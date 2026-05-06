@@ -20,8 +20,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('🚀 main() başladı');
 
-  // Dashboard projesini başlat
-  await DashboardService().init();
+  // Dashboard projesini başlat (Await kaldırıldı çakışmayı önlemek için)
+  DashboardService().init();
   
     // Tarih formatlama yerelleştirmesini garantiye alalım (Hereden bağımsız)
     await initializeDateFormatting('tr_TR', null);

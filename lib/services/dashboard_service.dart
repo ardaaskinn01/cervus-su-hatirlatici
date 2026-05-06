@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -17,9 +18,13 @@ class DashboardService with WidgetsBindingObserver {
   String? _currentUserId;
   String? _currentVisitId;
   int _totalSecondsThisSession = 0;
+  Timer? _heartbeatTimer;
 
   Future<void> init() async {
     if (_isInitialized) return;
+    
+    // Ana servisin (Default Firebase) tamamen ayağa kalktığından emin olmak için gecikme ekliyoruz
+    await Future.delayed(const Duration(seconds: 2));
 
     try {
       // 🎯 YENİ PROJE BİLGİLERİ (dashboard-baf3f)
@@ -62,8 +67,10 @@ class DashboardService with WidgetsBindingObserver {
 
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       _updateCurrentSessionDuration();
+      _stopHeartbeat();
     } else if (state == AppLifecycleState.resumed) {
       _sessionStartTime = DateTime.now();
+      _startHeartbeat();
     }
   }
 
@@ -72,6 +79,19 @@ class DashboardService with WidgetsBindingObserver {
     _currentVisitId = visitId;
     _sessionStartTime = DateTime.now();
     _totalSecondsThisSession = 0;
+    _startHeartbeat();
+  }
+
+  void _startHeartbeat() {
+    _stopHeartbeat();
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      _updateCurrentSessionDuration();
+    });
+  }
+
+  void _stopHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
   }
 
   Future<void> _updateCurrentSessionDuration() async {
@@ -160,4 +180,5 @@ class DashboardService with WidgetsBindingObserver {
       debugPrint("⚠️ Dashboard Giriş Kaydı Hatası: $e");
     }
   }
+
 }
