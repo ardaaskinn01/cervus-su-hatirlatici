@@ -365,7 +365,7 @@ class NotificationService {
 
   // ─── ANA PLANLAMA NOKTASI ────────────────────────────────────
   /// Su eklendiğinde çağrılır. Seçili preset'e göre escalating bildirimleri planlar.
-  Future<void> scheduleEscalatingReminders() async {
+  Future<void> scheduleEscalatingReminders({DateTime? baseTime}) async {
     await initialize();
     bool isEnabled = Hive.box('settings').get('notificationsEnabled', defaultValue: true);
     if (!isEnabled) {
@@ -384,14 +384,25 @@ class NotificationService {
       return;
     }
 
+    // lastWaterTimestamp null ise şimdiyi baz al (ilk kullanım)
+    final existingTs = Hive.box('settings').get('lastWaterTimestamp') as int?;
+    final lastWater = existingTs != null 
+        ? DateTime.fromMillisecondsSinceEpoch(existingTs)
+        : null;
+
+    final DateTime from = baseTime ?? lastWater ?? DateTime.now();
+
     final now = DateTime.now();
-    await Hive.box('settings').put('lastWaterTimestamp', now.millisecondsSinceEpoch);
     await Hive.box('settings').put('lastAppOpenDate', _formatDate(now));
 
-    final preset = getIntervalPreset();
-    await _scheduleByPreset(now, user, preset);
+    if (baseTime != null) {
+      await Hive.box('settings').put('lastWaterTimestamp', baseTime.millisecondsSinceEpoch);
+    }
 
-    debugPrint('✅ Escalating bildirimler planlandı [preset=$preset]: ${now.toString()}');
+    final preset = getIntervalPreset();
+    await _scheduleByPreset(from, user, preset);
+
+    debugPrint('✅ Escalating bildirimler planlandı [preset=$preset]: ${from.toString()}');
   }
 
   /// Schedules the next reminder (legacy compat — calls scheduleEscalatingReminders)

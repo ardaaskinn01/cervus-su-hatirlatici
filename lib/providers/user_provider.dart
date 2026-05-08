@@ -12,9 +12,18 @@ import '../services/dashboard_service.dart';
 class UserProvider extends ChangeNotifier {
   UserModel? _currentUser;
   bool _isLoading = false;
+  bool _isPremium = false;
 
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
+  bool get isPremium => _isPremium;
+
+  void updatePremiumStatus(bool status) {
+    if (_isPremium != status) {
+      _isPremium = status;
+      notifyListeners();
+    }
+  }
 
   Future<void> initUser() async {
     var box = Hive.box<UserModel>('userBox');

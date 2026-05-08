@@ -5,11 +5,11 @@ import '../models/drink_model.dart';
 import '../providers/drink_provider.dart';
 
 class DrinksEntrySheet extends StatefulWidget {
-  final bool isHotCategory;
+  final DrinkType preselectedType;
   
   const DrinksEntrySheet({
     super.key,
-    required this.isHotCategory,
+    required this.preselectedType,
   });
 
   @override
@@ -17,14 +17,19 @@ class DrinksEntrySheet extends StatefulWidget {
 }
 
 class _DrinksEntrySheetState extends State<DrinksEntrySheet> {
-  int _step = 1;
-  DrinkType? _selectedType;
   int? _selectedMl;
   double _extraSugarG = 0;
 
   final TextEditingController _customMlController = TextEditingController();
-
   static const primaryOrange = Color(0xFFE8590C);
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.preselectedType == DrinkType.turkishCoffee) _selectedMl = 90;
+    if (widget.preselectedType == DrinkType.tea) _selectedMl = 125;
+    if (widget.preselectedType == DrinkType.fruitSoda) _selectedMl = 200;
+  }
 
   @override
   void dispose() {
@@ -32,38 +37,42 @@ class _DrinksEntrySheetState extends State<DrinksEntrySheet> {
     super.dispose();
   }
 
-  void _resetSelection() {
-    setState(() {
-      _selectedMl = null;
-      _extraSugarG = 0;
-      _customMlController.clear();
-    });
-  }
-
-  List<Map<String, dynamic>> _getDrinksInfo(LocaleProvider lp, bool isHot) {
-    final allDrinks = [
-      {'type': DrinkType.turkishCoffee, 'name': lp.translate('drink_type_turkishCoffee'), 'isHot': true},
-      {'type': DrinkType.coffee, 'name': lp.translate('drink_type_coffee'), 'isHot': true},
-      {'type': DrinkType.milkCoffee, 'name': lp.translate('drink_type_milkCoffee'), 'isHot': true},
-      {'type': DrinkType.tea, 'name': lp.translate('drink_type_tea'), 'isHot': true},
-      {'type': DrinkType.icedTea, 'name': lp.translate('drink_type_icedTea'), 'isHot': false},
-      {'type': DrinkType.fruitJuice, 'name': lp.translate('drink_type_fruitJuice'), 'isHot': false},
-      {'type': DrinkType.cola, 'name': lp.translate('drink_type_cola'), 'isHot': false},
-      {'type': DrinkType.fruitSoda, 'name': lp.translate('drink_type_fruitSoda'), 'isHot': false},
-      {'type': DrinkType.lemonade, 'name': lp.translate('drink_type_lemonade'), 'isHot': false},
+  List<Map<String, dynamic>> _getAllDrinksInfo(LocaleProvider lp) {
+    return [
+      {'type': DrinkType.turkishCoffee, 'name': lp.translate('drink_type_turkishCoffee')},
+      {'type': DrinkType.coffee, 'name': lp.translate('drink_type_coffee')},
+      {'type': DrinkType.milkCoffee, 'name': lp.translate('drink_type_milkCoffee')},
+      {'type': DrinkType.tea, 'name': lp.translate('drink_type_tea')},
+      {'type': DrinkType.icedTea, 'name': lp.translate('drink_type_icedTea')},
+      {'type': DrinkType.fruitJuice, 'name': lp.translate('drink_type_fruitJuice')},
+      {'type': DrinkType.cola, 'name': lp.translate('drink_type_cola')},
+      {'type': DrinkType.fruitSoda, 'name': lp.translate('drink_type_fruitSoda')},
+      {'type': DrinkType.lemonade, 'name': lp.translate('drink_type_lemonade')},
     ];
-    return allDrinks.where((drink) => drink['isHot'] == isHot).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     final dp = context.watch<DrinkProvider>();
     final lp = context.watch<LocaleProvider>();
-    final drinksInfo = _getDrinksInfo(lp, widget.isHotCategory);
+    final drinksInfo = _getAllDrinksInfo(lp);
+    
+    final drinkInfo = drinksInfo.firstWhere((e) => e['type'] == widget.preselectedType, orElse: () => drinksInfo.first);
+    String drinkName = drinkInfo['name'];
+
+    int currentMl = _selectedMl ?? (int.tryParse(_customMlController.text) ?? 0);
+    double previewCaff = 0;
+    double previewSug = 0;
+
+    if (currentMl > 0) {
+      final dummy = DrinkEntry.fromDrinkType(widget.preselectedType, currentMl, extraSugarG: _extraSugarG);
+      previewCaff = dummy.caffeineAmount;
+      previewSug = dummy.sugarAmount;
+    }
 
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFFFDFCFB), // Slightly warm white
+        color: Color(0xFFFDFCFB),
         borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
         boxShadow: [
           BoxShadow(color: Colors.black12, blurRadius: 40, spreadRadius: 0, offset: Offset(0, -10)),
@@ -75,20 +84,73 @@ class _DrinksEntrySheetState extends State<DrinksEntrySheet> {
         curve: Curves.easeInOut,
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Handle bar
-            Container(width: 48, height: 5, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(10))),
+            Center(child: Container(width: 48, height: 5, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(10)))),
             const SizedBox(height: 28),
             
             // Modern Limits Header
             _buildLimitsHeader(dp, lp),
-            
             const SizedBox(height: 32),
 
-            if (_step == 1) 
-              _buildStep1(context, drinksInfo, lp) 
-            else 
-              _buildStep2(context, dp, drinksInfo, lp),
+            Center(
+              child: Text(drinkName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: -0.5)),
+            ),
+            const SizedBox(height: 28),
+            
+            _buildOptionsForType(widget.preselectedType, lp),
+            const SizedBox(height: 32),
+            
+            // Preview Card
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: const Color(0xFFF1F5F9)),
+                boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 20, offset: Offset(0, 10))],
+              ),
+              child: Column(
+                children: [
+                  Text(lp.translate('drink_day_summary').toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.grey.shade400, letterSpacing: 1.5)),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _previewItem(Icons.coffee_rounded, "~${previewCaff.toStringAsFixed(0)} mg", primaryOrange),
+                      Container(width: 1, height: 32, color: const Color(0xFFF1F5F9)),
+                      _previewItem(Icons.cake_rounded, "~${previewSug.toStringAsFixed(1)} g", Colors.amber.shade700),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            ElevatedButton(
+              onPressed: (currentMl > 0) ? () {
+                final entry = DrinkEntry.fromDrinkType(widget.preselectedType, currentMl, extraSugarG: _extraSugarG);
+                dp.addDrink(entry);
+                Navigator.pop(context);
+              } : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryOrange,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: primaryOrange.withValues(alpha: 0.3),
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.check_circle_rounded, size: 20),
+                  const SizedBox(width: 10),
+                  Text(lp.translate('drink_add'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -193,150 +255,6 @@ class _DrinksEntrySheetState extends State<DrinksEntrySheet> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildStep1(BuildContext context, List<Map<String, dynamic>> drinksInfo, LocaleProvider lp) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(lp.translate('drink_select_type'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: -0.5)),
-        const SizedBox(height: 24),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: drinksInfo.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, 
-            crossAxisSpacing: 16, 
-            mainAxisSpacing: 16, 
-            childAspectRatio: 2.2
-          ),
-          itemBuilder: (context, index) {
-            final info = drinksInfo[index];
-            return Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () {
-                  setState(() {
-                    _selectedType = info['type'];
-                    _resetSelection();
-                    if (_selectedType == DrinkType.turkishCoffee) _selectedMl = 90;
-                    if (_selectedType == DrinkType.tea) _selectedMl = 125;
-                    if (_selectedType == DrinkType.fruitSoda) _selectedMl = 200;
-                    _step = 2;
-                  });
-                },
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFF1F5F9)),
-                    boxShadow: const [BoxShadow(color: Color(0x11000000), blurRadius: 10, offset: Offset(0, 4))],
-                  ),
-                  child: Center(
-                    child: Text(
-                      info['name'] as String, 
-                      textAlign: TextAlign.center, 
-                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF0F172A), height: 1.1)
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStep2(BuildContext context, DrinkProvider dp, List<Map<String, dynamic>> drinksInfo, LocaleProvider lp) {
-    final drinkInfo = drinksInfo.firstWhere((e) => e['type'] == _selectedType);
-    String drinkName = drinkInfo['name'];
-    
-    int currentMl = _selectedMl ?? (int.tryParse(_customMlController.text) ?? 0);
-    double previewCaff = 0;
-    double previewSug = 0;
-
-    if (_selectedType != null && currentMl > 0) {
-      final dummy = DrinkEntry.fromDrinkType(_selectedType!, currentMl, extraSugarG: _extraSugarG);
-      previewCaff = dummy.caffeineAmount;
-      previewSug = dummy.sugarAmount;
-    }
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20), onPressed: () => setState(() => _step = 1)),
-            ),
-            Text(drinkName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: -0.5)),
-          ],
-        ),
-        const SizedBox(height: 28),
-        
-        _buildOptionsForType(_selectedType!, lp),
-
-        const SizedBox(height: 32),
-        
-        // Preview Card
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFF1F5F9)),
-            boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 20, offset: Offset(0, 10))],
-          ),
-          child: Column(
-            children: [
-              Text(lp.translate('drink_day_summary').toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.grey.shade400, letterSpacing: 1.5)),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _previewItem(Icons.coffee_rounded, "~${previewCaff.toStringAsFixed(0)} mg", primaryOrange),
-                  Container(width: 1, height: 32, color: const Color(0xFFF1F5F9)),
-                  _previewItem(Icons.cake_rounded, "~${previewSug.toStringAsFixed(1)} g", Colors.amber.shade700),
-                ],
-              ),
-            ],
-          ),
-        ),
-        
-        const SizedBox(height: 32),
-
-        ElevatedButton(
-          onPressed: (currentMl > 0) ? () {
-            final entry = DrinkEntry.fromDrinkType(_selectedType!, currentMl, extraSugarG: _extraSugarG);
-            dp.addDrink(entry);
-            Navigator.pop(context);
-          } : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primaryOrange,
-            foregroundColor: Colors.white,
-            disabledBackgroundColor: primaryOrange.withValues(alpha: 0.3),
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.check_circle_rounded, size: 20),
-              const SizedBox(width: 10),
-              Text(lp.translate('drink_add'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -476,3 +394,4 @@ class _DrinksEntrySheetState extends State<DrinksEntrySheet> {
     );
   }
 }
+

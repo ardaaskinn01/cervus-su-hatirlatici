@@ -9,6 +9,7 @@ import 'dart:io';
 import '../models/user_model.dart';
 import '../services/notification_service.dart';
 import '../services/dashboard_service.dart';
+import '../services/revenuecat_service.dart';
 import 'onboarding_screen.dart';
 import 'main_shell.dart';
 import 'dart:async';
@@ -76,6 +77,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       // Dashboard servisini Firebase hazır olduktan SONRA başlatıyoruz
       DashboardService().init();
 
+      if (mounted) {
+        await RevenueCatService.init(context);
+      }
+
       debugPrint('🔔 Bildirimler başlatılıyor...');
       await NotificationService().initialize();
 
@@ -86,12 +91,19 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       // Uygulama her açıldığında yeniden planlanır (süre sıfırlanır)
       NotificationService().scheduleReEngagementNotifications();
 
-      // ⏰ Escalating su hatırlatıcıları — eğer son su kaydı varsa
-      // (İlk açılış veya kullanıcı kayıtlı ise)
+      // ⏰ Escalating su hatırlatıcıları
       final settingsBox = Hive.box('settings');
-      final lastTs = settingsBox.get('lastWaterTimestamp');
-      if (lastTs != null) {
-        NotificationService().scheduleEscalatingReminders();
+      final lastTs = settingsBox.get('lastWaterTimestamp') as int?;
+      if (lastTs == null) {
+        // Hiç su girilmemiş veya ilk açılış: şimdiden itibaren hatırlatmayı planla
+        await NotificationService().scheduleEscalatingReminders();
+      } else {
+        final lastTime = DateTime.fromMillisecondsSinceEpoch(lastTs);
+        final diff = DateTime.now().difference(lastTime);
+        // Eğer son su girişinden bu yana 24 saatten fazla geçtiyse yeniden planla
+        if (diff.inHours >= 24) {
+          await NotificationService().scheduleEscalatingReminders();
+        }
       }
 
       debugPrint('💰 AdMob başlatılıyor...');

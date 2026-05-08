@@ -7,6 +7,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 
 import 'models/user_model.dart';
 import 'providers/user_provider.dart';
@@ -14,11 +16,14 @@ import 'providers/water_provider.dart';
 import 'providers/drink_provider.dart';
 import 'providers/locale_provider.dart';
 import 'screens/splash_screen.dart';
+import 'services/rewarded_ad_service.dart';
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   debugPrint('🚀 main() başladı');
+
 
   // Tarih formatlama yerelleştirmesini garantiye alalım (Hereden bağımsız)
   await initializeDateFormatting('tr_TR', null);
@@ -47,6 +52,7 @@ void main() async {
       }
 
       await MobileAds.instance.initialize();
+      await RewardedAdService.load(); // Önceden yükle
       debugPrint('✅ Servisler hazır.');
 
   try {

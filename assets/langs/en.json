@@ -166,5 +166,16 @@
   "drink_avg_caf": "Avg. Daily Caffeine",
   "drink_avg_sug": "Avg. Daily Sugar",
   "drink_health_score": "Health Score",
-  "drink_add_btn": "Add Drink"
+  "drink_add_btn": "Add Drink",
+  "premium_popup_title": "Drinkly Pro",
+  "premium_popup_feature_1": "Soft drink tracking",
+  "premium_popup_feature_2": "Export water and drink analysis",
+  "premium_popup_feature_3": "No ads",
+  "premium_popup_restore": "Restore Purchases",
+  "premium_popup_cancel": "Maybe Later",
+  "prof_goal_hint": "Leave empty to auto-calculate based on age and weight",
+  "pro_or_ad": "🔒 Pro only — or watch an ad to add 1 drink",
+  "nav_water": "Water",
+  "report_btn_title": "Get Weekly Report",
+  "report_btn_subtitle": "Export water and drink data as PDF"
 }

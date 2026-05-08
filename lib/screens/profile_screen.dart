@@ -9,6 +9,10 @@ import '../services/notification_service.dart';
 import 'package:hive/hive.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
+import '../services/revenuecat_service.dart';
+import '../services/report_service.dart';
+import '../providers/drink_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -50,10 +54,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     final user = context.read<UserProvider>().currentUser;
+    final autoGoal = context.read<WaterProvider>().dailyGoal;
+
     _nameCtrl = TextEditingController(text: user?.displayName ?? '');
     _ageCtrl = TextEditingController(text: user?.age.toString() ?? '');
     _weightCtrl = TextEditingController(text: user?.weight.toString() ?? '');
-    _goalCtrl = TextEditingController(text: user?.customGoal?.toString() ?? '');
+    
+    _goalCtrl = TextEditingController(
+      text: user?.customGoal != null && user!.customGoal! > 0
+          ? user.customGoal.toString()
+          : autoGoal.toString(),
+    );
 
     if (user != null) {
       _wakeTime = _parseTime(user.wakeUpTime);
@@ -144,9 +155,182 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
+  void _showPremiumDialog() {
+    final lp = context.read<LocaleProvider>();
+    final isTr = lp.locale.languageCode == 'tr';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.workspace_premium_rounded, size: 60, color: accentColor),
+                const SizedBox(height: 12),
+                Text(lp.translate('premium_popup_title'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: primaryText)),
+                const SizedBox(height: 20),
+                _buildPremiumFeatureRow(Icons.local_cafe_rounded, lp.translate('premium_popup_feature_1')),
+                _buildPremiumFeatureRow(Icons.analytics_rounded, lp.translate('premium_popup_feature_2')),
+                _buildPremiumFeatureRow(Icons.block, lp.translate('premium_popup_feature_3')),
+                const SizedBox(height: 24),
+
+                // RevenueCat paketler
+                FutureBuilder<Offerings?>(
+                  future: RevenueCatService.getOfferings(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Padding(padding: EdgeInsets.all(20), child: Center(child: CircularProgressIndicator()));
+                    }
+                    if (snapshot.hasError || snapshot.data == null) {
+                      return Text(isTr ? "Paketler yüklenemedi." : "Packages could not be loaded.", style: TextStyle(color: secondaryText));
+                    }
+                    final packages = snapshot.data!.current?.availablePackages ?? [];
+                    final monthly  = packages.where((p) => p.packageType == PackageType.monthly).firstOrNull;
+                    final yearly   = packages.where((p) => p.packageType == PackageType.annual).firstOrNull;
+                    final lifetime = packages.where((p) => p.packageType == PackageType.lifetime).firstOrNull;
+                    return Column(children: [
+                      if (monthly  != null) _buildSubCard(ctx, monthly,  isTr ? "Aylık"      : "Monthly",  monthly.storeProduct.priceString,  isTr ? "Her ay yenilenir"         : "Renews every month",         false, null,   isTr),
+                      if (yearly   != null) _buildSubCard(ctx, yearly,   isTr ? "Yıllık"     : "Yearly",   yearly.storeProduct.priceString,   isTr ? "En maliyet etkin seçim"   : "Best value for money",        true,  isTr ? "599.99 ₺" : "\$35.99", isTr),
+                      if (lifetime != null) _buildSubCard(ctx, lifetime, isTr ? "Ömür Boyu"  : "Lifetime", lifetime.storeProduct.priceString, isTr ? "Tek seferlik ödeme"       : "One-time payment",             false, null,   isTr),
+                    ]);
+                  },
+                ),
+
+                const SizedBox(height: 12),
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  TextButton(
+                    onPressed: () => launchUrl(Uri.parse("https://cervusdigital.com/drinkly/privacy-policy/")),
+                    child: Text(isTr ? "Gizlilik" : "Privacy Policy", style: TextStyle(color: secondaryText.withValues(alpha: 0.5), fontSize: 11)),
+                  ),
+                  Text("|", style: TextStyle(color: secondaryText.withValues(alpha: 0.3))),
+                  TextButton(
+                    onPressed: () => launchUrl(Uri.parse("https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")),
+                    child: Text(isTr ? "Kullanım Koşulları" : "Terms of Use", style: TextStyle(color: secondaryText.withValues(alpha: 0.5), fontSize: 11)),
+                  ),
+                ]),
+                Text(
+                  isTr ? "Abonelikler otomatik yenilenir. İptal edilmediği sürece seçilen dönem sonunda ücret tahsil edilir." : "Subscriptions renew automatically unless cancelled.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: secondaryText.withValues(alpha: 0.4), fontSize: 10),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () async { Navigator.pop(ctx); await RevenueCatService.restorePurchases(context); },
+                  child: Text(lp.translate('premium_popup_restore'), style: TextStyle(color: secondaryText)),
+                ),
+                TextButton(onPressed: () => Navigator.pop(ctx), child: Text(lp.translate('premium_popup_cancel'), style: TextStyle(color: secondaryText.withValues(alpha: 0.6)))),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubCard(
+    BuildContext dialogContext,
+    Package package,
+    String title,
+    String price,
+    String subtitle,
+    bool isPopular,
+    String? originalPrice,
+    bool isTr,
+  ) {
+    return GestureDetector(
+      onTap: () async {
+        Navigator.pop(dialogContext);
+        await RevenueCatService.purchasePackage(context, package);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isPopular ? accentColor.withValues(alpha: 0.1) : Colors.transparent,
+          border: Border.all(color: isPopular ? accentColor : Colors.grey.withValues(alpha: 0.2)),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(title, style: TextStyle(color: primaryText, fontSize: 16, fontWeight: FontWeight.bold)),
+                      if (isPopular) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(color: accentColor, borderRadius: BorderRadius.circular(6)),
+                          child: Text(isTr ? "POPÜLER" : "POPULAR", style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                        ),
+                      ]
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: TextStyle(color: secondaryText, fontSize: 12)),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (originalPrice != null)
+                  Text(
+                    originalPrice,
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 12,
+                      decoration: TextDecoration.lineThrough,
+                    ),
+                  ),
+                Text(
+                  price,
+                  style: TextStyle(color: accentColor, fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPremiumFeatureRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: accentColor, size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(text, style: TextStyle(color: primaryText, fontSize: 15, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var pr = context.watch<UserProvider>();
+    final lp = context.watch<LocaleProvider>();
     final user = pr.currentUser;
 
     return Scaffold(
@@ -156,13 +340,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        leading: _isEditing ? IconButton(
+          icon: Icon(Icons.close_rounded, color: primaryText),
+          onPressed: () => setState(() => _isEditing = false),
+        ) : null,
         actions: [
-          if (!_isEditing) ...[
+          if (!_isEditing)
             IconButton(
               icon: Icon(Icons.edit_rounded, color: accentColor),
               onPressed: () => setState(() => _isEditing = true),
+            )
+          else
+            IconButton(
+              icon: pr.isLoading ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(Icons.check_rounded, color: accentColor),
+              onPressed: pr.isLoading ? null : _saveProfile,
             ),
-          ]
         ],
       ),
       body: user == null
@@ -240,6 +432,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         controller: _goalCtrl,
                         suffix: context.watch<LocaleProvider>().translate('prof_suffix_ml'),
                         isLast: true,
+                        subHint: context.watch<LocaleProvider>().translate('prof_goal_hint'),
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -295,7 +488,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         children: [
                           _buildSettingRow(
+                            icon: Icons.workspace_premium_rounded,
+                            iconColor: const Color(0xFFF59E0B),
+                            title: lp.translate('premium_popup_title'),
+                            subtitle: lp.translate('premium_popup_feature_3'),
+                            onTap: _showPremiumDialog,
+                            trailing: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text("PRO", style: TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.w900, fontSize: 10)),
+                            ),
+                          ),
+                          const Divider(height: 1, color: Color(0xFFF1F5F9), indent: 70),
+                          _buildSettingRow(
                             icon: Icons.notifications_active_rounded,
+
                             iconColor: const Color(0xFFF59E0B),
                             title: context.watch<LocaleProvider>().translate('settings_notif'),
                             subtitle: '',
@@ -378,44 +588,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             onTap: _openOtherApps,
                             trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFFCBD5E1)),
                           ),
+                          if (context.read<UserProvider>().isPremium) ...[
+                            const Divider(height: 1, color: Color(0xFFF1F5F9), indent: 70),
+                            _buildSettingRow(
+                              icon: Icons.picture_as_pdf_rounded,
+                              iconColor: Colors.redAccent,
+                              title: lp.translate('report_btn_title'),
+                              subtitle: lp.translate('report_btn_subtitle'),
+                              onTap: () {
+                                final isTr = lp.locale.languageCode == 'tr';
+                                ReportService.generateAndShare(
+                                  context: context,
+                                  waterProvider: context.read<WaterProvider>(),
+                                  drinkProvider: context.read<DrinkProvider>(),
+                                  isTr: isTr,
+                                );
+                              },
+                              trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFFCBD5E1)),
+                            ),
+                          ],
                         ],
                       ),
                     ),
-
-                    if (_isEditing)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 32),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: () => setState(() => _isEditing = false),
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  side: const BorderSide(color: Color(0xFFE2E8F0)),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                ),
-                                child: Text(context.watch<LocaleProvider>().translate('prof_btn_cancel'), style: TextStyle(color: secondaryText, fontWeight: FontWeight.bold)),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: pr.isLoading ? null : _saveProfile,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: accentColor,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                  elevation: 0,
-                                ),
-                                child: pr.isLoading
-                                    ? const CircularProgressIndicator(color: Colors.white)
-                                    : Text(context.watch<LocaleProvider>().translate('prof_btn_save'), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
 
                     const SizedBox(height: 48),
                   ],
@@ -435,32 +629,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildTextFieldRow({required IconData icon, required String label, required TextEditingController controller, required String suffix, required bool isLast, bool isNumeric = true}) {
+  Widget _buildTextFieldRow({required IconData icon, required String label, required TextEditingController controller, required String suffix, required bool isLast, bool isNumeric = true, String? subHint}) {
+    String displayValue = controller.text.trim().isEmpty ? '—' : '${controller.text} $suffix';
+
     return Padding(
       padding: EdgeInsets.only(left: 20, right: 20, top: isLast ? 8 : 16, bottom: isLast ? 16 : 8),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: accentColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
-            child: Icon(icon, color: accentColor, size: 22),
-          ),
-          const SizedBox(width: 16),
-          Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryText)),
-          const Spacer(),
-          if (!_isEditing)
-            Text('${controller.text} $suffix', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: secondaryText))
-          else
-            SizedBox(
-              width: isNumeric ? 80 : 140,
-              child: CupertinoTextField(
-                controller: controller,
-                keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
-                textAlign: TextAlign.right,
-                suffix: suffix.isNotEmpty ? Padding(padding: const EdgeInsets.only(right: 8), child: Text(suffix, style: const TextStyle(color: Colors.grey))) : null,
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                decoration: BoxDecoration(color: scaffoldBg, borderRadius: BorderRadius.circular(8)),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: accentColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
+                child: Icon(icon, color: accentColor, size: 22),
               ),
+              const SizedBox(width: 16),
+              Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryText)),
+              const Spacer(),
+              if (!_isEditing)
+                Text(displayValue, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: secondaryText))
+              else
+                SizedBox(
+                  width: isNumeric ? 80 : 140,
+                  child: CupertinoTextField(
+                    controller: controller,
+                    keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+                    textAlign: TextAlign.right,
+                    suffix: suffix.isNotEmpty ? Padding(padding: const EdgeInsets.only(right: 8), child: Text(suffix, style: const TextStyle(color: Colors.grey))) : null,
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                    decoration: BoxDecoration(color: scaffoldBg, borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+            ],
+          ),
+          if (_isEditing && subHint != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8, left: 48),
+              child: Text(subHint, style: const TextStyle(fontSize: 11, color: Colors.grey)),
             ),
         ],
       ),

@@ -166,5 +166,16 @@
   "drink_sugar_3cube": "3 Şeker",
   "drink_health_summary_good": "Bu hafta {count} gün sağlıklı limitlerin içindeydiniz 🎉",
   "drink_health_summary_bad": "Bu hafta şeker limitini {count} kez aştınız ⚠️",
-  "drink_add_btn": "İçecek Ekle"
+  "drink_add_btn": "İçecek Ekle",
+  "premium_popup_title": "Drinkly Pro",
+  "premium_popup_feature_1": "Meşrubat kullanımı",
+  "premium_popup_feature_2": "Su ve meşrubat tüketim analizlerini çıktı alma",
+  "premium_popup_feature_3": "Reklamlar olmaz",
+  "premium_popup_restore": "Satın Alımı Geri Yükle",
+  "premium_popup_cancel": "Belki Daha Sonra",
+  "prof_goal_hint": "Boş bırakılırsa yaş ve kilonuza göre otomatik hesaplanır",
+  "pro_or_ad": "🔒 Pro üyeye özel veya reklam izleyerek 1 meşrubat ekle",
+  "nav_water": "Su",
+  "report_btn_title": "Haftalık Rapor Al",
+  "report_btn_subtitle": "Su ve meşrubat tüketimini PDF olarak kaydet"
 }

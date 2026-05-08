@@ -3,6 +3,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 
 // ============================================================
 // 🚀 DASHBOARD SERVICE — REST API MODU
@@ -21,8 +23,9 @@ class DashboardService with WidgetsBindingObserver {
 
   // Dashboard projesi Firestore REST endpoint
   static const String _projectId = 'dashboard-baf3f';
-  static const String _apiKey = 'AIzaSyBPOS5L2Qdoi0kVXgyQnCoWuAdbUfh_YAo';
-  static const String _baseUrl =
+  static final String _apiKey = dotenv.env['DASHBOARD_API_KEY'] ?? '';
+  static final String _baseUrl =
+
       'https://firestore.googleapis.com/v1/projects/$_projectId/databases/(default)/documents';
 
   // Oturum takibi
@@ -88,7 +91,9 @@ class DashboardService with WidgetsBindingObserver {
   Future<void> _updateCurrentSessionDuration() async {
     if (_sessionStartTime == null ||
         _currentUserId == null ||
-        _currentVisitId == null) return;
+        _currentVisitId == null) {
+      return;
+    }
 
     final now = DateTime.now();
     final elapsed = now.difference(_sessionStartTime!).inSeconds;

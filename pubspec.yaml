@@ -2,7 +2,7 @@ name: suhatirlatici
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 2.0.5+100
+version: 2.0.7+102
 
 environment:
   sdk: ^3.7.2
@@ -31,6 +31,12 @@ dependencies:
   app_tracking_transparency: ^2.0.6+1
   firebase_messaging: ^16.2.0
   http: ^1.2.2
+  flutter_dotenv: ^6.0.1
+  purchases_flutter: ^10.0.2
+  pdf: ^3.11.3
+  path_provider: ^2.1.5
+  share_plus: ^12.0.2
+  printing: ^5.14.3
 
 dev_dependencies:
   flutter_test:
@@ -52,3 +58,5 @@ flutter:
     - shorebird.yaml
     - assets/langs/
     - assets/images/
+    - .env
+

@@ -178,7 +178,7 @@ class WaterProvider extends ChangeNotifier {
     // Son su zamanını kaydet ve escalating bildirimleri yeniden planla
     await Hive.box('settings').put('lastWaterTimestamp', DateTime.now().millisecondsSinceEpoch);
     await Hive.box('settings').put('lastAppOpenDate', _formatDate(DateTime.now()));
-    NotificationService().scheduleEscalatingReminders();
+    await NotificationService().scheduleEscalatingReminders(baseTime: DateTime.now());
   }
 
   // ─── SU SİL ────────────────────────────────────────────────────

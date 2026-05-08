@@ -1,0 +1,15 @@
+﻿Analyzing lib...
+
+  error - screens\profile_screen.dart:602:63 - The name 'DrinkProvider' isn't a type, so it can't be used as a type argument. Try correcting the name to an existing type, or defining a type named 'DrinkProvider'. - non_type_as_type_argument
+warning - screens\home_screen.dart:9:8 - Unused import: '../widgets/drink_gauge_widget.dart'. Try removing the import directive. - unused_import
+warning - screens\home_screen.dart:223:54 - The left operand can't be null, so the right operand is never executed. Try removing the operator and the right operand. - dead_null_aware_expression
+warning - screens\home_screen.dart:419:48 - The left operand can't be null, so the right operand is never executed. Try removing the operator and the right operand. - dead_null_aware_expression
+   info - screens\home_screen.dart:953:29 - Statements in an if should be enclosed in a block. Try wrapping the statement in a block. - curly_braces_in_flow_control_structures
+   info - screens\profile_screen.dart:12:8 - The import of 'package:purchases_flutter/purchases_flutter.dart' is unnecessary because all of the used elements are also provided by the import of '../services/revenuecat_service.dart'. Try removing the import directive. - unnecessary_import
+   info - services\dashboard_service.dart:94:34 - Statements in an if should be enclosed in a block. Try wrapping the statement in a block. - curly_braces_in_flow_control_structures
+   info - services\report_service.dart:82:11 - 'Share' is deprecated and shouldn't be used. Use SharePlus instead. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - services\report_service.dart:82:17 - 'shareXFiles' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - services\revenuecat_service.dart:2:8 - The import of 'package:flutter/foundation.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart'. Try removing the import directive. - unnecessary_import
+   info - services\revenuecat_service.dart:52:46 - 'purchasePackage' is deprecated and shouldn't be used. Use purchase(PurchaseParams). Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+
+11 issues found.

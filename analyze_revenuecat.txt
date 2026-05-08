@@ -1,0 +1,9 @@
+﻿Analyzing revenuecat_service.dart...
+
+  error - revenuecat_service.dart:30:38 - The method 'updatePremiumStatus' isn't defined for the type 'UserProvider'. Try correcting the name to the name of an existing method, or defining a method named 'updatePremiumStatus'. - undefined_method
+  error - revenuecat_service.dart:57:38 - The method 'updatePremiumStatus' isn't defined for the type 'UserProvider'. Try correcting the name to the name of an existing method, or defining a method named 'updatePremiumStatus'. - undefined_method
+  error - revenuecat_service.dart:94:38 - The method 'updatePremiumStatus' isn't defined for the type 'UserProvider'. Try correcting the name to the name of an existing method, or defining a method named 'updatePremiumStatus'. - undefined_method
+   info - revenuecat_service.dart:2:8 - The import of 'package:flutter/foundation.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart'. Try removing the import directive. - unnecessary_import
+   info - revenuecat_service.dart:52:46 - 'purchasePackage' is deprecated and shouldn't be used. Use purchase(PurchaseParams). Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+
+5 issues found.
