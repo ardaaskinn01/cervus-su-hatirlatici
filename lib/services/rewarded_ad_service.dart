@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter/material.dart';
@@ -41,30 +43,34 @@ class RewardedAdService {
       if (!_isLoaded) return false;
     }
 
+    final completer = Completer<bool>();
     bool rewarded = false;
+
     _ad!.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
         _ad = null;
         _isLoaded = false;
         load(); // Sonraki kullanım için önceden yükle
+        
+        // Eğer ödül kazanılmışsa true, yoksa false dönerek tamamla
+        if (!completer.isCompleted) completer.complete(rewarded);
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
         ad.dispose();
         _ad = null;
         _isLoaded = false;
+        if (!completer.isCompleted) completer.complete(false);
       },
     );
 
     await _ad!.show(
       onUserEarnedReward: (ad, reward) {
         rewarded = true;
-        debugPrint(
-          '🎁 Kullanıcı ödülü kazandı: ${reward.amount} ${reward.type}',
-        );
+        debugPrint('🎁 Kullanıcı ödülü kazandı: ${reward.amount} ${reward.type}');
       },
     );
 
-    return rewarded;
+    return completer.future;
   }
 }

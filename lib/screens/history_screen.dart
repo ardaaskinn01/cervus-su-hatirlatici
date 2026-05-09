@@ -38,8 +38,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var userProvider = context.watch<UserProvider>();
-    var user = userProvider.currentUser;
+    final userProvider = context.watch<UserProvider>();
+    final user = userProvider.currentUser;
+    final lp = context.watch<LocaleProvider>();
 
     const primaryText = Color(0xFF0F172A);
     const secondaryText = Color(0xFF64748B);
@@ -130,7 +131,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
           Widget content;
           if (_viewMode == ViewMode.calendar) {
-            content = _buildCalendarView(recordsMap, primaryColor, successColor, primaryText, secondaryText);
+            content = _buildCalendarView(recordsMap, primaryColor, successColor, primaryText, secondaryText, lp);
           } else if (_viewMode == ViewMode.chart) {
             content = _buildChartView(docs, primaryColor, successColor, primaryText, secondaryText);
           } else {
@@ -152,7 +153,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           final drinkDays = snapshot.data ?? {};
           Widget content;
           if (_viewMode == ViewMode.calendar) {
-            content = _buildDrinkCalendarView(drinkDays, const Color(0xFFE8590C), primaryText, secondaryText);
+            content = _buildDrinkCalendarView(drinkDays, const Color(0xFFE8590C), primaryText, secondaryText, lp);
           } else {
             content = _buildDrinkListView();
           }
@@ -163,7 +164,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   // 1. TAKVİM MODU ──────────────────────────────────────────
-  Widget _buildCalendarView(Map<DateTime, Map<String, dynamic>> recordsMap, Color accentColor, Color successColor, Color primaryText, Color secondaryText) {
+  Widget _buildCalendarView(Map<DateTime, Map<String, dynamic>> recordsMap, Color accentColor, Color successColor, Color primaryText, Color secondaryText, LocaleProvider lp) {
     return Column(
       children: [
         Container(
@@ -175,7 +176,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             border: Border.all(color: const Color(0xFFF1F5F9)),
           ),
           child: TableCalendar(
-            locale: 'tr_TR',
+            locale: lp.locale.languageCode == 'tr' ? 'tr_TR' : 'en_US',
             firstDay: DateTime.utc(2023, 1, 1),
             lastDay: DateTime.now(),
             focusedDay: _focusedDay,
@@ -235,7 +236,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildDrinkCalendarView(Set<DateTime> drinkDays, Color accentColor, Color primaryText, Color secondaryText) {
+  Widget _buildDrinkCalendarView(Set<DateTime> drinkDays, Color accentColor, Color primaryText, Color secondaryText, LocaleProvider lp) {
     return Column(
       children: [
         Container(
@@ -247,7 +248,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             border: Border.all(color: const Color(0xFFF1F5F9)),
           ),
           child: TableCalendar(
-            locale: 'tr_TR',
+            locale: lp.locale.languageCode == 'tr' ? 'tr_TR' : 'en_US',
             firstDay: DateTime.utc(2023, 1, 1),
             lastDay: DateTime.now(),
             focusedDay: _focusedDay,

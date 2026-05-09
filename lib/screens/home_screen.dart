@@ -51,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
     var dp = context.watch<DrinkProvider>();
     final lp = context.watch<LocaleProvider>();
 
-    String displayName = userProvider.currentUser?.displayName ?? 'Kullanıcı';
+    String displayName = userProvider.currentUser?.displayName ?? lp.translate('home_default_user');
     double progress =
         waterProvider.dailyGoal > 0
             ? (waterProvider.currentIntake / waterProvider.dailyGoal).clamp(
@@ -290,34 +290,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // Action Buttons
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildActionCard(
-                    context,
-                    icon: Icons.local_drink_rounded,
-                    label: lp.translate('home_container_glass'),
-                    amount: null,
-                    themeColor: const Color(0xFF0EA5E9),
-                    onTap:
-                        () => _showContainerSelection(context, isGlass: true),
+                  Expanded(
+                    child: _buildActionCard(
+                      context,
+                      icon: Icons.local_drink_rounded,
+                      label: lp.translate('home_container_glass'),
+                      amount: null,
+                      themeColor: const Color(0xFF0EA5E9),
+                      onTap: () => _showContainerSelection(context, isGlass: true),
+                    ),
                   ),
-                  _buildActionCard(
-                    context,
-                    icon: Icons.liquor_rounded,
-                    label: lp.translate('home_container_bottle'),
-                    amount: null,
-                    themeColor: const Color(0xFF0EA5E9),
-                    onTap:
-                        () => _showContainerSelection(context, isGlass: false),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildActionCard(
+                      context,
+                      icon: Icons.liquor_rounded,
+                      label: lp.translate('home_container_bottle'),
+                      amount: null,
+                      themeColor: const Color(0xFF0EA5E9),
+                      onTap: () => _showContainerSelection(context, isGlass: false),
+                    ),
                   ),
-                  _buildActionCard(
-                    context,
-                    icon: Icons.add_rounded,
-                    label: lp.translate('home_btn_add'),
-                    amount: null,
-                    isFeatured: true,
-                    themeColor: const Color(0xFF0EA5E9),
-                    onTap: () => _showCustomAmountDialog(context),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildActionCard(
+                      context,
+                      icon: Icons.add_rounded,
+                      label: lp.translate('home_btn_add'),
+                      amount: null,
+                      themeColor: const Color(0xFF0EA5E9),
+                      isFeatured: true,
+                      onTap: () => _showCustomAmountDialog(context),
+                    ),
                   ),
                 ],
               ),
@@ -337,40 +342,45 @@ class _HomeScreenState extends State<HomeScreen> {
                         final color = drinkColors[type] ?? Colors.brown;
                         final fillRatio = (totalMl / maxMl).clamp(0.0, 1.0);
 
-                        return Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE2E8F0),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: Stack(
-                            alignment: Alignment.bottomCenter,
-                            children: [
-                              FractionallySizedBox(
-                                heightFactor: fillRatio,
-                                widthFactor: 1.0,
-                                child: Container(color: color),
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE2E8F0),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              Center(
-                                child: Text(
-                                  '$totalMl',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white,
-                                    shadows: [
-                                      Shadow(
-                                        color: Colors.black45,
-                                        blurRadius: 2,
-                                      ),
-                                    ],
+                              clipBehavior: Clip.antiAlias,
+                              child: Stack(
+                                alignment: Alignment.bottomCenter,
+                                children: [
+                                  FractionallySizedBox(
+                                    heightFactor: fillRatio,
+                                    widthFactor: 1.0,
+                                    child: Container(color: color),
                                   ),
-                                ),
+                                  Center(
+                                    child: Text(
+                                      '$totalMl',
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white,
+                                        shadows: [Shadow(color: Colors.black45, blurRadius: 2)],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              lp.translate('drink_type_${type.name}'),
+                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+                            ),
+                          ],
                         );
                       }).toList(),
                 ),
@@ -379,12 +389,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
               _buildSoftDrinkSelector(
                 context,
-                userProvider.currentUser?.isPremium ?? false,
+                userProvider.isPremium,
                 lp,
               ),
               const SizedBox(height: 40),
 
-              _buildLastFiveSection(context, waterProvider),
+              _buildLastFiveSection(context, waterProvider, lp),
             ],
           ),
         ),
@@ -403,28 +413,6 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (!isPremium && !_drinkUnlocked) ...[
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.lock_rounded, size: 16, color: Colors.grey),
-                const SizedBox(width: 8),
-                Text(
-                  lp.translate('pro_or_ad'),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
           ElevatedButton.icon(
             onPressed: () async {
               bool success = await RewardedAdService.show(context);
@@ -435,7 +423,7 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             },
             icon: const Icon(Icons.movie_creation_rounded),
-            label: const Text('🎬 Reklam İzle — 1 Meşrubat Ekle'),
+            label: Text(lp.translate('home_watch_ad_btn')),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFE8590C),
               foregroundColor: Colors.white,
@@ -444,6 +432,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.lock_rounded, size: 16, color: Colors.grey),
+              const SizedBox(width: 8),
+              Text(
+                lp.translate('pro_or_ad'),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
         ],
@@ -457,6 +461,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: types.map((type) {
             final color = drinkColors[type] ?? Colors.brown;
             final name = lp.translate('drink_type_${type.name}');
+            final isPremium = context.watch<UserProvider>().isPremium;
             final isLocked = !isPremium && !_drinkUnlocked;
 
             return Opacity(
@@ -523,26 +528,53 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildLastFiveSection(
     BuildContext context,
     WaterProvider waterProvider,
+    LocaleProvider lp,
   ) {
-    final records = waterProvider.lastFiveRecords;
-    if (records.isEmpty) return const SizedBox.shrink();
+    final waterRecords = waterProvider.todayRecords;
+    final drinkEntries = context.watch<DrinkProvider>().todayDrinks;
+
+    final combined = [
+      ...waterRecords.map((r) => {'type': 'water', 'data': r, 'time': r.saat}),
+      ...drinkEntries.map((d) => {'type': 'drink', 'data': d, 'time': d.saat}),
+    ];
+    
+    combined.sort((a, b) => b['time'].toString().compareTo(a['time'].toString()));
+    final lastFive = combined.take(5).toList();
+
+    if (lastFive.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          context.watch<LocaleProvider>().translate('home_recent'),
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF0F172A),
-            letterSpacing: -0.5,
-          ),
+          lp.translate('home_recent'),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0F172A), letterSpacing: -0.5),
         ),
         const SizedBox(height: 16),
-        ...records.map(
-          (kaydi) => Dismissible(
-            key: Key(kaydi.uid),
+        ...lastFive.map((item) {
+          final isWater = item['type'] == 'water';
+          final String title;
+          final IconData icon;
+          final Color iconColor;
+          final int amount;
+          final String time = item['time'] as String;
+
+          if (isWater) {
+            final r = item['data'] as SuKaydi;
+            title = lp.translate('nav_water');
+            icon = Icons.water_drop_rounded;
+            iconColor = const Color(0xFF0EA5E9);
+            amount = r.miktar;
+          } else {
+            final d = item['data'] as DrinkEntry;
+            title = lp.translate('drink_type_${d.drinkType.name}');
+            icon = Icons.local_cafe_rounded;
+            iconColor = drinkColors[d.drinkType] ?? Colors.brown;
+            amount = d.ml;
+          }
+
+          return Dismissible(
+            key: Key(isWater ? (item['data'] as SuKaydi).uid : (item['data'] as DrinkEntry).uid),
             direction: DismissDirection.endToStart,
             background: Container(
               alignment: Alignment.centerRight,
@@ -552,14 +584,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: const Color(0xFFEF4444).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(24),
               ),
-              child: const Icon(
-                Icons.delete_sweep_rounded,
-                color: Color(0xFFEF4444),
-                size: 28,
-              ),
+              child: const Icon(Icons.delete_sweep_rounded, color: Color(0xFFEF4444), size: 28),
             ),
             confirmDismiss: (_) async {
-              await context.read<WaterProvider>().deleteWaterRecord(kaydi);
+              if (isWater) {
+                await context.read<WaterProvider>().deleteWaterRecord(item['data'] as SuKaydi);
+              } else {
+                await context.read<DrinkProvider>().deleteDrink(item['data'] as DrinkEntry);
+              }
               return false;
             },
             child: Container(
@@ -569,65 +601,43 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(color: const Color(0xFFF1F5F9)),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x33E2E8F0),
-                    blurRadius: 24,
-                    offset: Offset(0, 8),
-                  ),
-                ],
+                boxShadow: const [BoxShadow(color: Color(0x33E2E8F0), blurRadius: 24, offset: Offset(0, 8))],
               ),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF0F9FF),
+                      color: iconColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Icon(
-                      Icons.water_drop_rounded,
-                      color: Color(0xFF0EA5E9),
-                      size: 24,
-                    ),
+                    child: Icon(icon, color: iconColor, size: 24),
                   ),
                   const SizedBox(width: 16),
                   Text(
-                    context.watch<LocaleProvider>().translate('home_consumed'),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Color(0xFF0F172A),
-                    ),
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0F172A)),
                   ),
                   const Spacer(),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '+${kaydi.miktar} ml',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                          color: Color(0xFF0EA5E9),
-                        ),
+                        '+$amount ml',
+                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: iconColor),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        kaydi.saat,
-                        style: const TextStyle(
-                          color: Color(0xFF94A3B8),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        time,
+                        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12, fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-          ),
-        ),
+          );
+        }),
       ],
     );
   }
@@ -988,12 +998,10 @@ class _CupClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-    final topInset = size.width * 0.06; // Üst kenarlar hafif içeri
-    path.moveTo(topInset, 0);
-    path.lineTo(size.width - topInset, 0);
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-    path.close();
+    path.addRRect(RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      const Radius.circular(20),
+    ));
     return path;
   }
 

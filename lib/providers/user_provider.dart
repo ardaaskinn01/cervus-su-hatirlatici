@@ -18,9 +18,27 @@ class UserProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isPremium => _isPremium;
 
-  void updatePremiumStatus(bool status) {
+  Future<void> updatePremiumStatus(bool status) async {
     if (_isPremium != status) {
       _isPremium = status;
+      
+      // Modeli de güncelle ve kaydet (Kalıcılık için)
+      if (_currentUser != null) {
+        _currentUser!.isPremium = status;
+        var box = Hive.box<UserModel>('userBox');
+        await box.put('currentUser', _currentUser!);
+        
+        // Firebase'i de sessizce güncelle
+        try {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(_currentUser!.firebaseId)
+              .update({'isPremium': status});
+        } catch (e) {
+          debugPrint("Firebase premium sync error: $e");
+        }
+      }
+      
       notifyListeners();
     }
   }

@@ -351,7 +351,7 @@ class _DrinksEntrySheetState extends State<DrinksEntrySheet> {
               decoration: InputDecoration(
                 hintText: lp.translate('home_dialog_custom'),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                suffixText: "ml",
+                suffixText: lp.translate('prof_suffix_ml'),
               ),
             ),
           ]

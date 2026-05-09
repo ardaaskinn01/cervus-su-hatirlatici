@@ -14,9 +14,15 @@ class LocaleProvider extends ChangeNotifier {
   }
 
   void _loadSavedLocale() {
-    String? lang = Hive.box('settings').get('language');
-    if (lang != null) {
-      _locale = Locale(lang);
+    try {
+      final box = Hive.box('settings');
+      String? lang = box.get('language');
+      if (lang != null) {
+        _locale = Locale(lang);
+      }
+    } catch (e) {
+      debugPrint("LocaleProvider Hive hatası: $e");
+      // Varsayılan dil olan 'tr' ile devam edilir.
     }
     _loadLanguageData();
   }

@@ -16,9 +16,9 @@ class RevenueCatService {
 
       String apiKey = "";
       if (Platform.isAndroid) {
-        apiKey = dotenv.env['REVENUECAT_ANDROID_KEY'] ?? "goog_CdKPYBXhbZiLNyviaUoCHkeooJx";
+        apiKey = dotenv.env['REVENUECAT_ANDROID_KEY']!;
       } else {
-        apiKey = dotenv.env['REVENUECAT_IOS_KEY'] ?? "appl_zMfQsclGkpPBQeXPmcfJbTIpWch";
+        apiKey = dotenv.env['REVENUECAT_IOS_KEY']!;
       }
 
       PurchasesConfiguration configuration = PurchasesConfiguration(apiKey);
@@ -26,7 +26,7 @@ class RevenueCatService {
       _isConfigured = true;
 
       CustomerInfo customerInfo = await Purchases.getCustomerInfo();
-      final isPro = customerInfo.entitlements.all["pro"]?.isActive ?? false;
+      final isPro = customerInfo.entitlements.all["pro2"]?.isActive ?? false;
       
       if (context.mounted) {
         context.read<UserProvider>().updatePremiumStatus(isPro);
@@ -53,7 +53,7 @@ class RevenueCatService {
     try {
       final result = await Purchases.purchasePackage(package);
       final customerInfo = result.customerInfo;
-      final isPro = customerInfo.entitlements.all["pro"]?.isActive ?? false;
+      final isPro = customerInfo.entitlements.all["pro2"]?.isActive ?? false;
 
       if (context.mounted) {
         context.read<UserProvider>().updatePremiumStatus(isPro);
@@ -90,7 +90,7 @@ class RevenueCatService {
   static Future<bool> restorePurchases(BuildContext context) async {
     try {
       CustomerInfo customerInfo = await Purchases.restorePurchases();
-      final isPro = customerInfo.entitlements.all["pro"]?.isActive ?? false;
+      final isPro = customerInfo.entitlements.all["pro2"]?.isActive ?? false;
 
       if (context.mounted) {
         context.read<UserProvider>().updatePremiumStatus(isPro);

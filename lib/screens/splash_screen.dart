@@ -4,9 +4,11 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
 import '../models/user_model.dart';
+import '../providers/locale_provider.dart';
 import '../services/notification_service.dart';
 import '../services/dashboard_service.dart';
 import '../services/revenuecat_service.dart';
@@ -159,29 +161,32 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     return showCupertinoDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('Yeni Versiyon Hazır! 🚀'),
-        content: const Text('Daha iyi bir deneyim için uygulamayı güncellemenizi öneririz.'),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text('Güncelleme'),
-            onPressed: () => Navigator.pop(context, true),
-          ),
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            child: const Text('Güncelle', style: TextStyle(fontWeight: FontWeight.bold)),
-            onPressed: () async {
-              final url = Platform.isIOS ? iosUrl : androidUrl;
-              if (url.isNotEmpty) {
-                final uri = Uri.parse(url);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+      builder: (context) {
+        final lp = Provider.of<LocaleProvider>(context, listen: false);
+        return CupertinoAlertDialog(
+          title: Text(lp.translate('update_new_version_title')),
+          content: Text(lp.translate('update_new_version_desc')),
+          actions: [
+            CupertinoDialogAction(
+              child: Text(lp.translate('update_btn_later')),
+              onPressed: () => Navigator.pop(context, true),
+            ),
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              child: Text(lp.translate('update_btn_confirm'), style: const TextStyle(fontWeight: FontWeight.bold)),
+              onPressed: () async {
+                final url = Platform.isIOS ? iosUrl : androidUrl;
+                if (url.isNotEmpty) {
+                  final uri = Uri.parse(url);
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
                 }
-              }
-            },
-          ),
-        ],
-      ),
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 

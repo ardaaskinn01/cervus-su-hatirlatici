@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/locale_provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/water_provider.dart';
 
@@ -12,6 +13,7 @@ class TodayRecordsScreen extends StatelessWidget {
     var user = context.watch<UserProvider>().currentUser;
     var waterProvider = context.watch<WaterProvider>();
     final dateKey = waterProvider.getLogicalDateKey();
+    final lp = Provider.of<LocaleProvider>(context);
 
     const primaryText = Color(0xFF0F172A);
     const secondaryText = Color(0xFF64748B);
@@ -21,14 +23,14 @@ class TodayRecordsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: scaffoldBg,
       appBar: AppBar(
-        title: const Text('Bugünkü Kayıtlar', style: TextStyle(fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5)),
+        title: Text(lp.translate('today_records_title'), style: const TextStyle(fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: primaryText),
         centerTitle: true,
       ),
       body: user == null
-          ? const Center(child: Text('Kullanıcı bulunamadı.'))
+          ? Center(child: Text(lp.translate('prof_user_not_found')))
           : StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
@@ -41,14 +43,14 @@ class TodayRecordsScreen extends StatelessWidget {
                   return const Center(child: CircularProgressIndicator(color: accentColor));
                 }
                 if (!snap.hasData || !snap.data!.exists) {
-                  return _buildEmptyState(secondaryText);
+                  return _buildEmptyState(secondaryText, lp);
                 }
 
                 final data = snap.data!.data() as Map<String, dynamic>;
                 final rawList = (data['suIcildi'] as List<dynamic>? ?? []).reversed.toList();
 
                 if (rawList.isEmpty) {
-                  return _buildEmptyState(secondaryText);
+                  return _buildEmptyState(secondaryText, lp);
                 }
 
                 return ListView.builder(
@@ -94,7 +96,7 @@ class TodayRecordsScreen extends StatelessWidget {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Su İçildi', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: primaryText)),
+                                Text(lp.translate('today_records_water_drank'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: primaryText)),
                                 Text(kaydi.saat, style: const TextStyle(color: secondaryText, fontSize: 13, fontWeight: FontWeight.w600)),
                               ],
                             ),
@@ -111,7 +113,7 @@ class TodayRecordsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(Color secondaryText) {
+  Widget _buildEmptyState(Color secondaryText, LocaleProvider lp) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -119,7 +121,7 @@ class TodayRecordsScreen extends StatelessWidget {
           Icon(Icons.opacity_rounded, size: 80, color: secondaryText.withValues(alpha: 0.1)),
           const SizedBox(height: 16),
           Text(
-            'Henüz su içmedin.\nBugünün ilk bardağını içmeye ne dersin? 💧',
+            lp.translate('today_records_empty'),
             textAlign: TextAlign.center,
             style: TextStyle(color: secondaryText, fontSize: 16, height: 1.5, fontWeight: FontWeight.w500),
           ),

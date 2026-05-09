@@ -32,7 +32,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _nextPage() {
     // 0. Dil Seçimi Doğrulaması
     if (_currentIndex == 0 && _selectedLanguage == null) {
-      _showSnackbar('Lütfen bir dil seçin / Please select a language.');
+      _showSnackbar(context.read<LocaleProvider>().translate('onb_lang_select_error'));
       return;
     }
     // 1. Gizlilik Politikası Doğrulaması
@@ -95,7 +95,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainShell()));
       }
     } catch (e) {
-      _showSnackbar('Bir hata oluştu: $e');
+      if (mounted) {
+        final errorMsg = context.read<LocaleProvider>().translate('onb_error_generic');
+        _showSnackbar('$errorMsg$e');
+      }
       setState(() => _isLoading = false);
     }
   }
@@ -236,10 +239,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   // ADIM -1: DİL SEÇİMİ
   Widget _buildLanguageStep() {
+    final lp = context.watch<LocaleProvider>();
     return _StepContentCard(
       icon: Icons.language_rounded,
-      title: "Dil Seçimi / Language",
-      subtitle: "Lütfen tercih ettiğiniz dili seçin / Please select your language",
+      title: "${lp.translate('onb_lang_title')} / Language",
+      subtitle: "${lp.translate('onb_lang_subtitle')} / Please select your language",
       child: Column(
         children: [
           _buildLanguageOption("Türkçe", "tr", "🇹🇷"),
@@ -351,9 +355,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           const SizedBox(height: 24),
           Text(
-            _selectedLanguage == 'tr' 
-              ? "Devam etmek için kutucuğu işaretleyin."
-              : "Please check the box to continue.",
+            lp.translate('onb_privacy_check_hint'),
             style: TextStyle(color: const Color(0xFF0F172A).withValues(alpha: 0.5), fontSize: 13),
           ),
         ],

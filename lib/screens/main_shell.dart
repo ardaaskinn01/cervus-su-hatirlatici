@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/locale_provider.dart';
+import '../providers/user_provider.dart';
 import '../widgets/ad_banner_widget.dart';
 import 'home_screen.dart';
 import 'statistics_screen.dart';
@@ -43,12 +44,13 @@ class _MainShellState extends State<MainShell> {
                     children: _pages,
                   ),
                 ),
-                const AdBannerWidget(),
+                if (!context.watch<UserProvider>().isPremium)
+                  const AdBannerWidget(),
               ],
             );
           } catch (e) {
             debugPrint("🚨 MainShell Sayfa Hatası: $e");
-            return const Center(child: Text("Bir hata oluştu, lütfen uygulamayı yeniden başlatın."));
+            return Center(child: Text(lp.translate('app_error_restart')));
           }
         },
       ),

@@ -66,15 +66,20 @@ void main() async {
     debugPrint('📦 Hive hazır');
   } catch (e) {
     debugPrint('🚨 KRITIK HATA: Hive kutuları açılamadı! Temizleniyor... Hata: $e');
-    // Eğer kutular bozuksa silip sıfırdan açalım ki beyaz ekran kalksın
     try {
       await Hive.deleteBoxFromDisk('userBox');
       await Hive.deleteBoxFromDisk('settings');
       await Hive.deleteBoxFromDisk('dailyData');
       await Hive.deleteBoxFromDisk('history');
+      
+      // Tüm kutuları temizlik sonrası tekrar açmayı dene
       await Hive.openBox<UserModel>('userBox');
+      await Hive.openBox('settings');
+      await Hive.openBox('dailyData');
+      await Hive.openBox('history');
+      debugPrint('📦 Hive temizlik sonrası başarıyla açıldı.');
     } catch (e2) {
-      debugPrint('🚨 FATAL: Hive tamamen çöktü: $e2');
+      debugPrint('🚨 FATAL: Hive recovery failed: $e2');
     }
   }
 

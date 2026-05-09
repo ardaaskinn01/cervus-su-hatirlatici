@@ -88,20 +88,6 @@ class _WaterWaveProgressState extends State<WaterWaveProgress> with TickerProvid
             ),
           ),
 
-          // ─── TAŞMA EFEKTİ (Dışarıya Sızan Su) ─────────────────────────
-          if (isOverflow)
-            AnimatedBuilder(
-              animation: _spillController,
-              builder: (context, child) {
-                return CustomPaint(
-                  size: Size(widget.size, widget.size),
-                  painter: OverflowPainter(
-                    animationValue: _spillController.value,
-                    color: const Color(0xFF0EA5E9),
-                  ),
-                );
-              },
-            ),
         ],
       ),
     );
@@ -109,63 +95,7 @@ class _WaterWaveProgressState extends State<WaterWaveProgress> with TickerProvid
 }
 
 // ─── Taşma Çizici (Overflow) ────────────────────────────────────────
-class OverflowPainter extends CustomPainter {
-  final double animationValue;
-  final Color color;
 
-  OverflowPainter({required this.animationValue, required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final paint = Paint()..color = color.withValues(alpha: 0.8)..style = PaintingStyle.fill;
-    
-    // Sürahinin ağız ucu (Spout Tip): w * 0.15, h * 0.15
-    final spoutX = w * 0.15;
-    final spoutY = h * 0.15;
-
-    // Damla 1
-    double d1Progress = (animationValue + 0.0) % 1.0;
-    canvas.drawCircle(
-      Offset(spoutX - (d1Progress * 20), spoutY + (d1Progress * h * 0.6)),
-      4 * (1 - d1Progress),
-      paint
-    );
-
-    // Damla 2
-    double d2Progress = (animationValue + 0.3) % 1.0;
-    canvas.drawCircle(
-      Offset(spoutX - (d2Progress * 10), spoutY + (d2Progress * h * 0.5)),
-      3 * (1 - d2Progress),
-      paint
-    );
-
-    // Damla 3
-    double d3Progress = (animationValue + 0.6) % 1.0;
-    canvas.drawCircle(
-      Offset(spoutX - (d3Progress * 25), spoutY + (d3Progress * h * 0.7)),
-      5 * (1 - d3Progress),
-      paint
-    );
-    
-    // Ağızdan ufak bir su sızıntısı hattı
-    final leakPath = Path();
-    leakPath.moveTo(spoutX, spoutY);
-    leakPath.quadraticBezierTo(spoutX - 5, spoutY + 10, spoutX - 8, spoutY + 25);
-    
-    final leakPaint = Paint()
-      ..color = color.withValues(alpha: 0.6)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-      
-    canvas.drawPath(leakPath, leakPaint);
-  }
-
-  @override
-  bool shouldRepaint(OverflowPainter oldDelegate) => true;
-}
 
 class PitcherClipper extends CustomClipper<Path> {
   @override
@@ -201,23 +131,12 @@ Path _getPitcherPath(Size size) {
     final h = size.height;
     final path = Path();
     
-    // Elit Kristal Karaf (Zarif S-Curve Boyun ve Yuvarlak Gövde)
-    path.moveTo(w * 0.38, h * 0.22); // Girdi: Boyun başı
-    path.lineTo(w * 0.62, h * 0.22); // Boyun sağ taraf
+    // Düz ve modern kap formu (Diğer kaplarla uyumlu)
+    path.addRRect(RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, w, h),
+      const Radius.circular(20),
+    ));
     
-    // Sağ boyundan omuza S-Kavis
-    path.cubicTo(w * 0.62, h * 0.35, w * 0.78, h * 0.40, w * 0.82, h * 0.55);
-    
-    // Sağ gövdeden tabana yumuşak kavis
-    path.cubicTo(w * 0.88, h * 0.75, w * 0.75, h * 0.90, w * 0.50, h * 0.92);
-    
-    // Sol tarafa simetrik geçiş
-    path.cubicTo(w * 0.25, h * 0.90, w * 0.12, h * 0.75, w * 0.18, h * 0.55);
-    
-    // Sol omuzdan boyuna S-Kavis
-    path.cubicTo(w * 0.22, h * 0.40, w * 0.38, h * 0.35, w * 0.38, h * 0.22);
-    
-    path.close();
     return path;
 }
 
@@ -236,9 +155,9 @@ class WaterWavePainter extends CustomPainter {
     Paint paintBackground = Paint()..color = secondaryColor..style = PaintingStyle.fill;
     Paint paintForeground = Paint()..color = primaryColor..style = PaintingStyle.fill;
 
-    double topLimit = size.height * 0.15;
-    double bottomLimit = size.height * 0.9;
-    double usableHeight = bottomLimit - topLimit;
+    double topLimit = 0;
+    double bottomLimit = size.height;
+    double usableHeight = size.height;
     
     double waterMaxY = bottomLimit - (usableHeight * progress);
     double waveAmplitude = (progress >= 1.0 || progress <= 0.0) ? 0.0 : 8.0;

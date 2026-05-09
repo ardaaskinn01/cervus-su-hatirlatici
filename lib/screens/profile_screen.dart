@@ -191,13 +191,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       return Text(isTr ? "Paketler yüklenemedi." : "Packages could not be loaded.", style: TextStyle(color: secondaryText));
                     }
                     final packages = snapshot.data!.current?.availablePackages ?? [];
-                    final monthly  = packages.where((p) => p.packageType == PackageType.monthly).firstOrNull;
-                    final yearly   = packages.where((p) => p.packageType == PackageType.annual).firstOrNull;
-                    final lifetime = packages.where((p) => p.packageType == PackageType.lifetime).firstOrNull;
+                    final monthly  = packages.where((p) => p.packageType == PackageType.monthly).firstOrNull 
+                                     ?? packages.where((p) => p.identifier.toLowerCase().contains('monthly')).firstOrNull;
+                    final yearly   = packages.where((p) => p.packageType == PackageType.annual).firstOrNull 
+                                     ?? packages.where((p) => p.identifier.toLowerCase().contains('year') || p.identifier.toLowerCase().contains('ann')).firstOrNull;
+                    final lifetime = packages.where((p) => p.packageType == PackageType.lifetime).firstOrNull 
+                                     ?? packages.where((p) => p.identifier.toLowerCase().contains('life') || p.identifier.toLowerCase().contains('pro2')).firstOrNull;
                     return Column(children: [
-                      if (monthly  != null) _buildSubCard(ctx, monthly,  isTr ? "Aylık"      : "Monthly",  monthly.storeProduct.priceString,  isTr ? "Her ay yenilenir"         : "Renews every month",         false, null,   isTr),
-                      if (yearly   != null) _buildSubCard(ctx, yearly,   isTr ? "Yıllık"     : "Yearly",   yearly.storeProduct.priceString,   isTr ? "En maliyet etkin seçim"   : "Best value for money",        true,  isTr ? "599.99 ₺" : "\$35.99", isTr),
-                      if (lifetime != null) _buildSubCard(ctx, lifetime, isTr ? "Ömür Boyu"  : "Lifetime", lifetime.storeProduct.priceString, isTr ? "Tek seferlik ödeme"       : "One-time payment",             false, null,   isTr),
+                      if (monthly  != null) 
+                        _buildSubCard(
+                          package: monthly,
+                          title: isTr ? "Aylık" : "Monthly",
+                          price: monthly.storeProduct.priceString,
+                          subtitle: isTr ? "Her ay yenilenir" : "Renews every month",
+                          isPopular: false,
+                          isTr: isTr,
+                        ),
+                      if (yearly   != null) 
+                        _buildSubCard(
+                          package: yearly,
+                          title: isTr ? "Yıllık" : "Yearly",
+                          price: yearly.storeProduct.priceString,
+                          subtitle: isTr ? "En maliyet etkin seçim" : "Best value for money",
+                          isPopular: true,
+                          originalPrice: isTr ? "599.99 ₺" : "\$35.99",
+                          isTr: isTr,
+                        ),
+                      if (lifetime != null) 
+                        _buildSubCard(
+                          package: lifetime,
+                          title: isTr ? "Ömür Boyu" : "Lifetime",
+                          price: lifetime.storeProduct.priceString,
+                          subtitle: isTr ? "Tek seferlik ödeme" : "One-time payment",
+                          isPopular: false,
+                          isSpecialOffer: true,
+                          isTr: isTr,
+                        ),
                     ]);
                   },
                 ),
@@ -208,7 +237,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onPressed: () => launchUrl(Uri.parse("https://cervusdigital.com/drinkly/privacy-policy/")),
                     child: Text(isTr ? "Gizlilik" : "Privacy Policy", style: TextStyle(color: secondaryText.withValues(alpha: 0.5), fontSize: 11)),
                   ),
-                  Text("|", style: TextStyle(color: secondaryText.withValues(alpha: 0.3))),
+                  const Text("|", style: TextStyle(color: Color(0x4D64748B))),
                   TextButton(
                     onPressed: () => launchUrl(Uri.parse("https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")),
                     child: Text(isTr ? "Kullanım Koşulları" : "Terms of Use", style: TextStyle(color: secondaryText.withValues(alpha: 0.5), fontSize: 11)),
@@ -221,10 +250,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 8),
                 TextButton(
-                  onPressed: () async { Navigator.pop(ctx); await RevenueCatService.restorePurchases(context); },
+                  onPressed: () async { 
+                    Navigator.pop(ctx); 
+                    await RevenueCatService.restorePurchases(context); 
+                  },
                   child: Text(lp.translate('premium_popup_restore'), style: TextStyle(color: secondaryText)),
                 ),
-                TextButton(onPressed: () => Navigator.pop(ctx), child: Text(lp.translate('premium_popup_cancel'), style: TextStyle(color: secondaryText.withValues(alpha: 0.6)))),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx), 
+                  child: Text(lp.translate('premium_popup_cancel'), style: TextStyle(color: secondaryText.withValues(alpha: 0.6)))
+                ),
               ],
             ),
           ),
@@ -233,19 +268,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildSubCard(
-    BuildContext dialogContext,
-    Package package,
-    String title,
-    String price,
-    String subtitle,
-    bool isPopular,
+  Widget _buildSubCard({
+    required Package package,
+    required String title,
+    required String price,
+    required String subtitle,
+    required bool isPopular,
     String? originalPrice,
-    bool isTr,
-  ) {
+    bool isSpecialOffer = false,
+    required bool isTr,
+  }) {
     return GestureDetector(
       onTap: () async {
-        Navigator.pop(dialogContext);
+        Navigator.pop(context);
         await RevenueCatService.purchasePackage(context, package);
       },
       child: Container(
@@ -272,6 +307,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           decoration: BoxDecoration(color: accentColor, borderRadius: BorderRadius.circular(6)),
                           child: Text(isTr ? "POPÜLER" : "POPULAR", style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
                         ),
+                      ],
+                      if (isSpecialOffer) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(color: Colors.orange.shade700, borderRadius: BorderRadius.circular(6)),
+                          child: Text(isTr ? "ÖZEL TEKLİF" : "SPECIAL OFFER", style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                        ),
                       ]
                     ],
                   ),
@@ -286,10 +329,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 if (originalPrice != null)
                   Text(
                     originalPrice,
-                    style: const TextStyle(
-                      color: Colors.redAccent,
-                      fontSize: 12,
+                    style: TextStyle(
+                      color: secondaryText.withValues(alpha: 0.6),
+                      fontSize: 13,
                       decoration: TextDecoration.lineThrough,
+                      decorationColor: Colors.redAccent,
+                      decorationThickness: 2.0,
                     ),
                   ),
                 Text(
@@ -329,14 +374,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var pr = context.watch<UserProvider>();
+    final userProvider = context.watch<UserProvider>();
     final lp = context.watch<LocaleProvider>();
-    final user = pr.currentUser;
+    final isPremium = userProvider.isPremium;
+    var user = userProvider.currentUser;
 
     return Scaffold(
       backgroundColor: scaffoldBg,
       appBar: AppBar(
-        title: Text(context.watch<LocaleProvider>().translate('nav_profile'), style: TextStyle(fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5)),
+        title: Text(lp.translate('nav_profile'), style: TextStyle(fontWeight: FontWeight.w900, color: primaryText, letterSpacing: -0.5)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -352,13 +398,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             )
           else
             IconButton(
-              icon: pr.isLoading ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(Icons.check_rounded, color: accentColor),
-              onPressed: pr.isLoading ? null : _saveProfile,
+              icon: userProvider.isLoading ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(Icons.check_rounded, color: accentColor),
+              onPressed: userProvider.isLoading ? null : _saveProfile,
             ),
         ],
       ),
       body: user == null
-          ? Center(child: Text(context.watch<LocaleProvider>().translate('prof_user_not_found')))
+          ? Center(child: Text(lp.translate('prof_user_not_found')))
           : SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -366,8 +412,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
+                    // Premium Status Card
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: isPremium
+                            ? const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFD97706)])
+                            : const LinearGradient(colors: [Color(0xFF64748B), Color(0xFF475569)]),
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (isPremium ? const Color(0xFFF59E0B) : const Color(0xFF64748B)).withValues(alpha: 0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(isPremium ? Icons.star_rounded : Icons.star_outline_rounded, color: Colors.white, size: 32),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(isPremium ? lp.translate('premium_title_pro') : lp.translate('premium_title_free'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+                                Text(isPremium ? lp.translate('premium_active_desc') : lp.translate('premium_upgrade_desc'), style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                              ],
+                            ),
+                          ),
+                          if (!isPremium)
+                            ElevatedButton(
+                              onPressed: _showPremiumDialog,
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.grey.shade700),
+                              child: Text(lp.translate('premium_btn_upgrade')),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
                     // 1. KİMLİK BÖLGESİ
-                    _buildSectionHeader(context.watch<LocaleProvider>().translate('prof_section_identity')),
+                    _buildSectionHeader(lp.translate('prof_section_identity')),
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -377,7 +463,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       child: _buildTextFieldRow(
                         icon: Icons.badge_rounded,
-                        label: context.watch<LocaleProvider>().translate('prof_label_name'),
+                        label: lp.translate('prof_label_name'),
                         controller: _nameCtrl,
                         suffix: '',
                         isLast: true,
@@ -387,7 +473,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 32),
 
                     // 2. FİZİKSEL BİLGİLER
-                    _buildSectionHeader(context.watch<LocaleProvider>().translate('prof_section_physical')),
+                    _buildSectionHeader(lp.translate('prof_section_physical')),
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -399,17 +485,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           _buildTextFieldRow(
                             icon: Icons.cake_rounded,
-                            label: context.watch<LocaleProvider>().translate('prof_label_age'),
+                            label: lp.translate('prof_label_age'),
                             controller: _ageCtrl,
-                            suffix: context.watch<LocaleProvider>().translate('prof_suffix_age'),
+                            suffix: lp.translate('prof_suffix_age'),
                             isLast: false,
                           ),
                           const Divider(height: 1, color: Color(0xFFF1F5F9), indent: 64),
                           _buildTextFieldRow(
                             icon: Icons.monitor_weight_rounded,
-                            label: context.watch<LocaleProvider>().translate('prof_label_weight'),
+                            label: lp.translate('prof_label_weight'),
                             controller: _weightCtrl,
-                            suffix: context.watch<LocaleProvider>().translate('prof_suffix_kg'),
+                            suffix: lp.translate('prof_suffix_kg'),
                             isLast: true,
                           ),
                         ],
@@ -418,7 +504,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 32),
 
                     // 3. HEDEF
-                    _buildSectionHeader(context.watch<LocaleProvider>().translate('prof_section_goal')),
+                    _buildSectionHeader(lp.translate('prof_section_goal')),
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -428,17 +514,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       child: _buildTextFieldRow(
                         icon: Icons.track_changes_rounded,
-                        label: context.watch<LocaleProvider>().translate('prof_label_daily_goal'),
+                        label: lp.translate('prof_label_daily_goal'),
                         controller: _goalCtrl,
-                        suffix: context.watch<LocaleProvider>().translate('prof_suffix_ml'),
+                        suffix: lp.translate('prof_suffix_ml'),
                         isLast: true,
-                        subHint: context.watch<LocaleProvider>().translate('prof_goal_hint'),
+                        subHint: lp.translate('prof_goal_hint'),
                       ),
                     ),
                     const SizedBox(height: 32),
 
                     // 4. UYKU DÜZENİ
-                    _buildSectionHeader(context.watch<LocaleProvider>().translate('prof_section_sleep')),
+                    _buildSectionHeader(lp.translate('prof_section_sleep')),
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -450,7 +536,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           _buildTimeSelectionRow(
                             icon: Icons.wb_sunny_rounded,
-                            label: context.watch<LocaleProvider>().translate('prof_label_wake'),
+                            label: lp.translate('prof_label_wake'),
                             time: _wakeTime,
                             isLast: false,
                             onTap: () async {
@@ -462,7 +548,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const Divider(height: 1, color: Color(0xFFF1F5F9), indent: 64),
                           _buildTimeSelectionRow(
                             icon: Icons.nights_stay_rounded,
-                            label: context.watch<LocaleProvider>().translate('prof_label_sleep'),
+                            label: lp.translate('prof_label_sleep'),
                             time: _sleepTime,
                             isLast: true,
                             onTap: () async {
@@ -477,7 +563,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 32),
 
                     // 5. AYARLAR (BİLDİRİM & LİSAN)
-                    _buildSectionHeader(context.watch<LocaleProvider>().translate('drawer_settings').toUpperCase()),
+                    _buildSectionHeader(lp.translate('drawer_settings').toUpperCase()),
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -505,9 +591,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const Divider(height: 1, color: Color(0xFFF1F5F9), indent: 70),
                           _buildSettingRow(
                             icon: Icons.notifications_active_rounded,
-
                             iconColor: const Color(0xFFF59E0B),
-                            title: context.watch<LocaleProvider>().translate('settings_notif'),
+                            title: lp.translate('settings_notif'),
                             subtitle: '',
                             trailing: CupertinoSwitch(
                               activeTrackColor: const Color(0xFF22C55E),
@@ -531,8 +616,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(context.watch<LocaleProvider>().translate('sett_notif_freq'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryText)),
-                                      Text(context.watch<LocaleProvider>().translate('sett_notif_freq_desc'), style: TextStyle(fontSize: 12, color: secondaryText, fontWeight: FontWeight.w500)),
+                                      Text(lp.translate('sett_notif_freq'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryText)),
+                                      Text(lp.translate('sett_notif_freq_desc'), style: TextStyle(fontSize: 12, color: secondaryText, fontWeight: FontWeight.w500)),
                                     ],
                                   ),
                                 ),
@@ -556,7 +641,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         return DropdownMenuItem<String>(
                                           value: opt['key'],
                                           child: Text(
-                                            context.watch<LocaleProvider>().translate(opt['labelKey']!),
+                                            lp.translate(opt['labelKey']!),
                                             style: TextStyle(color: accentColor, fontWeight: FontWeight.w600),
                                           ),
                                         );
@@ -574,8 +659,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           _buildSettingRow(
                             icon: Icons.star_rounded,
                             iconColor: const Color(0xFFF59E0B),
-                            title: context.watch<LocaleProvider>().translate('sett_btn_rate'),
-                            subtitle: context.watch<LocaleProvider>().translate('sett_subtitle_rate'),
+                            title: lp.translate('sett_btn_rate'),
+                            subtitle: lp.translate('sett_subtitle_rate'),
                             onTap: _rateApp,
                             trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFFCBD5E1)),
                           ),
@@ -583,12 +668,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           _buildSettingRow(
                             icon: Icons.apps_rounded,
                             iconColor: Colors.purple,
-                            title: context.watch<LocaleProvider>().translate('sett_btn_other_apps'),
-                            subtitle: context.watch<LocaleProvider>().translate('sett_subtitle_other_apps'),
+                            title: lp.translate('sett_btn_other_apps'),
+                            subtitle: lp.translate('sett_subtitle_other_apps'),
                             onTap: _openOtherApps,
                             trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFFCBD5E1)),
                           ),
-                          if (context.read<UserProvider>().isPremium) ...[
+                          if (isPremium) ...[
                             const Divider(height: 1, color: Color(0xFFF1F5F9), indent: 70),
                             _buildSettingRow(
                               icon: Icons.picture_as_pdf_rounded,

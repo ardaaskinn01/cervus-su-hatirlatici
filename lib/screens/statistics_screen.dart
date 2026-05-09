@@ -6,6 +6,8 @@ import '../models/drink_model.dart';
 import '../providers/locale_provider.dart';
 import 'today_records_screen.dart';
 import 'history_screen.dart';
+import '../services/report_service.dart';
+import '../providers/user_provider.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -67,12 +69,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
           IconButton(
             icon: Icon(Icons.list_alt_rounded, color: _tabController.index == 0 ? const Color(0xFF0EA5E9) : primaryOrange),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TodayRecordsScreen())),
-            tooltip: 'Bugün',
+            tooltip: context.read<LocaleProvider>().translate('hist_today'),
           ),
           IconButton(
             icon: const Icon(Icons.calendar_month_rounded, color: Color(0xFF64748B)),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen())),
-            tooltip: 'Geçmiş',
+            tooltip: context.read<LocaleProvider>().translate('hist_title'),
           ),
           const SizedBox(width: 8),
         ],
@@ -155,6 +157,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
               );
             },
           ),
+          const SizedBox(height: 36),
+          _buildReportButton(context.watch<LocaleProvider>()),
           const SizedBox(height: 48),
         ],
       ),
@@ -232,6 +236,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
               else
                 _buildTypesDistribution(types, lp),
 
+              const SizedBox(height: 36),
+              _buildReportButton(lp),
               const SizedBox(height: 48),
             ],
           );
@@ -293,7 +299,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
   }
 
   Widget _buildBarChart(List<double> data, double limit, String unit, Color baseColor) {
-    final days = ['P', 'S', 'Ç', 'P', 'C', 'C', 'P'];
+    final lp = context.read<LocaleProvider>();
+    final days = [
+      lp.translate('stats_day_mon'),
+      lp.translate('stats_day_tue'),
+      lp.translate('stats_day_wed'),
+      lp.translate('stats_day_thu'),
+      lp.translate('stats_day_fri'),
+      lp.translate('stats_day_sat'),
+      lp.translate('stats_day_sun'),
+    ];
     double maxData = data.isEmpty ? 0 : data.reduce((a, b) => a > b ? a : b);
     double highest = maxData > limit ? maxData : limit;
     if (highest == 0) highest = 1;
@@ -463,7 +478,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                   children: [
                     Text('$streak', style: const TextStyle(fontSize: 48, color: Colors.white, fontWeight: FontWeight.w900, height: 1.0, letterSpacing: -2)),
                     const SizedBox(width: 8),
-                    Text('GÜN', style: TextStyle(fontSize: 18, color: Colors.white.withValues(alpha: 0.8), fontWeight: FontWeight.bold)),
+                    Text(context.watch<LocaleProvider>().translate('stats_unit_day'), style: TextStyle(fontSize: 18, color: Colors.white.withValues(alpha: 0.8), fontWeight: FontWeight.bold)),
                   ],
                 ),
               ],
@@ -476,7 +491,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
   }
 
   Widget _buildWeeklyGrid(List<bool> consistency) {
-    final days = ['P', 'S', 'Ç', 'P', 'C', 'C', 'P'];
+    final lp = context.read<LocaleProvider>();
+    final days = [
+      lp.translate('stats_day_mon'),
+      lp.translate('stats_day_tue'),
+      lp.translate('stats_day_wed'),
+      lp.translate('stats_day_thu'),
+      lp.translate('stats_day_fri'),
+      lp.translate('stats_day_sat'),
+      lp.translate('stats_day_sun'),
+    ];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
       decoration: BoxDecoration(
@@ -541,6 +565,79 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                 Text(description, style: TextStyle(fontSize: 13, color: secondaryText, height: 1.5, fontWeight: FontWeight.w500)),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReportButton(LocaleProvider lp) {
+    bool isPremium = context.watch<UserProvider>().isPremium;
+    return InkWell(
+      onTap: () {
+        if (isPremium) {
+          ReportService.generateAndShare(
+            context: context,
+            waterProvider: context.read<WaterProvider>(),
+            drinkProvider: context.read<DrinkProvider>(),
+            isTr: lp.locale.languageCode == 'tr',
+          );
+        } else {
+          _showPremiumOnlyDialog(lp);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFF1F5F9)),
+          boxShadow: const [BoxShadow(color: Color(0x33E2E8F0), blurRadius: 20, offset: Offset(0, 10))],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: const Color(0xFF0EA5E9).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
+              child: const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFF0EA5E9), size: 28),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(lp.translate('report_btn_title'), style: TextStyle(fontWeight: FontWeight.w900, color: primaryText, fontSize: 16)),
+                  Text(lp.translate('report_btn_subtitle'), style: TextStyle(color: secondaryText, fontSize: 12, fontWeight: FontWeight.w500)),
+                ],
+              ),
+            ),
+            if (!isPremium)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(color: Colors.amber.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                child: const Text("PRO", style: TextStyle(color: Colors.amber, fontWeight: FontWeight.w900, fontSize: 10)),
+              ),
+            const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPremiumOnlyDialog(LocaleProvider lp) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(lp.translate('pro_or_ad')),
+        content: Text(lp.translate('premium_upgrade_desc')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(lp.translate('update_btn_later'))),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              // Profil ekranına yönlendirilebilir
+            },
+            child: Text(lp.translate('premium_btn_upgrade')),
           ),
         ],
       ),
