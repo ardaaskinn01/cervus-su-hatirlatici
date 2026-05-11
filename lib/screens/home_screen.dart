@@ -110,179 +110,120 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 32),
 
-              // 3-Cup System
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   // Left Cup (Caffeine)
-                  Column(
-                    children: [
-                      ClipPath(
-                        clipper: _CupClipper(),
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          color: const Color(0xFFE2E8F0),
-                          child: Stack(
-                            alignment: Alignment.bottomCenter,
-                            children: [
-                              FractionallySizedBox(
-                                heightFactor: (dp.dailyCaffeine /
-                                        DrinkProvider.caffeineLimit)
-                                    .clamp(0.0, 1.0),
-                                widthFactor: 1.0,
-                                child: Container(color: const Color(0xFFE8590C)),
-                              ),
-                              Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      '${dp.dailyCaffeine.round()} mg',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.black87,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    Text(
-                                      '/ ${DrinkProvider.caffeineLimit.toInt()} mg',
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        lp.translate('drink_caffeine'),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 16),
-
-                  // Middle Cup (Water)
-                  Column(
-                    children: [
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          ClipPath(
-                            clipper: _CupClipper(),
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      children: [
+                        ClipPath(
+                          clipper: _CupClipper(),
+                          child: Container(
+                            height: 80,
+                            color: const Color(0xFFE2E8F0),
                             child: Stack(
+                              alignment: Alignment.bottomCenter,
                               children: [
-                                Container(
-                                  width: 160,
-                                  height: 160,
-                                  color: const Color(0xFFE2E8F0),
+                                FractionallySizedBox(
+                                  heightFactor: (dp.dailyCaffeine / DrinkProvider.caffeineLimit).clamp(0.0, 1.0),
+                                  widthFactor: 1.0,
+                                  child: Container(color: const Color(0xFFE8590C)),
                                 ),
-                                WaterWaveProgress(progress: progress, size: 160),
+                                Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text('${dp.dailyCaffeine.round()} mg', style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.black87, fontSize: 16)),
+                                      Text('/ ${DrinkProvider.caffeineLimit.toInt()} mg', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${waterProvider.currentIntake}',
-                                style: const TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.w900,
-                                  color: Color(0xFF0F172A),
-                                  letterSpacing: -1,
-                                ),
-                              ),
-                              Text(
-                                '/ ${waterProvider.dailyGoal} ml',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(
-                                    0xFF64748B,
-                                  ).withValues(alpha: 0.7),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        lp.translate('nav_water'),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF64748B),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Text(lp.translate('drink_caffeine'), style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 13), textAlign: TextAlign.center),
+                      ],
+                    ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
+
+                  // Middle Cup (Water)
+                  Expanded(
+                    flex: 4,
+                    child: Column(
+                      children: [
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            ClipPath(
+                              clipper: _CupClipper(),
+                              child: Stack(
+                                children: [
+                                  Container(
+                                    width: double.infinity,
+                                    height: 160,
+                                    color: const Color(0xFFE2E8F0),
+                                  ),
+                                  WaterWaveProgress(progress: progress, size: 160),
+                                ],
+                              ),
+                            ),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text('${waterProvider.currentIntake}', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: -1)),
+                                Text('/ ${waterProvider.dailyGoal} ml', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF64748B).withValues(alpha: 0.7))),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(lp.translate('nav_water'), style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 13), textAlign: TextAlign.center),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
 
                   // Right Cup (Sugar)
-                  Column(
-                    children: [
-                      ClipPath(
-                        clipper: _CupClipper(),
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          color: const Color(0xFFE2E8F0),
-                          child: Stack(
-                            alignment: Alignment.bottomCenter,
-                            children: [
-                              FractionallySizedBox(
-                                heightFactor: (dp.dailySugar /
-                                        DrinkProvider.sugarLimit)
-                                    .clamp(0.0, 1.0),
-                                widthFactor: 1.0,
-                                child: Container(color: Colors.amber.shade700),
-                              ),
-                              Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      '${dp.dailySugar.round()} g',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.black87,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    Text(
-                                      '/ ${DrinkProvider.sugarLimit.toInt()} g',
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      children: [
+                        ClipPath(
+                          clipper: _CupClipper(),
+                          child: Container(
+                            height: 80,
+                            color: const Color(0xFFE2E8F0),
+                            child: Stack(
+                              alignment: Alignment.bottomCenter,
+                              children: [
+                                FractionallySizedBox(
+                                  heightFactor: (dp.dailySugar / DrinkProvider.sugarLimit).clamp(0.0, 1.0),
+                                  widthFactor: 1.0,
+                                  child: Container(color: Colors.amber.shade700),
                                 ),
-                              ),
-                            ],
+                                Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text('${dp.dailySugar.round()} g', style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.black87, fontSize: 16)),
+                                      Text('/ ${DrinkProvider.sugarLimit.toInt()} g', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        lp.translate('drink_sugar'),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Text(lp.translate('drink_sugar'), style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 13), textAlign: TextAlign.center),
+                      ],
+                    ),
                   ),
                 ],
               ),

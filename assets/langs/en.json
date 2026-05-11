@@ -203,5 +203,14 @@
   "onb_error_generic": "An error occurred: ",
   "onb_privacy_check_hint": "Please check the box to continue.",
   "premium_title_pro": "DRINKLY PRO",
-  "premium_title_free": "DRINKLY FREE"
+  "premium_title_free": "Free Plan",
+  "stats_monthly": "Last 30 Days",
+  "monthly_summary_text": "Overview of your water goals for the last 30 days",
+  "report_daily_title": "Daily Report",
+  "report_daily_subtitle": "Summary of your liquid intake today",
+  "report_weekly_title": "Weekly Health Analysis",
+  "report_weekly_subtitle": "Detailed comparison of the last 7 days",
+  "report_monthly_title": "Monthly Progress Report",
+  "report_monthly_subtitle": "Comprehensive 30-day health overview",
+  "premium_report_upgrade_desc": "Get Weekly and Monthly health analysis reports with Drinkly PRO! Keep your health under control with detailed statistics."
 }

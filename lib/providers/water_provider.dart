@@ -29,6 +29,7 @@ class WaterProvider extends ChangeNotifier {
   int _dailyGoal = 2000;
   List<SuKaydi> _todayRecords = [];
 
+  UserModel? get user => _user;
 
   int get currentIntake => _currentIntake;
   int get dailyGoal => _dailyGoal;
@@ -273,5 +274,31 @@ class WaterProvider extends ChangeNotifier {
       'rate': ((success / count) * 100).round(),
       'status': count < 3 ? 'stats_status_analyzing' : (success / count > 0.7 ? 'stats_status_stable' : 'stats_status_low'),
     };
+  }
+
+  Future<List<bool>> getMonthlyHistory() async {
+    if (_user == null) return List.filled(30, false);
+    final snaps = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_user!.firebaseId)
+        .collection('gunler')
+        .orderBy('tarih', descending: true)
+        .limit(30)
+        .get();
+
+    final Map<String, bool> dataMap = {};
+    for (var doc in snaps.docs) {
+      final d = doc.data();
+      final goalMet = (d['gunlukMiktar'] as num? ?? 0) >= (d['hedef'] as num? ?? _dailyGoal);
+      dataMap[d['tarih']] = goalMet;
+    }
+
+    final List<bool> result = [];
+    final now = DateTime.now();
+    for (int i = 0; i < 30; i++) {
+      final day = _formatDate(now.subtract(Duration(days: i)));
+      result.add(dataMap[day] ?? false);
+    }
+    return result;
   }
 }

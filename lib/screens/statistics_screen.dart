@@ -18,6 +18,7 @@ class StatisticsScreen extends StatefulWidget {
 
 class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerProviderStateMixin {
   late Future<List<bool>> _weeklyFuture;
+  late Future<List<bool>> _monthlyFuture;
   late Future<Map<String, dynamic>> _statsFuture;
   late Future<Map<String, dynamic>> _drinkStatsFuture;
 
@@ -45,6 +46,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
     final wp = context.read<WaterProvider>();
     final dp = context.read<DrinkProvider>();
     _weeklyFuture = wp.getWeeklyConsistency();
+    _monthlyFuture = wp.getMonthlyHistory();
     _statsFuture = wp.getAdvancedStats();
     _drinkStatsFuture = dp.getWeeklyStats();
   }
@@ -157,8 +159,21 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
               );
             },
           ),
+
+          _buildHeadline(context.watch<LocaleProvider>().translate('stats_monthly')),
+          FutureBuilder<List<bool>>(
+            future: _monthlyFuture,
+            builder: (context, snap) {
+              if (!snap.hasData) return Center(child: Padding(padding: const EdgeInsets.all(32), child: CircularProgressIndicator(color: accentColor)));
+              return _buildMonthlyGrid(snap.data!);
+            },
+          ),
           const SizedBox(height: 36),
-          _buildReportButton(context.watch<LocaleProvider>()),
+          _buildReportButton(context.watch<LocaleProvider>(), ReportService.ReportPeriod.daily),
+          const SizedBox(height: 12),
+          _buildReportButton(context.watch<LocaleProvider>(), ReportService.ReportPeriod.weekly),
+          const SizedBox(height: 12),
+          _buildReportButton(context.watch<LocaleProvider>(), ReportService.ReportPeriod.monthly),
           const SizedBox(height: 48),
         ],
       ),
@@ -237,7 +252,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                 _buildTypesDistribution(types, lp),
 
               const SizedBox(height: 36),
-              _buildReportButton(lp),
+              _buildReportButton(lp, ReportService.ReportPeriod.daily),
+              const SizedBox(height: 12),
+              _buildReportButton(lp, ReportService.ReportPeriod.weekly),
+              const SizedBox(height: 12),
+              _buildReportButton(lp, ReportService.ReportPeriod.monthly),
               const SizedBox(height: 48),
             ],
           );
@@ -571,47 +590,62 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildReportButton(LocaleProvider lp) {
+  Widget _buildReportButton(LocaleProvider lp, ReportService.ReportPeriod period) {
     bool isPremium = context.watch<UserProvider>().isPremium;
+    bool isFree = period == ReportService.ReportPeriod.daily;
+    
+    String titleKey = period == ReportService.ReportPeriod.daily ? 'report_daily_title' : 
+                     (period == ReportService.ReportPeriod.weekly ? 'report_weekly_title' : 'report_monthly_title');
+    String subKey = period == ReportService.ReportPeriod.daily ? 'report_daily_subtitle' : 
+                   (period == ReportService.ReportPeriod.weekly ? 'report_weekly_subtitle' : 'report_monthly_subtitle');
+
     return InkWell(
       onTap: () {
-        if (isPremium) {
+        if (isFree || isPremium) {
           ReportService.generateAndShare(
             context: context,
             waterProvider: context.read<WaterProvider>(),
             drinkProvider: context.read<DrinkProvider>(),
             isTr: lp.locale.languageCode == 'tr',
+            period: period,
           );
         } else {
           _showPremiumOnlyDialog(lp);
         }
       },
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: const Color(0xFFF1F5F9)),
-          boxShadow: const [BoxShadow(color: Color(0x33E2E8F0), blurRadius: 20, offset: Offset(0, 10))],
+          boxShadow: const [BoxShadow(color: Color(0x11000000), blurRadius: 10, offset: Offset(0, 4))],
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: const Color(0xFF0EA5E9).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
-              child: const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFF0EA5E9), size: 28),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: (isFree ? const Color(0xFF10B981) : const Color(0xFF0EA5E9)).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12)
+              ),
+              child: Icon(
+                period == ReportService.ReportPeriod.daily ? Icons.today_rounded : Icons.picture_as_pdf_rounded, 
+                color: isFree ? const Color(0xFF10B981) : const Color(0xFF0EA5E9), 
+                size: 24
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(lp.translate('report_btn_title'), style: TextStyle(fontWeight: FontWeight.w900, color: primaryText, fontSize: 16)),
-                  Text(lp.translate('report_btn_subtitle'), style: TextStyle(color: secondaryText, fontSize: 12, fontWeight: FontWeight.w500)),
+                  Text(lp.translate(titleKey), style: TextStyle(fontWeight: FontWeight.w900, color: primaryText, fontSize: 15)),
+                  Text(lp.translate(subKey), style: TextStyle(color: secondaryText, fontSize: 11, fontWeight: FontWeight.w500)),
                 ],
               ),
             ),
-            if (!isPremium)
+            if (!isFree && !isPremium)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(color: Colors.amber.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
@@ -628,16 +662,66 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(lp.translate('pro_or_ad')),
-        content: Text(lp.translate('premium_upgrade_desc')),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(lp.translate('pro_or_ad'), style: const TextStyle(fontWeight: FontWeight.w900)),
+        content: Text(lp.translate('premium_report_upgrade_desc')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(lp.translate('update_btn_later'))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(lp.translate('update_btn_later'), style: TextStyle(color: secondaryText))),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: accentColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             onPressed: () {
               Navigator.pop(ctx);
-              // Profil ekranına yönlendirilebilir
+              // ProfileScreen genellikle 3. tab (veya ayarlar butonu ile gidiliyor), navigasyon yapısını bildiğimizi varsayıyoruz
             },
             child: Text(lp.translate('premium_btn_upgrade')),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _buildMonthlyGrid(List<bool> history) {
+    // 30 günlük veriyi 5x6 veya 6x5 grid olarak gösterelim
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+      ),
+      child: Column(
+        children: [
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 6,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+            ),
+            itemCount: history.length,
+            itemBuilder: (context, index) {
+              bool success = history[index];
+              return Container(
+                decoration: BoxDecoration(
+                  color: success ? accentColor.withValues(alpha: 0.1) : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: success ? accentColor.withValues(alpha: 0.2) : Colors.transparent),
+                ),
+                child: Center(
+                  child: Icon(
+                    success ? Icons.check_rounded : Icons.close_rounded,
+                    size: 12,
+                    color: success ? accentColor : const Color(0xFF94A3B8),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+          Text(
+            context.watch<LocaleProvider>().translate('monthly_summary_text'),
+            style: TextStyle(fontSize: 12, color: secondaryText, fontWeight: FontWeight.w500),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

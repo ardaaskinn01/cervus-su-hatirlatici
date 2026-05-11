@@ -203,7 +203,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           package: monthly,
                           title: isTr ? "Aylık" : "Monthly",
                           price: monthly.storeProduct.priceString,
-                          subtitle: isTr ? "Her ay yenilenir" : "Renews every month",
+                          subtitle: isTr ? "1 Aylık Abonelik" : "1 Month Subscription",
                           isPopular: false,
                           isTr: isTr,
                         ),
@@ -212,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           package: yearly,
                           title: isTr ? "Yıllık" : "Yearly",
                           price: yearly.storeProduct.priceString,
-                          subtitle: isTr ? "En maliyet etkin seçim" : "Best value for money",
+                          subtitle: isTr ? "1 Yıllık Abonelik" : "1 Year Subscription",
                           isPopular: true,
                           originalPrice: isTr ? "599.99 ₺" : "\$35.99",
                           isTr: isTr,
@@ -235,19 +235,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   TextButton(
                     onPressed: () => launchUrl(Uri.parse("https://cervusdigital.com/drinkly/privacy-policy/")),
-                    child: Text(isTr ? "Gizlilik" : "Privacy Policy", style: TextStyle(color: secondaryText.withValues(alpha: 0.5), fontSize: 11)),
+                    child: Text(isTr ? "Gizlilik Politikası" : "Privacy Policy", style: TextStyle(color: accentColor, fontSize: 13, fontWeight: FontWeight.bold)),
                   ),
-                  const Text("|", style: TextStyle(color: Color(0x4D64748B))),
+                  const Text(" • ", style: TextStyle(color: Color(0x4D64748B))),
                   TextButton(
                     onPressed: () => launchUrl(Uri.parse("https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")),
-                    child: Text(isTr ? "Kullanım Koşulları" : "Terms of Use", style: TextStyle(color: secondaryText.withValues(alpha: 0.5), fontSize: 11)),
+                    child: Text(isTr ? "Kullanım Koşulları (EULA)" : "Terms of Use (EULA)", style: TextStyle(color: accentColor, fontSize: 13, fontWeight: FontWeight.bold)),
                   ),
                 ]),
+                const SizedBox(height: 8),
                 Text(
-                  isTr ? "Abonelikler otomatik yenilenir. İptal edilmediği sürece seçilen dönem sonunda ücret tahsil edilir." : "Subscriptions renew automatically unless cancelled.",
+                  isTr 
+                    ? "Ödeme, satın alma onayının ardından Apple ID hesabınızdan tahsil edilecektir. Abonelik, mevcut dönemin bitiminden en az 24 saat önce iptal edilmediği sürece otomatik olarak yenilenir. Yenileme ücreti mevcut dönemin bitiminden 24 saat önce hesabınızdan tahsil edilecektir. Aboneliklerinizi App Store hesap ayarlarınızdan yönetebilir ve iptal edebilirsiniz." 
+                    : "Payment will be charged to your Apple ID account at the confirmation of purchase. The subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period. You can manage and cancel your subscriptions by going to your App Store account settings after purchase.",
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: secondaryText.withValues(alpha: 0.4), fontSize: 10),
+                  style: TextStyle(color: secondaryText.withValues(alpha: 0.6), fontSize: 11),
                 ),
+                const SizedBox(height: 16),
+
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () async { 

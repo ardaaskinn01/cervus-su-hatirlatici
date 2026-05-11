@@ -203,5 +203,14 @@
   "onb_error_generic": "Bir hata oluştu: ",
   "onb_privacy_check_hint": "Devam etmek için kutucuğu işaretleyin.",
   "premium_title_pro": "DRINKLY PRO",
-  "premium_title_free": "DRINKLY FREE"
+  "premium_title_free": "Ücretsiz Plan",
+  "stats_monthly": "Son 30 Gün",
+  "monthly_summary_text": "Son 30 günlük su hedeflerinizin genel görünümü",
+  "report_daily_title": "Günlük Rapor",
+  "report_daily_subtitle": "Bugünkü tüm sıvı tüketiminizin özeti",
+  "report_weekly_title": "Haftalık Sağlık Analizi",
+  "report_weekly_subtitle": "Son 7 günün detaylı karşılaştırması",
+  "report_monthly_title": "Aylık Gelişim Raporu",
+  "report_monthly_subtitle": "30 günlük kapsamlı sağlık genel bakışı",
+  "premium_report_upgrade_desc": "Haftalık ve Aylık sağlık analizi raporlarını Drinkly PRO ile alın! Detaylı istatistiklerle sağlığınızı kontrol altında tutun."
 }
