@@ -12,6 +12,13 @@ import '../providers/drink_provider.dart';
 
   enum ReportPeriod { daily, weekly, monthly }
 
+class ReportService {
+  static const PdfColor primaryColor = PdfColor.fromInt(0xFF0EA5E9);
+  static const PdfColor secondaryColor = PdfColor.fromInt(0xFF64748B);
+  static const PdfColor successColor = PdfColor.fromInt(0xFF22C55E);
+  static const PdfColor warningColor = PdfColor.fromInt(0xFFF59E0B);
+  static const PdfColor lightBg = PdfColor.fromInt(0xFFF8FAFC);
+
   static Future<void> generateAndShare({
     required material.BuildContext context,
     required WaterProvider waterProvider,
@@ -34,9 +41,7 @@ import '../providers/drink_provider.dart';
     List<double> cafData = [];
     List<double> sugData = [];
 
-    // Verileri çek
-    final weeklyStats = await drinkProvider.getWeeklyStats(); // Not: Weekly stats 7 gün döner, monthly için döngü kuracağız
-    
+
     if (period == ReportPeriod.daily) {
       dayLabels = [(isTr ? 'Bugün' : 'Today')];
       waterData = [waterProvider.currentIntake];
@@ -185,7 +190,6 @@ import '../providers/drink_provider.dart';
       cellAlignment: pw.Alignment.center,
       rowDecoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey100))),
       cellPadding: const pw.EdgeInsets.all(6),
-      alternateRowDecoration: const pw.BoxDecoration(color: lightBg),
     );
   }
 
@@ -220,17 +224,4 @@ import '../providers/drink_provider.dart';
     );
   }
 
-  static pw.Widget _buildStyledTable(List<String> headers, List<String> data, PdfColor accent) {
-    return pw.TableHelper.fromTextArray(
-      headers: headers,
-      data: [data],
-      border: null,
-      headerStyle: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 10),
-      headerDecoration: pw.BoxDecoration(color: accent, borderRadius: const pw.BorderRadius.vertical(top: pw.Radius.circular(6))),
-      cellStyle: const pw.TextStyle(fontSize: 10),
-      cellAlignment: pw.Alignment.center,
-      rowDecoration: pw.BoxDecoration(color: lightBg, border: const pw.Border(bottom: pw.BorderSide(color: PdfColors.grey100))),
-      cellPadding: const pw.EdgeInsets.all(8),
-    );
-  }
 }

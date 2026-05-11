@@ -1,0 +1,32 @@
+Analyzing suhatirlatici...                                      
+
+   info - The import of 'package:purchases_flutter/purchases_flutter.dart' is unnecessary because all of the used elements are also provided by the import of '../services/revenuecat_service.dart' - lib\screens\profile_screen.dart:12:8 - unnecessary_import
+  error - The getter 'ReportPeriod' isn't defined for the type 'ReportService' - lib\screens\statistics_screen.dart:172:77 - undefined_getter
+  error - The getter 'ReportPeriod' isn't defined for the type 'ReportService' - lib\screens\statistics_screen.dart:174:77 - undefined_getter
+  error - The getter 'ReportPeriod' isn't defined for the type 'ReportService' - lib\screens\statistics_screen.dart:176:77 - undefined_getter
+  error - The getter 'ReportPeriod' isn't defined for the type 'ReportService' - lib\screens\statistics_screen.dart:255:52 - undefined_getter
+  error - The getter 'ReportPeriod' isn't defined for the type 'ReportService' - lib\screens\statistics_screen.dart:257:52 - undefined_getter
+  error - The getter 'ReportPeriod' isn't defined for the type 'ReportService' - lib\screens\statistics_screen.dart:259:52 - undefined_getter
+  error - ReportService.ReportPeriod isn't a type - lib\screens\statistics_screen.dart:593:48 - not_a_type
+  error - The getter 'ReportPeriod' isn't defined for the type 'ReportService' - lib\screens\statistics_screen.dart:595:43 - undefined_getter
+  error - The getter 'ReportPeriod' isn't defined for the type 'ReportService' - lib\screens\statistics_screen.dart:597:47 - undefined_getter
+  error - The getter 'ReportPeriod' isn't defined for the type 'ReportService' - lib\screens\statistics_screen.dart:598:47 - undefined_getter
+  error - The getter 'ReportPeriod' isn't defined for the type 'ReportService' - lib\screens\statistics_screen.dart:599:45 - undefined_getter
+  error - The getter 'ReportPeriod' isn't defined for the type 'ReportService' - lib\screens\statistics_screen.dart:600:45 - undefined_getter
+  error - The getter 'ReportPeriod' isn't defined for the type 'ReportService' - lib\screens\statistics_screen.dart:633:41 - undefined_getter
+  error - Enums can't be declared inside classes - lib\services\report_service.dart:20:3 - enum_in_class
+  error - Undefined class 'ReportPeriod' - lib\services\report_service.dart:27:5 - undefined_class
+  error - Undefined name 'ReportPeriod' - lib\services\report_service.dart:27:27 - undefined_identifier
+  error - Undefined name 'ReportPeriod' - lib\services\report_service.dart:37:30 - undefined_identifier
+  error - Undefined name 'ReportPeriod' - lib\services\report_service.dart:37:66 - undefined_identifier
+warning - The value of the local variable 'weeklyStats' isn't used - lib\services\report_service.dart:45:11 - unused_local_variable
+  error - Undefined name 'ReportPeriod' - lib\services\report_service.dart:47:19 - undefined_identifier
+  error - Undefined name 'ReportPeriod' - lib\services\report_service.dart:92:19 - undefined_identifier
+  error - Undefined name 'ReportPeriod' - lib\services\report_service.dart:93:19 - undefined_identifier
+   info - 'Share' is deprecated and shouldn't be used. Use SharePlus instead - lib\services\report_service.dart:164:11 - deprecated_member_use
+   info - 'shareXFiles' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead - lib\services\report_service.dart:164:17 - deprecated_member_use
+  error - Undefined class 'ReportPeriod' - lib\services\report_service.dart:167:123 - undefined_class
+warning - The declaration '_buildStyledTable' isn't referenced - lib\services\report_service.dart:229:20 - unused_element
+   info - 'purchasePackage' is deprecated and shouldn't be used. Use purchase(PurchaseParams) - lib\services\revenuecat_service.dart:54:38 - deprecated_member_use
+warning - The value of the local variable 'topLimit' isn't used - lib\widgets\water_wave_progress.dart:158:12 - unused_local_variable
+

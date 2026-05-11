@@ -169,11 +169,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
             },
           ),
           const SizedBox(height: 36),
-          _buildReportButton(context.watch<LocaleProvider>(), ReportService.ReportPeriod.daily),
+          _buildReportButton(context.watch<LocaleProvider>(), ReportPeriod.daily),
           const SizedBox(height: 12),
-          _buildReportButton(context.watch<LocaleProvider>(), ReportService.ReportPeriod.weekly),
+          _buildReportButton(context.watch<LocaleProvider>(), ReportPeriod.weekly),
           const SizedBox(height: 12),
-          _buildReportButton(context.watch<LocaleProvider>(), ReportService.ReportPeriod.monthly),
+          _buildReportButton(context.watch<LocaleProvider>(), ReportPeriod.monthly),
           const SizedBox(height: 48),
         ],
       ),
@@ -252,11 +252,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                 _buildTypesDistribution(types, lp),
 
               const SizedBox(height: 36),
-              _buildReportButton(lp, ReportService.ReportPeriod.daily),
+              _buildReportButton(lp, ReportPeriod.daily),
               const SizedBox(height: 12),
-              _buildReportButton(lp, ReportService.ReportPeriod.weekly),
+              _buildReportButton(lp, ReportPeriod.weekly),
               const SizedBox(height: 12),
-              _buildReportButton(lp, ReportService.ReportPeriod.monthly),
+              _buildReportButton(lp, ReportPeriod.monthly),
               const SizedBox(height: 48),
             ],
           );
@@ -590,14 +590,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildReportButton(LocaleProvider lp, ReportService.ReportPeriod period) {
+  Widget _buildReportButton(LocaleProvider lp, ReportPeriod period) {
     bool isPremium = context.watch<UserProvider>().isPremium;
-    bool isFree = period == ReportService.ReportPeriod.daily;
+    bool isFree = period == ReportPeriod.daily;
     
-    String titleKey = period == ReportService.ReportPeriod.daily ? 'report_daily_title' : 
-                     (period == ReportService.ReportPeriod.weekly ? 'report_weekly_title' : 'report_monthly_title');
-    String subKey = period == ReportService.ReportPeriod.daily ? 'report_daily_subtitle' : 
-                   (period == ReportService.ReportPeriod.weekly ? 'report_weekly_subtitle' : 'report_monthly_subtitle');
+    String titleKey = period == ReportPeriod.daily ? 'report_daily_title' : 
+                     (period == ReportPeriod.weekly ? 'report_weekly_title' : 'report_monthly_title');
+    String subKey = period == ReportPeriod.daily ? 'report_daily_subtitle' : 
+                   (period == ReportPeriod.weekly ? 'report_weekly_subtitle' : 'report_monthly_subtitle');
 
     return InkWell(
       onTap: () {
@@ -630,7 +630,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                 borderRadius: BorderRadius.circular(12)
               ),
               child: Icon(
-                period == ReportService.ReportPeriod.daily ? Icons.today_rounded : Icons.picture_as_pdf_rounded, 
+                period == ReportPeriod.daily ? Icons.today_rounded : Icons.picture_as_pdf_rounded, 
                 color: isFree ? const Color(0xFF10B981) : const Color(0xFF0EA5E9), 
                 size: 24
               ),
