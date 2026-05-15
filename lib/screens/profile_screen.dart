@@ -214,7 +214,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           price: yearly.storeProduct.priceString,
                           subtitle: isTr ? "1 Yıllık Abonelik" : "1 Year Subscription",
                           isPopular: true,
-                          originalPrice: isTr ? "599.99 ₺" : "\$35.99",
+                          originalPrice: yearly.storeProduct.currencyCode == 'TRY' ? "599.99 ₺" : "\$35.99",
                           isTr: isTr,
                         ),
                       if (lifetime != null) 

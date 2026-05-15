@@ -114,7 +114,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
       // İşlemler biter bitmez yönlendir (Timer'ı bekleme)
       if (mounted && !_isNavigated) {
-        await Future.delayed(const Duration(milliseconds: 1000));
+        await Future.delayed(const Duration(milliseconds: 400));
         await _checkVersionAndNavigate();
       }
     } catch (e) {
@@ -247,6 +247,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 const Text(
                   'DRINKLY',
                   style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900, letterSpacing: 8, color: Colors.white),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Su Hatırlatıcı'.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 14, 
+                    fontWeight: FontWeight.w800, 
+                    letterSpacing: 4, 
+                    color: Colors.white.withValues(alpha: 0.8),
+                  ),
                 ),
                 const SizedBox(height: 50),
                 const CircularProgressIndicator(

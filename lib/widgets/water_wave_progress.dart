@@ -41,28 +41,12 @@ class _WaterWaveProgressState extends State<WaterWaveProgress> with TickerProvid
     bool isOverflow = widget.progress > 1.0;
     
     return SizedBox(
-      width: widget.size,
+      width: double.infinity,
       height: widget.size,
       child: Stack(
         clipBehavior: Clip.none, // Dışarı taşacak su damlaları için
         alignment: Alignment.center,
         children: [
-          // ─── Arkaplan Glow ──────────────────────────────────────────
-          Container(
-            width: widget.size * 1.1,
-            height: widget.size * 1.1,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: (isOverflow ? Colors.blue : const Color(0xFF0EA5E9)).withValues(alpha: 0.1),
-                  blurRadius: 40,
-                  spreadRadius: 10,
-                ),
-              ],
-            ),
-          ),
-
           // ─── Sürahi Dış Çerçevesi (Cam) ──────────────────────────────
           CustomPaint(
             size: Size(widget.size, widget.size),
@@ -116,9 +100,6 @@ class PitcherOutlinePainter extends CustomPainter {
 
     final fillPaint = Paint()..color = Colors.white.withValues(alpha: 0.3)..style = PaintingStyle.fill;
 
-    canvas.drawPath(path, fillPaint);
-    canvas.drawPath(path, paint);
-    
     canvas.drawPath(path, fillPaint);
     canvas.drawPath(path, paint);
   }

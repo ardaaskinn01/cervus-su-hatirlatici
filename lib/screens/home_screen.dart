@@ -122,6 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ClipPath(
                           clipper: _CupClipper(),
                           child: Container(
+                            width: double.infinity,
                             height: 80,
                             color: const Color(0xFFE2E8F0),
                             child: Stack(
@@ -197,6 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ClipPath(
                           clipper: _CupClipper(),
                           child: Container(
+                            width: double.infinity,
                             height: 80,
                             color: const Color(0xFFE2E8F0),
                             child: Stack(
@@ -287,8 +289,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Container(
-                              width: 44,
-                              height: 44,
+                              width: MediaQuery.of(context).size.width > 600 ? 64 : 44,
+                              height: MediaQuery.of(context).size.width > 600 ? 64 : 44,
                               decoration: BoxDecoration(
                                 color: const Color(0xFFE2E8F0),
                                 borderRadius: BorderRadius.circular(12),
@@ -305,11 +307,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Center(
                                     child: Text(
                                       '$totalMl',
-                                      style: const TextStyle(
-                                        fontSize: 10,
+                                      style: TextStyle(
+                                        fontSize: MediaQuery.of(context).size.width > 600 ? 14 : 10,
                                         fontWeight: FontWeight.w900,
                                         color: Colors.white,
-                                        shadows: [Shadow(color: Colors.black45, blurRadius: 2)],
+                                        shadows: const [Shadow(color: Colors.black45, blurRadius: 2)],
                                       ),
                                     ),
                                   ),
@@ -319,7 +321,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(height: 4),
                             Text(
                               lp.translate('drink_type_${type.name}'),
-                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+                              style: TextStyle(fontSize: MediaQuery.of(context).size.width > 600 ? 13 : 10, fontWeight: FontWeight.bold, color: const Color(0xFF64748B)),
                             ),
                           ],
                         );
@@ -393,7 +395,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 16),
         ],
         GridView.count(
-          crossAxisCount: 3,
+          crossAxisCount: MediaQuery.of(context).size.width > 600 ? 5 : 3,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 12,
